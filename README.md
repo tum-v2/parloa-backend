@@ -61,15 +61,20 @@
 
 
 <!-- ABOUT THE PROJECT -->
+
 ## About The Project
 
-This is a Node.js project built in TypeScript. 
+This is a Node.js project built in TypeScript.
 
-- [![Typescript][Typescript]][Typescript-url]: The project is written in TypeScript, providing strong typing and improved code quality.
+- [![Typescript][Typescript]][Typescript-url]: The project is written in TypeScript, providing strong typing and
+  improved code quality.
 - [![Express][Express]][Express-url]: Utilizes the Express.js framework for building web applications.
-- [![MongoDB][Mongodb]][Mongodb-url] [![Mongoose][Mongoose]][Mongoose-url]: Demonstrates how to work with MongoDB using the Mongoose ODM.
-- [![Azure Cosmos DB][Azurecosmosdb]][Azurecosmosdb-url]: Includes Azure Cosmos support for scalable and globally distributed database.
-- [![ESLint][Eslint]][Eslint-url] [![Prettier][Prettier]][Prettier-url]: Enforces code quality and style with ESLint and Prettier.
+- [![MongoDB][Mongodb]][Mongodb-url] [![Mongoose][Mongoose]][Mongoose-url]: Demonstrates how to work with MongoDB using
+  the Mongoose ODM.
+- [![Azure Cosmos DB][Azurecosmosdb]][Azurecosmosdb-url]: Includes Azure Cosmos support for scalable and globally
+  distributed database.
+- [![ESLint][Eslint]][Eslint-url] [![Prettier][Prettier]][Prettier-url]: Enforces code quality and style with ESLint and
+  Prettier.
 - [![Nodemon][Nodemon]][Nodemon-url]: Auto-reloads the server during development for a seamless development experience.
 - [![Husky][Husky]][Husky-url]: Enforces code quality and formatting checks as part of the development workflow.
 - [![TSDoc][Tsdoc]][Tsdoc-url]: Utilizes TSDoc to generate meaningful API documentation for TypeScript code.
@@ -88,6 +93,7 @@ This is a Node.js project built in TypeScript.
 - lint-staged.config.js: Configuration for lint-staged and Husky.
 
 <!-- GETTING STARTED -->
+
 ## Getting Started
 
 To get a local copy up and running follow these simple example steps.
@@ -110,7 +116,7 @@ To get a local copy up and running follow these simple example steps.
    npm install
    ```
    This will install all the dependencies listed in package.json.
-   
+
 3. Start the development server with Nodemon:
    ```sh
    npm run start:dev
@@ -119,16 +125,18 @@ To get a local copy up and running follow these simple example steps.
 4. Open your web browser and access the application at http://localhost:3000 (or the configured port).
 
 You can also build the application and compile the typescript code without starting the development server, just run:
+
    ```sh
    npm run start
    ```
 
 ### Available Scripts
+
 * **npm run lint**: Run ESLint to check for code quality issues.
 * **npm run format**: Run ESLint with the --fix option to automatically fix code style issues.
 * **npm run build**: Clean the build directory and compile TypeScript files.
 * **npm start**: Build the project and start the server.
-* **npm test**: Placeholder for running tests.
+* **npm test**: Runs all the unit tests in the __tests__ folder.
 * **npm run prepare**: Install Husky hooks during project setup.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
@@ -143,8 +151,12 @@ Actions.
 ### ESLint
 
 - To change the ESLing configuration, see [here](https://eslint.org/docs/latest/use/configure/).
-- To learn more about Next.js and ESLint integration, as well as the rules and formats we are currently using,
-  see [here](https://nextjs.org/docs/pages/building-your-application/configuring/eslint).
+
+You can run ESLint manually by:
+
+```bash
+npm run lint
+```
 
 You can also integrate ESLint with your IDE:
 
@@ -182,12 +194,53 @@ sense.
 
 ### Branch Structure
 
-- Please **don't** merge your branches directly with the `main` branch. There is a `development` branch which you can merge your branches.
+- Please **don't** merge your branches directly with the `main` branch. There is a `development` branch which you can
+  merge your branches.
 - The new branch should be branched off of the `development` branch
 - This will allow for a stable `main` branch in case anything goes wrong with the integration.
 - Development can be merged to main when everybody gives the green light, possible at the end of every sprint.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
+
+## Testing
+
+### Jest
+
+For unit testing and for integration testing, we will use [Jest](https://jestjs.io/) library.
+
+Jest will automatically run every test in the `__tests__` file when you run:
+
+```bash
+npm run test
+```
+
+If you want to run a single test, you can run:
+
+```bash
+npm run test -t "my-test-name"
+```
+
+Jest will only run tests that match the test name pattern you provide. Learn more in
+the [documentation](https://jestjs.io/docs/cli#--testnamepatternregex).
+
+You can also use Jest's `watch mode` by running:
+
+```bash
+npm run test:watch
+```
+
+This will run Jest in watch mode, where you can watch files for changes and rerun tests related to changed files. For
+more detailed information, check the [documentation](https://jestjs.io/docs/cli#--watch).
+
+In order for Jest to compile TypeScript code, we are using ``ts-jest``.
+See [ts-jest Documentation](https://kulshekhar.github.io/ts-jest/docs/getting-started/installation) for more
+information. The necessary configuration should already be defined in ``jest.config.js``.
+
+For more information about Jest configuration,
+see [here](https://jestjs.io/docs/getting-started#additional-configuration).
+
+A common approach to naming tests is to name the test as the same name as the component you are testing, followed by
+a ``.test.ts``.
 
 ## Documentation & Comments
 
@@ -200,11 +253,14 @@ To learn more about `eslint-plugin-tsdoc`, check [here](https://www.npmjs.com/pa
 
 
 <!-- CONTRIBUTING -->
+
 ## Contributing
 
-All changes must be developed on a new branch. Unless otherwise stated, the new branch should be branched off of the development branch. 
+All changes must be developed on a new branch. Unless otherwise stated, the new branch should be branched off of the
+development branch.
 
 **Branch Naming:** Use Linear’s branch name feature!
+
 1. Go to your task’s detail page
 2. Click on the branch icon at the top right of the page to copy the branch’s name
 3. Use that name to create a new branch in your local git repository (`git checkout -b <branch_name>`)
@@ -214,7 +270,8 @@ All changes must be developed on a new branch. Unless otherwise stated, the new 
 
 ### Commits
 
-**Descriptive Commit Messages**: Please provide short but descriptive commit messages for other developers to understand.
+**Descriptive Commit Messages**: Please provide short but descriptive commit messages for other developers to
+understand.
 
 ### Pull Requests
 
@@ -230,31 +287,57 @@ All changes must be developed on a new branch. Unless otherwise stated, the new 
 
 <!-- MARKDOWN LINKS & IMAGES -->
 <!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
+
 [contributors-shield]: https://img.shields.io/github/contributors/tum-v2/parloa-backend.svg?style=for-the-badge
+
 [contributors-url]: https://github.com/tum-v2/parloa-backend/graphs/contributors
+
 [stars-shield]: https://img.shields.io/github/stars/tum-v2/parloa-backend.svg?style=for-the-badge
+
 [stars-url]: https://github.com/tum-v2/parloa-backend/stargazers
+
 [issues-shield]: https://img.shields.io/github/issues/tum-v2/parloa-backend.svg?style=for-the-badge
+
 [issues-url]: https://github.com/tum-v2/parloa-backend/issues
+
 [Typescript]: https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white
+
 [Typescript-url]: https://www.typescriptlang.org/docs/
+
 [Express]: https://img.shields.io/badge/express-000000?style=for-the-badge&logo=express
+
 [Express-url]: https://expressjs.com/
+
 [Mongodb]: https://img.shields.io/badge/MongoDB-4EA94B?style=for-the-badge&logo=mongodb&logoColor=white
+
 [Mongodb-url]: https://www.mongodb.com/
+
 [Mongoose]: https://img.shields.io/badge/mongoose-000000?style=for-the-badge&logo=mongoose
+
 [Mongoose-url]: https://mongoosejs.com/docs/guide.html
+
 [Azurecosmosdb]: https://img.shields.io/badge/azurecosmosdb-000000?style=for-the-badge&logo=azurecosmosdb
+
 [Azurecosmosdb-url]: https://learn.microsoft.com/en-us/azure/cosmos-db/introduction
+
 [Eslint]: https://img.shields.io/badge/eslint-3A33D1?style=for-the-badge&logo=eslint&logoColor=white
+
 [Eslint-url]: https://eslint.org/
+
 [Prettier]: https://img.shields.io/badge/prettier-1A2C34?style=for-the-badge&logo=prettier&logoColor=F7BA3E
+
 [Prettier-url]: https://prettier.io/
+
 [Nodemon]: https://img.shields.io/badge/nodemon-000000?style=for-the-badge&logo=nodemon
+
 [Nodemon-url]: https://www.npmjs.com/package/nodemon
+
 [Husky]: https://img.shields.io/badge/husky-000000?style=for-the-badge&logo=husky
+
 [Husky-url]: https://typicode.github.io/husky/getting-started.html
+
 [Tsdoc]: https://img.shields.io/badge/tsdoc-000000?style=for-the-badge&logo=tsdoc
+
 [Tsdoc-url]: https://tsdoc.org/
 
 
