@@ -8,7 +8,7 @@
     "format": "eslint src/**/*.ts --fix",
     "start:dev": "npx nodemon",
     "build": "rimraf ./build && tsc",
-    "start": "npm run build && node build/index.js",
+    "start": "npm run build && node build/src/index.js",
     "test": "jest",
     "test:watch": "jest --watch",
     "prepare": "husky install"
@@ -45,6 +45,7 @@
   },
   "dependencies": {
     "@types/jest": "^29.5.8",
+    "dotenv": "^16.3.1",
     "eslint-plugin-tsdoc": "^0.2.17"
   }
 }
