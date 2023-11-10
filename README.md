@@ -38,7 +38,7 @@
       <a href="#getting-started">Getting Started</a>
       <ul>
         <li><a href="#prerequisites">Prerequisites</a></li>
-        <li><a href="#installation">Installation</a></li>
+        <li><a href="#installation">Running the Application</a></li>
         <li><a href="#available-scripts">Available Scripts</a></li>
       </ul>
     </li>
@@ -100,13 +100,28 @@ To get a local copy up and running follow these simple example steps.
 
 ### Prerequisites
 
+* Docker: [Install Docker](https://docs.docker.com/get-docker/)
+* Docker Compose: [Install Docker Compose](https://docs.docker.com/compose/install/)
 * npm
   ```sh
   npm install npm@latest -g
   ```
+* .env file with the necessary environment variables
 
-### Installation
+### Running the Application
 
+#### With Docker (Recommended)
+1. Clone the repo
+   ```sh
+   git clone https://github.com/tum-v2/parloa-backend.git
+   ```
+2. Build and start the Docker containers (This will start the Node.js app and MongoDB containers)
+    ```sh
+    docker-compose up
+    ```
+3. Open your web browser and access the application at http://localhost:3000 (or the configured port).
+
+#### Without Docker
 1. Clone the repo
    ```sh
    git clone https://github.com/tum-v2/parloa-backend.git
@@ -138,6 +153,11 @@ You can also build the application and compile the typescript code without start
 * **npm start**: Build the project and start the server.
 * **npm test**: Runs all the unit tests in the __tests__ folder.
 * **npm run prepare**: Install Husky hooks during project setup.
+
+* **docker-compose stop**: Stop the containers.
+* **docker-compose start**: Start the previously stopped containers.
+* **docker compose down**: Stop and remove the Docker containers.
+* **docker-compose down --rmi all**: Not only stop and remove the containers but also delete the images associated with those containers.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
