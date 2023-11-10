@@ -5,7 +5,7 @@ import express, { Request, Response } from 'express';
 
 
 const app = express();
-const port = process.env.NODE_DOCKER_PORT || 8080;
+const port = process.env.NODE_DOCKER_PORT || 3000;
 
 app.get('/', (req: Request, res: Response) => {
   res.send('Hello, TypeScript Express!');
