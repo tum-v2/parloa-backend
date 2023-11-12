@@ -1,8 +1,7 @@
-import dotenv from 'dotenv'; 
-dotenv.config();  // Load environment variables from .env file 
+import dotenv from 'dotenv';
+dotenv.config(); // Load environment variables from .env file
 
 import express, { Request, Response } from 'express';
-
 
 const app = express();
 const port = process.env.NODE_DOCKER_PORT || 3000;
