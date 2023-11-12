@@ -5,27 +5,34 @@ import { Request, Response } from 'express';
 
 import simulationService from '../service/simulation.service';
 
-async function runSimulation(req: Request, res: Response) {
+async function run(req: Request, res: Response) {
   const simulationConfig: SimulationConfig = req.body;
   console.log(simulationConfig);
-  const simulation: Simulation = await simulationService.initSimulation(simulationConfig);
+  const simulation: Simulation = await simulationService.initiate(simulationConfig);
   res.send(simulation);
 }
 
-async function pollSimulation(req: Request, res: Response) {
+async function poll(req: Request, res: Response) {
   const simulationId: string = req.params.id;
-  const simulation = await simulationService.pollSimulation(simulationId);
+  const simulation = await simulationService.poll(simulationId);
   res.send(simulation);
 }
 
-async function getSimulationDetails(req: Request, res: Response) {
+async function getDetails(req: Request, res: Response) {
   const simulationId: string = req.params.id;
-  const simulation = await simulationService.getSimulationDetails(simulationId);
+  const simulation = await simulationService.getDetails(simulationId);
   res.send(simulation);
+}
+
+async function getConversations(req: Request, res: Response) {
+  const simulationId: string = req.params.id;
+  const conversations = await simulationService.getConversations(simulationId);
+  res.send(conversations);
 }
 
 export default {
-  runSimulation,
-  pollSimulation,
-  getSimulationDetails,
+  run,
+  poll,
+  getDetails,
+  getConversations,
 };

@@ -3,7 +3,7 @@ import Simulation from '../model/simulation';
 import SimulationStatus from '../enum/simulation-status';
 
 // Simulation-specific functionality called by controllers or other services
-async function initSimulation(simulationConfig: SimulationConfig) {
+async function initiate(simulationConfig: SimulationConfig) {
   console.log('Simulation initiated...');
   console.log('Configuration:', simulationConfig);
 
@@ -16,13 +16,13 @@ async function initSimulation(simulationConfig: SimulationConfig) {
   return simulation;
 }
 
-async function pollSimulation(simulationId: string) {
+async function poll(simulationId: string) {
   console.log(simulationId);
   // TODO fetch simulation from db
   // TODO trim unnecessary details
 }
 
-async function getSimulationDetails(simulationId: string) {
+async function getDetails(simulationId: string) {
   console.log(simulationId);
   // TODO fetch simulation from db
   // TODO trim unnecessary details
@@ -30,8 +30,15 @@ async function getSimulationDetails(simulationId: string) {
   // return {timeToRun, numOfInteractions, numOfRuns, successRate}
 }
 
+async function getConversations(simulationId: string) {
+  console.log(simulationId);
+
+  // TODO return conversations of a single simulation
+}
+
 export default {
-  initSimulation,
-  pollSimulation,
-  getSimulationDetails,
+  initiate,
+  poll,
+  getDetails,
+  getConversations,
 };
