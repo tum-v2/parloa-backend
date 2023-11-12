@@ -1,5 +1,5 @@
 import { Schema, Document, model, Types } from 'mongoose';
-import { UserModel } from './User'; // Import your User model
+import { UserModel } from './user.model'; // Import your User model
 
 interface OptimizationDocument extends Document {
   user: Types.ObjectId | typeof UserModel;

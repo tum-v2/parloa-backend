@@ -1,14 +1,15 @@
 import { Model } from 'mongoose';
 import { logger } from '../../service/logging-service';
-import { BaseRepository } from './BaseRepository';
-import { AgentDocument } from '../models/Agent';
+import { BaseRepository } from './base.repository';
+import { AgentDocument } from '../models/agent.model';
+import { LLMModel } from '../enum/enums';
 
 class AgentRepository extends BaseRepository<AgentDocument> {
   constructor(model: Model<AgentDocument>) {
     super(model);
   }
 
-  async findByModelName(modelName: string): Promise<AgentDocument[] | null> {
+  async findByModelName(modelName: LLMModel): Promise<AgentDocument[] | null> {
     try {
       const result = await this.model.find({ modelName }).exec();
       if (result.length > 0) {

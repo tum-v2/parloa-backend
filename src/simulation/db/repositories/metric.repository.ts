@@ -1,7 +1,7 @@
 import { Model, Types } from 'mongoose';
 import { logger } from '../../service/logging-service';
-import { BaseRepository } from './BaseRepository';
-import { MetricDocument } from '../models/Metric';
+import { BaseRepository } from './base.repository';
+import { MetricDocument } from '../models/metric.model';
 
 class MetricRepository extends BaseRepository<MetricDocument> {
   constructor(model: Model<MetricDocument>) {

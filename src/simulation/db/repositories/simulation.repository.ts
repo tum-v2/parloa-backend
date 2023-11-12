@@ -1,7 +1,8 @@
 import { Model, Types } from 'mongoose';
 import { logger } from '../../service/logging-service';
-import { BaseRepository } from './BaseRepository';
-import { SimulationDocument } from '../models/Simulation';
+import { BaseRepository } from './base.repository';
+import { SimulationDocument } from '../models/simulation.model';
+import { ConversationDomain, ConversationType, SimulationStatus } from '../enum/enums';
 
 class SimulationRepository extends BaseRepository<SimulationDocument> {
   constructor(model: Model<SimulationDocument>) {
@@ -38,7 +39,7 @@ class SimulationRepository extends BaseRepository<SimulationDocument> {
     }
   }
 
-  async findByConversationType(conversationType: string): Promise<SimulationDocument[]> {
+  async findByConversationType(conversationType: ConversationType): Promise<SimulationDocument[]> {
     try {
       const result = await this.model.find({ conversationType }).exec();
       if (result.length > 0) {
@@ -53,7 +54,7 @@ class SimulationRepository extends BaseRepository<SimulationDocument> {
     }
   }
 
-  async findByConversationDomain(conversationDomain: string): Promise<SimulationDocument[]> {
+  async findByConversationDomain(conversationDomain: ConversationDomain): Promise<SimulationDocument[]> {
     try {
       const result = await this.model.find({ conversationDomain }).exec();
       if (result.length > 0) {
@@ -79,6 +80,21 @@ class SimulationRepository extends BaseRepository<SimulationDocument> {
       return result;
     } catch (error) {
       logger.error(`Error finding simulations by agent: ${agentId}`);
+      throw error;
+    }
+  }
+
+  async findBySimulationStatus(simulationStatus: SimulationStatus): Promise<SimulationDocument[]> {
+    try {
+      const result = await this.model.find({ simulationStatus }).exec();
+      if (result.length > 0) {
+        logger.info(`Simulations found by simulation status: ${result}`);
+      } else {
+        logger.warn(`No simulations found by simulation status: ${simulationStatus}`);
+      }
+      return result;
+    } catch (error) {
+      logger.error(`Error finding simulations by simulation status: ${simulationStatus}`);
       throw error;
     }
   }
