@@ -1,5 +1,5 @@
 import { Schema, Document, model, Types } from 'mongoose';
-import { ConversationModel } from './Conversation'; // Import your Agent model
+import { ConversationModel } from './conversation.model'; // Import your Agent model
 
 interface MetricDocument extends Document {
   conversation: Types.ObjectId | typeof ConversationModel;

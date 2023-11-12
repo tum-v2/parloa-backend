@@ -1,7 +1,7 @@
 import { Model } from 'mongoose';
 import { logger } from '../../service/logging-service';
-import { BaseRepository } from './BaseRepository';
-import { MessageDocument } from '../models/Message';
+import { BaseRepository } from './base.repository';
+import { MessageDocument } from '../models/message.model';
 
 class MessageRepository extends BaseRepository<MessageDocument> {
   constructor(model: Model<MessageDocument>) {

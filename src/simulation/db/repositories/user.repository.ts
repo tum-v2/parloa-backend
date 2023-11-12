@@ -1,7 +1,7 @@
 import { Model } from 'mongoose';
 import { logger } from '../../service/logging-service';
-import { UserDocument } from '../models/User';
-import { BaseRepository } from './BaseRepository';
+import { UserDocument } from '../models/user.model';
+import { BaseRepository } from './base.repository';
 
 class UserRepository extends BaseRepository<UserDocument> {
   constructor(model: Model<UserDocument>) {
