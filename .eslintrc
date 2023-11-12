@@ -7,6 +7,7 @@
   },
   "rules": { 
     "require-jsdoc": "warn",
-    "tsdoc/syntax": "warn"
+    "tsdoc/syntax": "warn",
+    "@typescript-eslint/no-explicit-any": "off"
   }
 }
