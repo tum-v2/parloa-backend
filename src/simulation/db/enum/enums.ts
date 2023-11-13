@@ -1,11 +1,17 @@
-enum ConversationStatus {
-  ONGOING = 'ONGOING',
-  FINISHED = 'FINISHED',
+enum SimulationScenario {
+  SEQUENCE = 'SEQUENCE',
+  SLOT_FILLING = 'SLOT_FILLING',
+  CALL_FORWARD = 'CALL_FORWARD',
 }
 
 enum SimulationStatus {
   SCHEDULED = 'SCHEDULED',
   RUNNING = 'RUNNING',
+  FINISHED = 'FINISHED',
+}
+
+enum ConversationStatus {
+  ONGOING = 'ONGOING',
   FINISHED = 'FINISHED',
 }
 
@@ -24,4 +30,4 @@ enum LLMModel {
   LLAMA2 = 'LLAMA2',
 }
 
-export { ConversationStatus, SimulationStatus, ConversationType, ConversationDomain, LLMModel };
+export { SimulationScenario, SimulationStatus, ConversationStatus, ConversationType, ConversationDomain, LLMModel };

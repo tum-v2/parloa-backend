@@ -4,7 +4,7 @@ import { Database, DatabaseConnectOptions } from './db';
 dotenv.config();
 
 const dbOptions: DatabaseConnectOptions = {
-  uri: `mongodb://${process.env.MONGODB_USER}:${process.env.MONGODB_PASSWORD}@localhost:${process.env.MONGODB_LOCAL_PORT}/${process.env.MONGODB_DATABASE}`,
+  uri: `mongodb://${process.env.MONGODB_USER}:${process.env.MONGODB_PASSWORD}@localhost:${process.env.MONGODB_LOCAL_PORT}/${process.env.MONGODB_DATABASE}?authSource=admin`,
 };
 
 const database = Database.getInstance(dbOptions);

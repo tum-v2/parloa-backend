@@ -9,6 +9,17 @@ class AgentRepository extends BaseRepository<AgentDocument> {
     super(model);
   }
 
+  async createAgent(config: Partial<AgentDocument>) {
+    try {
+      const agent = await this.model.create(config);
+      logger.info(`Agent created: ${agent}`);
+      return agent;
+    } catch (error) {
+      logger.error(`Error creating agent with configuration: ${config}`);
+      throw error;
+    }
+  }
+
   async findByModelName(modelName: LLMModel): Promise<AgentDocument[] | null> {
     try {
       const result = await this.model.find({ modelName }).exec();

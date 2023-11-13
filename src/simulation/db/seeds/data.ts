@@ -1,4 +1,4 @@
-import { connectToDatabase } from '../config/index';
+import { connectToDatabase } from '../config/db.config';
 import { logger } from '../../service/logging-service';
 
 import { UserModel } from '../models/user.model';
@@ -10,7 +10,14 @@ import { ConversationRepository } from '../repositories/conversation.repository'
 import { SimulationModel } from '../models/simulation.model';
 import { SimulationRepository } from '../repositories/simulation.repository';
 
-import { LLMModel, ConversationStatus, ConversationDomain, ConversationType, SimulationStatus } from '../enum/enums';
+import {
+  LLMModel,
+  ConversationStatus,
+  ConversationDomain,
+  ConversationType,
+  SimulationStatus,
+  SimulationScenario,
+} from '../enum/enums';
 
 connectToDatabase();
 
@@ -34,14 +41,14 @@ const seedUsers = async () => {
 const seedAgents = async () => {
   try {
     await agentRepository.create({
-      modelName: LLMModel.LLAMA2,
+      llm: LLMModel.LLAMA2,
       temperature: 0.7,
       maxTokens: 512,
       prompt: 'prompt1',
     });
 
     await agentRepository.create({
-      modelName: LLMModel.GPT4,
+      llm: LLMModel.GPT4,
       temperature: 0.9,
       maxTokens: 512,
       prompt: 'prompt2',
@@ -96,12 +103,12 @@ const seedSimulation = async () => {
 
     await simulationRepository.create({
       user: user._id,
-      scenarioName: 'Sample Scenario',
+      scenario: SimulationScenario.SEQUENCE,
       type: ConversationType.AUTOMATED,
       domain: ConversationDomain.FLIGHT,
       agents: [llamaAgent[0]._id, gptAgent[0]._id],
       conversations: [conversation[0]._id],
-      simulationStatus: SimulationStatus.SCHEDULED,
+      status: SimulationStatus.SCHEDULED,
     });
   } catch (error) {
     logger.error('Error seeding simulation:', error);
