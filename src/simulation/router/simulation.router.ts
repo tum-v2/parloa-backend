@@ -4,7 +4,6 @@ const router = express.Router();
 
 import simulationController from '../api/simulation.controller';
 
-
 /**
  * @swagger
  * tags:
@@ -192,9 +191,9 @@ import simulationController from '../api/simulation.controller';
  *         description: Simulation not found
  */
 
-router.post('/run', simulationController.runSimulation);
-router.get('/:id/poll', simulationController.pollSimulation);
-router.get('/:id/details', simulationController.getSimulationDetails);
+router.post('/run', simulationController.run);
+router.get('/:id/poll', simulationController.poll);
+router.get('/:id/details', simulationController.getDetails);
 router.get('/:id/conversations', simulationController.getConversations);
 
 export default router;

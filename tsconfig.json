@@ -33,7 +33,7 @@
       "@simulation/service": ["./src/simulation/service/*"],
       "@simulation/controller": ["./src/simulation/api/*"],
       "@simulation/model": ["./src/simulation/model/*"],
-      "@simulation/repository": ["./src/simulation/repository/*"],
+      "@simulation/repository": ["./src/simulation/db/*"],
       "@simulation/router": ["./src/simulation/router/*"],
       "@simulation/agents": ["./src/simulation/agents/*"]
     },                                      
