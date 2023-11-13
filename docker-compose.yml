@@ -11,6 +11,22 @@ services:
       - $MONGODB_LOCAL_PORT:$MONGODB_DOCKER_PORT
     volumes:
       - db:/data/db
+  mongo-express:
+    depends_on:
+      - mongodb  
+    image: mongo-express:latest
+    restart: always
+    env_file: .env
+    ports:
+      - $MONGOEXPRESS_LOCAL_PORT:$MONGOEXPRESS_DOCKER_PORT
+    environment:
+      - ME_CONFIG_MONGODB_SERVER=mongodb
+      - ME_CONFIG_MONGODB_ENABLE_ADMIN=true
+      - ME_CONFIG_MONGODB_ADMINUSERNAME=$MONGODB_USER
+      - ME_CONFIG_MONGODB_ADMINPASSWORD=$MONGODB_PASSWORD
+      - ME_CONFIG_MONGODB_PORT=$MONGODB_DOCKER_PORT
+      - ME_CONFIG_BASICAUTH_USERNAME=$MONGOEXPRESS_BASICAUTH_USERNAME
+      - ME_CONFIG_BASICAUTH_PASSWORD=$MONGOEXPRESS_BASICAUTH_PASSWORD
   app:
     depends_on:
       - mongodb
