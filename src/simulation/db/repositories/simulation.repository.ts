@@ -3,10 +3,59 @@ import { logger } from '../../service/logging-service';
 import { BaseRepository } from './base.repository';
 import { SimulationDocument } from '../models/simulation.model';
 import { ConversationDomain, ConversationType, SimulationStatus } from '../enum/enums';
+import { ConversationDocument } from '../models/conversation.model';
 
 class SimulationRepository extends BaseRepository<SimulationDocument> {
   constructor(model: Model<SimulationDocument>) {
     super(model);
+  }
+
+  async createSimulation(config: Partial<SimulationDocument>) {
+    try {
+      const simulation = await this.model.create(config);
+      logger.info(`Simulation created: ${simulation}`);
+      return simulation;
+    } catch (error) {
+      logger.error(`Error creating simulation with configuration: ${config}`);
+      throw error;
+    }
+  }
+
+  async findById(id: Types.ObjectId): Promise<SimulationDocument | null> {
+    try {
+      const result = await this.model.aggregate([
+        { $match: { _id: id } },
+        { $lookup: { from: 'users', localField: 'user', foreignField: '_id', as: 'user' } },
+        { $lookup: { from: 'agents', localField: 'agents', foreignField: '_id', as: 'agents' } },
+        { $lookup: { from: 'conversations', localField: 'conversations', foreignField: '_id', as: 'conversations' } },
+        { $addFields: { user: { $arrayElemAt: ['$user', 0] } } },
+      ]);
+      const simulation = result[0] as SimulationDocument | null;
+      if (simulation) {
+        logger.info(`Simulation found by id: ${simulation}`);
+      } else {
+        logger.error(`No simulations found by id: ${id}`);
+        throw `No simulations found by id: ${id}`;
+      }
+      return simulation;
+    } catch (error) {
+      logger.error(`Error finding simulations by id: ${id}`);
+      throw error;
+    }
+  }
+
+  async getConversationsBySimulationId(id: Types.ObjectId): Promise<ConversationDocument[]> {
+    try {
+      const simulation: SimulationDocument | null = await this.findById(id);
+      if (simulation) {
+        return simulation.conversations as ConversationDocument[];
+      }
+      logger.warn(`No conversations found by simulation id: ${id}`);
+      return [];
+    } catch (error) {
+      logger.error(`Error fetching conversations by simulation id: ${id}`);
+      throw error;
+    }
   }
 
   async findByUser(userId: Types.ObjectId): Promise<SimulationDocument[]> {
