@@ -24,18 +24,18 @@
     // "useDefineForClassFields": true,                  /* Emit ECMAScript-standard-compliant class fields. */
     // "moduleDetection": "auto",                        /* Control what method is used to detect module-format JS files. */
 
-    /* Modules */
-    "module": "commonjs",                                /* Specify what module code is generated. */
-    "rootDir": ".",                                    /* Specify the root folder within your source files. */
-    // "moduleResolution": "node10",                     /* Specify how TypeScript looks up a file from a given module specifier. */
-    // "baseUrl": "./",                                  /* Specify the base directory to resolve non-relative module names. */
-    "paths": {                                           /* Specify a set of entries that re-map imports to additional lookup locations. */
-      "@simulation/service": ["./src/simulation/service/*"],
-      "@simulation/controller": ["./src/simulation/api/*"],
-      "@simulation/model": ["./src/simulation/model/*"],
-      "@simulation/repository": ["./src/simulation/db/*"],
-      "@simulation/router": ["./src/simulation/router/*"],
-      "@simulation/agents": ["./src/simulation/agents/*"]
+    /* Modules */                           
+    "moduleResolution": "node10",                     /* Specify how TypeScript looks up a file from a given module specifier. */
+    "baseUrl": "./src",                                  /* Specify the base directory to resolve non-relative module names. */
+    "paths": {
+      "@simulation/agents/*": ["simulation/agents/*"],
+      "@simulation/api/*": ["simulation/api/*"],
+      "@simulation/config/*": ["simulation/config/*"],
+      "@simulation/db/*": ["simulation/db/*"],
+      "@simulation/docs/*": ["simulation/docs/*"],
+      "@simulation/model/*": ["simulation/model/*"],
+      "@simulation/router/*": ["simulation/router/*"],
+      "@simulation/service/*": ["simulation/service/*"]
     },                                      
     // "rootDirs": [],                                   /* Allow multiple folders to be treated as one when resolving modules. */
     // "typeRoots": [],                                  /* Specify multiple folders that act like './node_modules/@types'. */
