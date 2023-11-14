@@ -5,7 +5,7 @@ import {
   CustomAgentConfig,
   RestAPITool,
   RouteToCoreTool,
-} from '../custom-agent-config';
+} from '../custom.agent.config';
 
 const bookingNumberParam = new APIParam(
   'booking_number',
@@ -16,10 +16,10 @@ const bookingNumberParam = new APIParam(
 const authTokenParam = new APIParam('auth_token', 'auth_token returned by the auth tool', 'string');
 
 const auth = () => {};
-const booking_info = () => {};
-const check_availability = () => {};
-const change_flight_date = () => {};
-const get_faq_answer = () => {};
+const bookingInfo = () => {};
+const checkAvailability = () => {};
+const changeFlightDate = () => {};
+const getFaqAnswer = () => {};
 
 const restApiTools: Record<string, RestAPITool> = {
   auth: new RestAPITool(
@@ -31,15 +31,15 @@ const restApiTools: Record<string, RestAPITool> = {
     new APIResponse('auth_token to be used for other tools'),
     auth,
   ),
-  booking_info: new RestAPITool(
+  bookingInfo: new RestAPITool(
     'Retrieves booking details',
     new APIRequest([authTokenParam, bookingNumberParam]),
     new APIResponse(
       '"flight number, departure and arrival airports, departure and arrival times, and the date of the flight"',
     ),
-    booking_info,
+    bookingInfo,
   ),
-  check_availability: new RestAPITool(
+  checkAvailability: new RestAPITool(
     'Returns a list of available flight for a given new date for which an existing booking can be changed.',
     new APIRequest([
       authTokenParam,
@@ -51,9 +51,9 @@ const restApiTools: Record<string, RestAPITool> = {
       ),
     ]),
     new APIResponse('List of available flights'),
-    check_availability,
+    checkAvailability,
   ),
-  change_flight_date: new RestAPITool(
+  changeFlightDate: new RestAPITool(
     'Used to modify an existing booking with a new flight date. The new date parameter must be in yyyy-mm-dd format but should not be disclosed to the user.',
     new APIRequest([
       authTokenParam,
@@ -65,13 +65,13 @@ const restApiTools: Record<string, RestAPITool> = {
       ),
     ]),
     new APIResponse('Success or Failure'),
-    change_flight_date,
+    changeFlightDate,
   ),
-  get_answer_from_faq: new RestAPITool(
+  getAnswerFromFaq: new RestAPITool(
     'Get an answer from the FAQ.',
     new APIRequest([new APIParam('question', 'The question to ask from the FAQ', 'string')]),
     new APIResponse('Answer to the question or ANSWER_NOT_FOUND'),
-    get_faq_answer,
+    getFaqAnswer,
   ),
 };
 
@@ -81,19 +81,19 @@ const defaultRoutingParams: APIParam[] = [
 ];
 
 const routingTools: Record<string, RouteToCoreTool> = {
-  escalate_to_agent: new RouteToCoreTool(
+  escalateToAgent: new RouteToCoreTool(
     `Escalate to human agent if the user request is failing or the user is specifically asking for a human agent.
 Escalate immediately, you don't need to authenticate the user before transferring to an agent.
 `,
     new APIRequest(defaultRoutingParams),
     'EscalateToAgent',
   ),
-  route_to_new_flight_booking: new RouteToCoreTool(
+  routeToNewFlightBooking: new RouteToCoreTool(
     'Route to new flight booking system if the user wants to book a new flight.',
     new APIRequest(defaultRoutingParams),
     'RouteToNewFlightBooking',
   ),
-  route_to_booking_change: new RouteToCoreTool(
+  routeToBookingChange: new RouteToCoreTool(
     `Route to flight booking change system if the user wants to amend a booking beyond the task you supports (eg. upgrade to business class, change seats, add luggage etc.).
   You must  follow these steps first before the routing::
   - Retrieve the user's last name and the booking number from the user.
@@ -127,11 +127,11 @@ const flightBookingAgentConfig: CustomAgentConfig = new CustomAgentConfig(
   `- User confirmation doesn't need to be explicitly say confirmed. It is a sufficient confirmation if the users answer is clearly implies approval of change.
   `,
   {
-    answer_from_faq: `- If the user has a generic question answer it using FAQ.
+    answerFromFaq: `- If the user has a generic question answer it using FAQ.
 - If the user has multiple questions you must query the FAQ for each question separately. Never include multiple questions in a single query.
 - When querying the FAQ rephrase the user's question based on context from the conversation history and make it generic so it can be found in an FAQ. 
 - All other cases refer the user to kronosjet.com`,
-    change_flight_date: `In order to change flight date of an existing booking you need to ensure the following steps are followed:
+    changeFlightDate: `In order to change flight date of an existing booking you need to ensure the following steps are followed:
 - Retrieve the user's last name and the booking number from the user.
 - You need to authenticate the user
 - Retrieve the booking details
@@ -160,7 +160,7 @@ const flightBookingAgentConfig: CustomAgentConfig = new CustomAgentConfig(
   Make sure you the user intent is on of the tasks listed below.
   Each on of the tasks has a different conversation strategy. 
   You should follow the steps and instructions for the task.
-  {tasks}
+  {this.tasks}
   
   # TOOLS
   You should gather input from the user to call tools when a tool is required.

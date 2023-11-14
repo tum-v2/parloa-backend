@@ -1,13 +1,10 @@
 import { BaseChatModel } from 'langchain/chat_models/base';
 import { HumanMessagePromptTemplate, SystemMessagePromptTemplate } from 'langchain/prompts';
 import { BaseMessage } from 'langchain/schema';
-import { CustomAgentConfig, RestAPITool, RouteToCoreTool } from './custom-agent-config';
+import { CustomAgentConfig, RestAPITool, RouteToCoreTool } from './custom.agent.config';
 import moment from 'moment';
 import { appendFileSync } from 'fs';
-
-const USER_MESSAGE_ACTION: string = 'message_to_user';
-
-type MsgTypes = 'human_input' | 'system_prompt' | 'tool_call' | 'tool_output' | 'msg_to_user' | 'route';
+import { MsgTypes } from '../db/enum/enums';
 
 class MsgHistoryItem {
   lcMsg: BaseMessage;
@@ -110,14 +107,14 @@ class CustomAgent {
     Logs if log files set and prints if isVerbose for the class instance"""*/
 
     const lcMsg: BaseMessage = await this.getSystemPrompt();
-    await this.addMessage(new MsgHistoryItem(lcMsg, 'system_prompt'));
+    await this.addMessage(new MsgHistoryItem(lcMsg, MsgTypes.SYSTEMPROMPT));
 
     return this.config.welcomeMessage;
   }
 
   async processHumanInput(humanInput: string, id: string | null = null): Promise<string> {
     const lcMsg: BaseMessage = await this.getHumanPrompt(humanInput);
-    await this.addMessage(new MsgHistoryItem(lcMsg, 'human_input', humanInput, id ?? undefined));
+    await this.addMessage(new MsgHistoryItem(lcMsg, MsgTypes.HUMANINPUT, humanInput, id ?? undefined));
 
     let response: Record<string, any> = {};
     let action: string | null = null;
@@ -131,11 +128,11 @@ class CustomAgent {
       action = response.get('action');
       actionInput = response.get('action_input', {});
 
-      if (action === USER_MESSAGE_ACTION) {
+      if (action === MsgTypes.MSGTOUSER) {
         await this.addMessage(
           new MsgHistoryItem(
             responseMessage,
-            'msg_to_user',
+            MsgTypes.MSGTOUSER,
             undefined,
             String(actionInput),
             undefined,
@@ -156,7 +153,7 @@ class CustomAgent {
         await this.addMessage(
           new MsgHistoryItem(
             responseMessage,
-            'route',
+            MsgTypes.ROUTE,
             undefined,
             undefined,
             response.intermediate_message,
@@ -180,7 +177,7 @@ class CustomAgent {
         await this.addMessage(
           new MsgHistoryItem(
             responseMessage,
-            'tool_call',
+            MsgTypes.TOOLCALL,
             undefined,
             undefined,
             response.intermediate_message,
@@ -194,7 +191,17 @@ class CustomAgent {
         const toolOutput = apiToolConfig.func(actionInput);
         const lcMsg = await this.getToolOutputPrompt(action, toolOutput);
         await this.addMessage(
-          new MsgHistoryItem(lcMsg, 'tool_output', undefined, undefined, undefined, action, undefined, toolOutput, id!),
+          new MsgHistoryItem(
+            lcMsg,
+            MsgTypes.TOOLOUTPUT,
+            undefined,
+            undefined,
+            undefined,
+            action,
+            undefined,
+            toolOutput,
+            id!,
+          ),
         );
       }
     }
@@ -262,17 +269,17 @@ class CustomAgent {
   }
 
   logMessage(msg: MsgHistoryItem) {
-    if (msg.type === 'system_prompt') {
+    if (msg.type === MsgTypes.SYSTEMPROMPT) {
       this.logChat(`🤖 ${Colors.BLUE}${this.config.welcomeMessage}${Colors.END}`);
-    } else if (msg.type === 'human_input') {
+    } else if (msg.type === MsgTypes.HUMANINPUT) {
       this.logChat(`${Colors.GREEN}👧 ${msg.userInput}${Colors.END}`, this.isEchoHumanInput);
-    } else if (msg.type === 'tool_call') {
+    } else if (msg.type === MsgTypes.TOOLCALL) {
       this.logChat(`      🛠️ ${Colors.GREY}[${msg.action}] call input: ${msg.toolInput}${Colors.END}`);
-    } else if (msg.type === 'tool_output') {
+    } else if (msg.type === MsgTypes.TOOLOUTPUT) {
       this.logChat(`      🛠️ ${Colors.GREY}[${msg.action}] result: ${msg.toolOutput}${Colors.END}`);
-    } else if (msg.type === 'msg_to_user') {
+    } else if (msg.type === MsgTypes.MSGTOUSER) {
       this.logChat(`🤖 ${Colors.BLUE}${msg.msgToUser}${Colors.END}`);
-    } else if (msg.type === 'route') {
+    } else if (msg.type === MsgTypes.ROUTE) {
       this.logChat(`   ⏳ ${Colors.BLUE}${msg.intermediateMsg}${Colors.END}`);
       this.logChat(`🏓 ${Colors.BLUE}${msg.action} ${Colors.GREY}${msg.toolInput}${Colors.END}`);
     }

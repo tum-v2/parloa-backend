@@ -1,5 +1,5 @@
 // User agent
-import { CustomAgentConfig } from './custom-agent-config';
+import { CustomAgentConfig } from './custom.agent.config';
 
 const PERSONAS: Record<string, string> = {
   sarcastic:

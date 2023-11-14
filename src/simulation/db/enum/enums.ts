@@ -30,4 +30,21 @@ enum LLMModel {
   LLAMA2 = 'LLAMA2',
 }
 
-export { SimulationScenario, SimulationStatus, ConversationStatus, ConversationType, ConversationDomain, LLMModel };
+enum MsgTypes {
+  HUMANINPUT = 'HUMANINPUT',
+  SYSTEMPROMPT = 'SYSTEMPROMPT',
+  TOOLCALL = 'TOOLCALL',
+  TOOLOUTPUT = 'TOOLOUTPUT',
+  MSGTOUSER = 'MSGTOUSER',
+  ROUTE = 'ROUTE',
+}
+
+export {
+  SimulationScenario,
+  SimulationStatus,
+  ConversationStatus,
+  ConversationType,
+  ConversationDomain,
+  LLMModel,
+  MsgTypes,
+};
