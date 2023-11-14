@@ -1,24 +1,24 @@
 interface Context {
   platform: string;
 }
-const CONTEXT: Context = { platform: 'Agent_POC' };
-const RETRIEVAL_URL: string | undefined = process.env.PARLOA_KF_FAQ_RETRIEVAL_URL;
-const KB_ID: string | undefined = process.env.PARLOA_KF_KB_ID;
-const COMPANY_REFERENCE_NAME: string | undefined = process.env.PARLOA_KF_FAQ_COMPANY_REFERENCE_NAME;
-const PERSONA: string | undefined = process.env.PARLOA_KF_FAQ_PERSONA;
+const context: Context = { platform: 'Agent_POC' };
+const retrievalUrl: string | undefined = process.env.PARLOA_KF_FAQ_RETRIEVAL_URL;
+const kbID: string | undefined = process.env.PARLOA_KF_KB_ID;
+const companyReferenceName: string | undefined = process.env.PARLOA_KF_FAQ_COMPANY_REFERENCE_NAME;
+const persona: string | undefined = process.env.PARLOA_KF_FAQ_PERSONA;
 
-if (RETRIEVAL_URL === undefined || KB_ID === undefined) {
-  console.log(RETRIEVAL_URL, KB_ID);
+if (retrievalUrl === undefined || kbID === undefined) {
+  console.log(retrievalUrl, kbID);
   throw new Error('Parloa FAQ API not configured. Set env vars in .env, see .env.example');
 }
 interface FAQRequest {
   context: Context;
   input: {
     question: string;
-    knowledge_base_id: string;
-    company_reference_name: string;
+    knowledgeBaseId: string;
+    companyReferenceName: string;
     verbose: boolean;
-    model_name: string;
+    modelName: string;
     persona?: string;
   };
 }
@@ -29,23 +29,23 @@ interface ChoiceResponse {
   };
 }
 // eslint-disable-next-line require-jsdoc, @typescript-eslint/no-unused-vars
-async function get_faq_answer(question: string): Promise<string> {
+async function getFaqAnswer(question: string): Promise<string> {
   const request: FAQRequest = {
-    context: CONTEXT,
+    context: context,
     input: {
       question: question,
-      knowledge_base_id: KB_ID ?? '',
-      company_reference_name: COMPANY_REFERENCE_NAME ?? 'company', // how to bot referce to the company in the answer
+      knowledgeBaseId: kbID ?? '',
+      companyReferenceName: companyReferenceName ?? 'company', // how to bot referce to the company in the answer
       verbose: false,
-      model_name: 'gpt-4',
+      modelName: 'gpt-4',
     },
   };
 
-  if (PERSONA !== undefined) {
-    request.input.persona = PERSONA;
+  if (persona !== undefined) {
+    request.input.persona = persona;
   }
   try {
-    const response = await fetchWithTimeout(RETRIEVAL_URL!, {
+    const response = await fetchWithTimeout(retrievalUrl!, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
