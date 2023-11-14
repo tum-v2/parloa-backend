@@ -1,6 +1,6 @@
 const DEFAULT_AZURE_DEPLOYMENT_NAME: string = 'gpt-4'; //os.getenv("AZURE_DEPLOYMENT_NAME") needs to be replaced
 
-class APIParam {
+export class APIParam {
   name: string;
   nameForPrompt: string | null;
   description: string;
@@ -28,7 +28,7 @@ class APIParam {
   }
 }
 
-class APIRequest {
+export class APIRequest {
   url: string | null;
   method: string | null;
   headers: Record<string, string> | null;
@@ -42,11 +42,11 @@ class APIRequest {
   }
 }
 
-class APIResponse {
+export class APIResponse {
   expectedStatus: number;
   outputDescription: string | null;
 
-  constructor(expectedStatus: number = 200, outputDescription?: string) {
+  constructor(outputDescription?: string, expectedStatus: number = 200) {
     this.expectedStatus = expectedStatus;
     this.outputDescription = outputDescription || null;
   }
@@ -116,10 +116,7 @@ export class CustomAgentConfig {
 
   constructor(
     temperature: number = 0.0,
-    modelName: string = 'gpt-4',
-    deploymentName: string = DEFAULT_AZURE_DEPLOYMENT_NAME,
     welcomeMessage: string = '',
-    errorMessage: string = 'We encountered an error. Would you please repeat?',
     role: string = '',
     persona: string = '',
     conversationStrategy: string = '',
@@ -129,6 +126,9 @@ export class CustomAgentConfig {
     systemPromptTemplate: string = '',
     humanInputTemplate: string = '',
     toolOutputTemplate: string = '',
+    errorMessage: string = 'We encountered an error. Would you please repeat?',
+    modelName: string = 'gpt-4',
+    deploymentName: string = DEFAULT_AZURE_DEPLOYMENT_NAME,
   ) {
     if (temperature < 0.0 || temperature > 2.0) {
       throw new Error('Temperature must be between 0.0 and 2.0.');
