@@ -1,13 +1,13 @@
 // Agent config model class that frontend will input
 
-import Simulation from './simulation';
+import { SimulationDocument } from './simulation.model';
 
 interface DashboardData {
   interactions: number;
   simulationRuns: number;
   successRate: number;
   simulationSuccessGraph: GraphData;
-  top10Simulations: Simulation[];
+  top10Simulations: SimulationDocument[];
 }
 interface GraphData {}
 
