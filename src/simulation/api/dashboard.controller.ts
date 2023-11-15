@@ -1,5 +1,5 @@
 /* eslint-disable require-jsdoc */
-import DashboardData from '../model/dashboardData.model';
+import DashboardData from '../db/models/dashboardData.model';
 import { Request, Response } from 'express';
 
 async function getDashboardData(req: Request, res: Response) {

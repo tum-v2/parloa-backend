@@ -63,7 +63,7 @@ const seedConversation = async () => {
     await conversationRepository.create({
       messages: [],
       startTime: new Date(),
-      conversationStatus: ConversationStatus.FINISHED,
+      status: ConversationStatus.FINISHED,
       usedEndpoints: [],
     });
   } catch (error) {
