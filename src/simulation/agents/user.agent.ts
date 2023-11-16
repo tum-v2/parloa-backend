@@ -39,19 +39,19 @@ const CONVERSATION_STRATEGY = `- Your primary objective is to change your existi
 
 const SYSTEM_PROMPT_TEMPLATE = `# YOUR ROLE
 {role}
-Today's date is {current_date}.
+Today's date is {currentDate}.
 
 # YOUR PERSONA
 {persona}
 
 # CONVERSATION STRATEGY
-{conversation_strategy}
+{conversationStrategy}
 
 # TOOLS
 You should gather input from the agent to call tools when a tool is required.
 You have access to the following tools:
 
-{formatted_tools}
+{formattedTools}
 
 {tasks}
 
@@ -65,11 +65,11 @@ You have access to the following tools:
 
 Begin! Reminder to ALWAYS respond with a single valid json blob with a single action. Use available tools if necessary.`;
 
-const HUMAN_INPUT_TEMPLATE = `AGENT: {human_input}
+const HUMAN_INPUT_TEMPLATE = `AGENT: {humanInput}
 # YOUR RESPONSE
 `;
-const TOOL_OUTPUT_TEMPLATE = `# RESULT FROM '{tool_name}' TOOL
-{tool_output}
+const TOOL_OUTPUT_TEMPLATE = `# RESULT FROM '{toolName}' TOOL
+{toolOutput}
 
 # YOUR RESPONSE
 `;

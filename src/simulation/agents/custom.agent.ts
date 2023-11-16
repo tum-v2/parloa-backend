@@ -6,7 +6,7 @@ import moment from 'moment';
 import { appendFileSync } from 'fs';
 import { MsgTypes } from '../db/enum/enums';
 
-class MsgHistoryItem {
+export class MsgHistoryItem {
   lcMsg: BaseMessage;
   type: MsgTypes;
   timestamp: Date;
@@ -67,8 +67,8 @@ type ToolDescription = {
   output?: string;
 };
 
-class CustomAgent {
-  chat_model: BaseChatModel;
+export class CustomAgent {
+  chatModel: BaseChatModel;
   config: CustomAgentConfig;
   promptLogFilePath: string | null;
   chatLogFilePath: string | null;
@@ -79,7 +79,7 @@ class CustomAgent {
   messageHistory: MsgHistoryItem[];
 
   constructor(
-    chat_model: BaseChatModel,
+    chatModel: BaseChatModel,
     config: CustomAgentConfig,
     promptLogFilePath?: string | null,
     chatLogFilePath?: string | null,
@@ -87,7 +87,7 @@ class CustomAgent {
     isEchoHumanInput: boolean = false,
     messageCallback?: Callback,
   ) {
-    this.chat_model = chat_model;
+    this.chatModel = chatModel;
     this.config = config;
     this.promptLogFilePath = promptLogFilePath || null;
     this.chatLogFilePath = chatLogFilePath || null;
@@ -107,6 +107,7 @@ class CustomAgent {
     Logs if log files set and prints if isVerbose for the class instance"""*/
 
     const lcMsg: BaseMessage = await this.getSystemPrompt();
+
     await this.addMessage(new MsgHistoryItem(lcMsg, MsgTypes.SYSTEMPROMPT));
 
     return this.config.welcomeMessage;
@@ -114,19 +115,31 @@ class CustomAgent {
 
   async processHumanInput(humanInput: string, id: string | null = null): Promise<string> {
     const lcMsg: BaseMessage = await this.getHumanPrompt(humanInput);
-    await this.addMessage(new MsgHistoryItem(lcMsg, MsgTypes.HUMANINPUT, humanInput, id ?? undefined));
+    const msg = new MsgHistoryItem(lcMsg, MsgTypes.HUMANINPUT, humanInput, id ?? undefined);
+    console.log(msg);
+    await this.addMessage(msg);
 
     let response: Record<string, any> = {};
     let action: string | null = null;
     let actionInput: string | Record<string, any> | null = null;
     let apiToolConfig: RestAPITool | null = null;
+    console.log('check 1.5');
 
-    //call tools  until we get a USER_MESSAGE_ACTION or an action which is not rest_apit_tool
+    //call tools until we get a USER_MESSAGE_ACTION or an action which is not rest_apit_tool
     for (;;) {
-      const responseMessage = await this.chat_model.call(this.messageHistory.map((msg) => msg.lcMsg));
+      console.log('check 1.55');
+
+      const messages: BaseMessage[] = this.messageHistory.map((msg) => msg.lcMsg);
+      console.log('check 1.56');
+
+      const responseMessage = await this.chatModel.call(messages);
+      console.log('check 1.6');
+
       response = JSON.parse(responseMessage.content.toString());
       action = response.get('action');
+
       actionInput = response.get('action_input', {});
+      console.log('check 1.7');
 
       if (action === MsgTypes.MSGTOUSER) {
         await this.addMessage(
@@ -142,8 +155,11 @@ class CustomAgent {
             id!,
           ),
         );
+        console.log('check 1.8');
+
         break;
       }
+      console.log('check 1.7');
 
       if (typeof actionInput !== 'object') {
         throw new Error(`ERROR: Invalid action_input in response: ${JSON.stringify(response, null, 4)}`);
@@ -170,6 +186,7 @@ class CustomAgent {
       if (action && !(action in this.config.restApiTools)) {
         throw new Error(`ERROR: Missing or invalid tool in response action: ${JSON.stringify(response, null, 4)}`);
       }
+      console.log('check 1.8');
 
       if (action) {
         apiToolConfig = this.config.restApiTools[action];
@@ -217,9 +234,9 @@ class CustomAgent {
 
         const inputs: Record<string, ParamType> = {};
         tool.request.parameters.forEach((param) => {
-          const param_name = param.nameForPrompt ? param.nameForPrompt : param.name;
+          const paramName = param.nameForPrompt ? param.nameForPrompt : param.name;
 
-          inputs[param_name] = {
+          inputs[paramName] = {
             description: param.description,
             type: param.type,
           };
@@ -239,23 +256,23 @@ class CustomAgent {
     return SystemMessagePromptTemplate.fromTemplate(this.config.systemPromptTemplate).format({
       role: this.config.role,
       persona: this.config.persona,
-      conversation: this.config.conversationStrategy,
+      conversationStrategy: this.config.conversationStrategy,
       tasks: JSON.stringify(this.config.tasks, null, 2),
-      current_date: moment().format('YYYY-MM-DD'),
-      formatted_tools: JSON.stringify(toolDescriptions, null, 2),
+      currentDate: moment().format('YYYY-MM-DD'),
+      formattedTools: JSON.stringify(toolDescriptions, null, 2),
     });
   }
 
   getHumanPrompt(humanInput: string) {
     return HumanMessagePromptTemplate.fromTemplate(this.config.humanInputTemplate).format({
-      human_input: humanInput,
+      humanInput: humanInput,
     });
   }
 
   getToolOutputPrompt(toolName: string, toolOutput: string) {
     return HumanMessagePromptTemplate.fromTemplate(this.config.humanInputTemplate).format({
-      tool_output: toolOutput,
-      tool_name: toolName,
+      toolOutput: toolOutput,
+      toolName: toolName,
     });
   }
 

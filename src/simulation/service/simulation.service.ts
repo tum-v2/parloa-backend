@@ -6,6 +6,7 @@ import { RunSimulationRequest } from '../model/request/run-simulation.request';
 import { SimulationStatus } from '../db/enum/enums';
 
 import repositoryFactory from '../db/repositories/factory';
+import { runConversation } from './conversation.service';
 
 const agentRepository = repositoryFactory.agentRepository;
 const simulationRepository = repositoryFactory.simulationRepository;
@@ -29,15 +30,21 @@ async function initiate(request: RunSimulationRequest): Promise<SimulationDocume
     scenario: request.scenario,
     type: request.type,
     domain: request.domain,
-    agents: [userAgent, serviceAgent],
+    userAgent: userAgent,
+    serviceAgent: serviceAgent,
     conversations: [],
     status: SimulationStatus.SCHEDULED,
   };
 
   const simulation = await simulationRepository.createSimulation(simulationData);
   console.log(simulation);
+
+  await runConversation(simulationData);
+  //hello
   return simulation;
 }
+
+//
 
 /**
  * Retrieves a simulation object with populated user, agent, and conversation fields.

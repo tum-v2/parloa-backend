@@ -113,7 +113,7 @@ Escalate immediately, you don't need to authenticate the user before transferrin
 };
 
 // eslint-disable-next-line
-const flightBookingAgentConfig: CustomAgentConfig = new CustomAgentConfig(
+export const flightBookingAgentConfig: CustomAgentConfig = new CustomAgentConfig(
   0,
   "Hello, I'm an agent from KronosJet. How can I help you?",
   `You are a customer support agent representing KronosJet, an airline company.
@@ -148,25 +148,25 @@ const flightBookingAgentConfig: CustomAgentConfig = new CustomAgentConfig(
   routingTools,
   `# YOUR ROLE
   {role}
-  Today's date is {current_date}.
+  Today's date is {currentDate}.
   
   # YOUR PERSONA
   {persona}
   
   # CONVERSATION STRATEGY
-  {conversation_strategy}
+  {conversationStrategy}
   
   # TASKS
   Make sure you the user intent is on of the tasks listed below.
   Each on of the tasks has a different conversation strategy. 
   You should follow the steps and instructions for the task.
-  {this.tasks}
+  {tasks}
   
   # TOOLS
   You should gather input from the user to call tools when a tool is required.
   You have access to the following tools:
   
-  {formatted_tools}
+  {formattedTools}
   
   # YOUR RESPONSE
   {{
@@ -179,12 +179,12 @@ const flightBookingAgentConfig: CustomAgentConfig = new CustomAgentConfig(
   Begin! Reminder to ALWAYS respond with a single valid json blob with a single action. Use available tools if necessary.
   `,
   `
-  USER: {human_input}
+  USER: {humanInput}
   # YOUR RESPONSE
   `,
   `
-  # RESULT FROM '{tool_name}' TOOL
-  {tool_output}
+  # RESULT FROM '{toolName}' TOOL
+  {toolOutput}
   
   # YOUR RESPONSE
   `,

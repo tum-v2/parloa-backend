@@ -26,7 +26,8 @@ class SimulationRepository extends BaseRepository<SimulationDocument> {
       const result = await this.model.aggregate([
         { $match: { _id: id } },
         { $lookup: { from: 'users', localField: 'user', foreignField: '_id', as: 'user' } },
-        { $lookup: { from: 'agents', localField: 'agents', foreignField: '_id', as: 'agents' } },
+        { $lookup: { from: 'agents', localField: 'serviceAgent', foreignField: '_id', as: 'serviceAgent' } },
+        { $lookup: { from: 'agents', localField: 'userAgent', foreignField: '_id', as: 'userAgent' } },
         { $lookup: { from: 'conversations', localField: 'conversations', foreignField: '_id', as: 'conversations' } },
         { $addFields: { user: { $arrayElemAt: ['$user', 0] } } },
       ]);
