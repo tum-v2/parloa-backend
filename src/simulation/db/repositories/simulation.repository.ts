@@ -122,13 +122,13 @@ class SimulationRepository extends BaseRepository<SimulationDocument> {
     try {
       const result = await this.model.find({ name }).exec();
       if (result.length > 0) {
-        logger.info(`Agents found by model:  ${result}`);
+        logger.info(`Simulations found by model:  ${result}`);
       } else {
-        logger.warn(`No agents found by model name: ${name}`);
+        logger.warn(`No simulations found by  name: ${name}`);
       }
       return result;
     } catch (error) {
-      logger.error(`Error finding agent by model name: ${name}`);
+      logger.error(`Error finding simulations by  name: ${name}`);
       throw error;
     }
   }
