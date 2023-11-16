@@ -1,10 +1,10 @@
 /* eslint-disable require-jsdoc */
 import { Request, Response } from 'express';
-import LLM from '../model/llm.model';
+import { LLMModel } from '../db/enum/enums';
 
 async function getLLMs(req: Request, res: Response) {
   // TODO
-  const list: LLM[] = [];
+  const list: LLMModel[] = [];
   res.status(200).send(list);
 }
 
