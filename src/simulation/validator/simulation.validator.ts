@@ -19,7 +19,7 @@ class simulationValidator {
   static runValidation(): ValidationChain[] {
     return [
       body('user').isMongoId().withMessage('User id must be a valid Mongo id.'),
-      body('name').isString().withMessage('Name must be a valid string.'),
+      body('name').isString().withMessage('Simulation name must be a valid string.'),
       body('scenario')
         .isIn(['SEQUENCE', 'SLOT_FILLING', 'CALL_FORWARD'])
         .withMessage('Invalid scenario type. Must be one of: SEQUENCE, SLOT_FILLING, CALL_FORWARD'),

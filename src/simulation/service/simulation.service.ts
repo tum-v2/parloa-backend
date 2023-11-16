@@ -29,6 +29,8 @@ async function initiate(request: RunSimulationRequest): Promise<SimulationDocume
     scenario: request.scenario,
     type: request.type,
     domain: request.domain,
+    name: request.name,
+    numConversations: request.numConversations,
     agents: [userAgent, serviceAgent],
     conversations: [],
     status: SimulationStatus.SCHEDULED,

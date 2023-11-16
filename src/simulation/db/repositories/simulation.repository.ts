@@ -118,6 +118,21 @@ class SimulationRepository extends BaseRepository<SimulationDocument> {
     }
   }
 
+  async findByName(name: string): Promise<SimulationDocument[]> {
+    try {
+      const result = await this.model.find({ name }).exec();
+      if (result.length > 0) {
+        logger.info(`Agents found by model:  ${result}`);
+      } else {
+        logger.warn(`No agents found by model name: ${name}`);
+      }
+      return result;
+    } catch (error) {
+      logger.error(`Error finding agent by model name: ${name}`);
+      throw error;
+    }
+  }
+
   async findByAgent(agentId: Types.ObjectId): Promise<SimulationDocument[]> {
     try {
       const result = await this.model.find({ agents: agentId }).exec();
