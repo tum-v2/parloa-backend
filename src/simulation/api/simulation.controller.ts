@@ -20,7 +20,7 @@ async function run(req: Request, res: Response) {
     res.status(201).send(simulation);
   } catch (error) {
     logger.error(`Simulation run failed! ${error}`);
-    res.status(500).send({ error: error });
+    res.status(400).send({ error: error });
   }
 }
 
@@ -37,7 +37,7 @@ async function poll(req: Request, res: Response) {
     res.status(200).send(simulation);
   } catch (error) {
     logger.error(`Simulation poll failed! ${error}`);
-    res.status(500).send({ error: error });
+    res.status(400).send({ error: error });
   }
 }
 
@@ -54,7 +54,7 @@ async function getDetails(req: Request, res: Response) {
     res.status(200).send(simulation);
   } catch (error) {
     logger.error(`Simulation fetch details failed! ${error}`);
-    res.status(500).send({ error: error });
+    res.status(400).send({ error: error });
   }
 }
 
@@ -71,7 +71,7 @@ async function getConversations(req: Request, res: Response) {
     res.status(200).send(conversations);
   } catch (error) {
     logger.error(`Simulation fetch conversations failed! ${error}`);
-    res.status(500).send({ error: error });
+    res.status(400).send({ error: error });
   }
 }
 

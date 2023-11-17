@@ -40,3 +40,5 @@ app.listen(port, async () => {
   await connectToDatabase();
   logger.info(`Server running at http://localhost:${port}`);
 });
+
+export default app;
