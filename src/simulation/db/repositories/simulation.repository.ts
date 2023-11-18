@@ -1,16 +1,19 @@
 import { Model, Types } from 'mongoose';
-import { logger } from '../../service/logging-service';
+import { logger } from '../../service/logging.service';
 import { BaseRepository } from './base.repository';
 import { SimulationDocument } from '../models/simulation.model';
 import { ConversationDomain, ConversationType, SimulationStatus } from '../enum/enums';
 import { ConversationDocument } from '../models/conversation.model';
+import { UpdateSimulationRequest } from '@simulation/model/request/update-simulation.request';
 
 class SimulationRepository extends BaseRepository<SimulationDocument> {
   constructor(model: Model<SimulationDocument>) {
     super(model);
   }
 
-  async createSimulation(config: Partial<SimulationDocument>) {
+  // region WRITE //
+
+  async createSimulation(config: Partial<SimulationDocument>): Promise<SimulationDocument> {
     try {
       const simulation = await this.model.create(config);
       logger.info(`Simulation created: ${simulation}`);
@@ -21,7 +24,76 @@ class SimulationRepository extends BaseRepository<SimulationDocument> {
     }
   }
 
-  async findById(id: Types.ObjectId): Promise<SimulationDocument | null> {
+  async update(id: Types.ObjectId, updates: UpdateSimulationRequest): Promise<boolean> {
+    try {
+      const result = await this.model.updateOne({ _id: id }, { $set: updates });
+      if (result.modifiedCount === 1) {
+        logger.info(`Simulation ${id} updated successfully`);
+      } else {
+        logger.error(`Simulation ${id} not found or no updates applied`);
+        throw `Simulation ${id} not found or no updates applied`;
+      }
+      return result.modifiedCount === 1;
+    } catch (error) {
+      logger.error(`Error updating simulation with id: ${id}`);
+      throw error;
+    }
+  }
+
+  async delete(id: Types.ObjectId): Promise<boolean> {
+    try {
+      const result = await this.model.deleteOne({ _id: id });
+      if (result.deletedCount === 1) {
+        logger.info(`Simulation ${id} deleted successfully`);
+      } else {
+        logger.error(`Simulation ${id} not found or not deleted`);
+        throw `Simulation ${id} not found or not deleted`;
+      }
+      return result.deletedCount === 1;
+    } catch (error) {
+      logger.error(`Error deleting simulation with id: ${id}`);
+      throw error;
+    }
+  }
+
+  // endregion WRITE //
+
+  // region GET_ATTRIBUTE //
+
+  async getConversationsBySimulationId(id: Types.ObjectId): Promise<ConversationDocument[]> {
+    try {
+      const simulation: SimulationDocument = await this.findById(id);
+      if (simulation) {
+        return simulation.conversations as ConversationDocument[];
+      }
+      logger.warn(`No conversations found by simulation id: ${id}`);
+      return [];
+    } catch (error) {
+      logger.error(`Error fetching conversations by simulation id: ${id}`);
+      throw error;
+    }
+  }
+
+  // endegion GET_ATTRIBUTE //
+
+  // region FIND_BY_ATTRIBUTE //
+
+  async findAll(): Promise<SimulationDocument[]> {
+    try {
+      const result = await this.model.aggregate([
+        { $lookup: { from: 'users', localField: 'user', foreignField: '_id', as: 'user' } },
+        { $lookup: { from: 'agents', localField: 'agents', foreignField: '_id', as: 'agents' } },
+        { $lookup: { from: 'conversations', localField: 'conversations', foreignField: '_id', as: 'conversations' } },
+        { $addFields: { user: { $arrayElemAt: ['$user', 0] } } },
+      ]);
+      return result;
+    } catch (error) {
+      logger.error(`Error finding simulations!`);
+      throw error;
+    }
+  }
+
+  async findById(id: Types.ObjectId): Promise<SimulationDocument> {
     try {
       const result = await this.model.aggregate([
         { $match: { _id: id } },
@@ -30,7 +102,7 @@ class SimulationRepository extends BaseRepository<SimulationDocument> {
         { $lookup: { from: 'conversations', localField: 'conversations', foreignField: '_id', as: 'conversations' } },
         { $addFields: { user: { $arrayElemAt: ['$user', 0] } } },
       ]);
-      const simulation = result[0] as SimulationDocument | null;
+      const simulation = result[0] as SimulationDocument;
       if (simulation) {
         logger.info(`Simulation found by id: ${simulation}`);
       } else {
@@ -40,20 +112,6 @@ class SimulationRepository extends BaseRepository<SimulationDocument> {
       return simulation;
     } catch (error) {
       logger.error(`Error finding simulations by id: ${id}`);
-      throw error;
-    }
-  }
-
-  async getConversationsBySimulationId(id: Types.ObjectId): Promise<ConversationDocument[]> {
-    try {
-      const simulation: SimulationDocument | null = await this.findById(id);
-      if (simulation) {
-        return simulation.conversations as ConversationDocument[];
-      }
-      logger.warn(`No conversations found by simulation id: ${id}`);
-      return [];
-    } catch (error) {
-      logger.error(`Error fetching conversations by simulation id: ${id}`);
       throw error;
     }
   }
@@ -147,6 +205,8 @@ class SimulationRepository extends BaseRepository<SimulationDocument> {
       throw error;
     }
   }
+
+  // endregion FIND_BY_ATTRIBUTE //
 }
 
 export { SimulationRepository };

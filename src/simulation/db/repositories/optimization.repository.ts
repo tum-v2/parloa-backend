@@ -1,5 +1,5 @@
 import { Model, Types } from 'mongoose';
-import { logger } from '../../service/logging-service';
+import { logger } from '../../service/logging.service';
 import { BaseRepository } from './base.repository';
 import { OptimizationDocument } from '../models/optimization.model';
 
