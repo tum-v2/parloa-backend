@@ -192,12 +192,16 @@ import simulationValidator from '../validator/simulation.validator';
  *         description: Simulation not found
  */
 
+// region POST //
 router.post(
   '/run',
   simulationValidator.runValidation(),
   simulationValidator.handleValidationErrors,
   simulationController.run,
 );
+// endregion POST //
+
+// region GET //
 router.get(
   '/:id/poll',
   simulationValidator.idValidation(),
@@ -216,5 +220,15 @@ router.get(
   simulationValidator.handleValidationErrors,
   simulationController.getConversations,
 );
+router.get('/all', simulationController.getAll);
+// region GET //
+
+// region PATCH //
+router.patch('/:id', simulationController.update);
+// endregion PATCH //
+
+// region DELETE //
+router.delete('/:id', simulationController.del);
+// endregion DELETE //
 
 export default router;
