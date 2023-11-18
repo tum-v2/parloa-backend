@@ -1,6 +1,6 @@
 import { body, param, ValidationChain, ValidationError, validationResult } from 'express-validator';
 import { Request, Response, NextFunction } from 'express';
-import { logger } from '../service/logging-service';
+import { logger } from '../service/logging.service';
 
 import { ConversationType, ConversationDomain, SimulationScenario } from '../db/enum/enums';
 

@@ -224,11 +224,22 @@ router.get('/all', simulationController.getAll);
 // region GET //
 
 // region PATCH //
-router.patch('/:id', simulationController.update);
+router.patch(
+  '/:id',
+  simulationValidator.runValidation(),
+  simulationValidator.idValidation(),
+  simulationValidator.handleValidationErrors,
+  simulationController.update,
+);
 // endregion PATCH //
 
 // region DELETE //
-router.delete('/:id', simulationController.del);
+router.delete(
+  '/:id',
+  simulationValidator.idValidation(),
+  simulationValidator.handleValidationErrors,
+  simulationController.del,
+);
 // endregion DELETE //
 
 export default router;

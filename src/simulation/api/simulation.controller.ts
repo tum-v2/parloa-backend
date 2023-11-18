@@ -21,7 +21,7 @@ async function run(req: Request, res: Response) {
     res.status(201).send(simulation);
   } catch (error) {
     logger.error(`Simulation run failed! ${error}`);
-    res.status(500).send({ error: error });
+    res.status(400).send({ error: error });
   }
 }
 
@@ -38,7 +38,7 @@ async function poll(req: Request, res: Response) {
     res.status(200).send(simulation);
   } catch (error) {
     logger.error(`Simulation poll failed! ${error}`);
-    res.status(500).send({ error: error });
+    res.status(400).send({ error: error });
   }
 }
 
@@ -55,7 +55,7 @@ async function getDetails(req: Request, res: Response) {
     res.status(200).send(simulation);
   } catch (error) {
     logger.error(`Simulation fetch details failed! ${error}`);
-    res.status(500).send({ error: error });
+    res.status(400).send({ error: error });
   }
 }
 
@@ -72,7 +72,7 @@ async function getConversations(req: Request, res: Response) {
     res.status(200).send(conversations);
   } catch (error) {
     logger.error(`Simulation fetch conversations failed! ${error}`);
-    res.status(500).send({ error: error });
+    res.status(400).send({ error: error });
   }
 }
 
@@ -89,7 +89,7 @@ async function getAll(req: Request, res: Response) {
     res.status(200).send(simulations);
   } catch (error) {
     logger.error(`All simulations fetch failed! ${error}`);
-    res.status(500).send({ error: error });
+    res.status(400).send({ error: error });
   }
 }
 
@@ -105,10 +105,10 @@ async function update(req: Request, res: Response) {
     const updates: UpdateSimulationRequest = req.body as UpdateSimulationRequest;
     const response = await simulationService.update(simulationId, updates);
     console.log(response);
-    res.status(response.success ? 200 : 500).send(response);
+    res.status(response.success ? 200 : 400).send(response);
   } catch (error) {
     logger.error(`Update simulation failed! ${error}`);
-    res.status(500).send({ error: error });
+    res.status(400).send({ error: error });
   }
 }
 
@@ -122,10 +122,10 @@ async function del(req: Request, res: Response) {
   try {
     const simulationId: Types.ObjectId = new Types.ObjectId(req.params.id);
     const success = await simulationService.del(simulationId);
-    res.status(success ? 204 : 500).send({ success: success });
+    res.status(success ? 204 : 400).send({ success: success });
   } catch (error) {
     logger.error(`Delete simulation failed! ${error}`);
-    res.status(500).send({ error: error });
+    res.status(400).send({ error: error });
   }
 }
 
