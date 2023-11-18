@@ -1,7 +1,8 @@
 import request, { Response } from 'supertest';
 import app from '../src/index';
 
-const validSimulationId = '6554dee0da0137714817df0d';
+const validSimulationId = '6558b98656407ab71302947c';
+const deleteValidSimulationId = '6555e4675a150a6076edee1b';
 const invalidSimulationId = '007';
 
 const validInput = {
@@ -131,6 +132,69 @@ describe('GET /api/v1/simulation/:id/conversations', () => {
 
   it('should return 200 for valid simulation ID', () => {
     expect(validResponse.status).toBe(200);
+  });
+
+  it('should return 400 for invalid simulation ID', () => {
+    expect(invalidResponse.status).toBe(400);
+  });
+});
+
+describe('GET /api/v1/simulation/all', () => {
+  let validResponse: Response;
+
+  beforeEach(async () => {
+    validResponse = await request(app).get(`/api/v1/simulation/all`);
+  });
+
+  afterEach(() => {
+    validResponse = {} as Response;
+  });
+
+  it('should return 200 for valid simulation ID', () => {
+    expect(validResponse.status).toBe(200);
+  });
+});
+
+describe('PATCH /api/v1/simulation/:id', () => {
+  let validResponse: Response;
+  let invalidResponse: Response;
+
+  beforeEach(async () => {
+    validInput.name = 'api-test';
+    validResponse = await request(app).patch(`/api/v1/simulation/${validSimulationId}`).send(validInput);
+    invalidResponse = await request(app).patch(`/api/v1/simulation/${invalidSimulationId}`).send(invalidInput);
+  });
+
+  afterEach(() => {
+    validResponse = {} as Response;
+    invalidResponse = {} as Response;
+  });
+
+  it('should return 200 for valid simulation ID', () => {
+    expect(validResponse.status).toBe(200);
+  });
+
+  it('should return 400 for invalid simulation ID', () => {
+    expect(invalidResponse.status).toBe(400);
+  });
+});
+
+describe('DELETE /api/v1/simulation/:id', () => {
+  let validResponse: Response;
+  let invalidResponse: Response;
+
+  beforeEach(async () => {
+    validResponse = await request(app).delete(`/api/v1/simulation/${deleteValidSimulationId}`);
+    invalidResponse = await request(app).delete(`/api/v1/simulation/${invalidSimulationId}`);
+  });
+
+  afterEach(() => {
+    validResponse = {} as Response;
+    invalidResponse = {} as Response;
+  });
+
+  it('should return 204 for valid simulation ID', () => {
+    expect(validResponse.status).toBe(204);
   });
 
   it('should return 400 for invalid simulation ID', () => {

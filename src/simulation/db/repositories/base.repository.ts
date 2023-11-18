@@ -1,4 +1,4 @@
-import { Document, Model } from 'mongoose';
+import { Document, Model, Types } from 'mongoose';
 import { logger } from '../../service/logging.service';
 
 abstract class BaseRepository<T extends Document> {
