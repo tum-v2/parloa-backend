@@ -1,9 +1,9 @@
 import request, { Response } from 'supertest';
 import app from '../src/index';
 
-const validSimulationId = '6558b98656407ab71302947c';
-const deleteValidSimulationId = '6555e4675a150a6076edee1b';
-const invalidSimulationId = '007';
+let validSimulationId = '';
+let deleteValidSimulationId = '';
+const invalidSimulationId = '000000000000000000000000';
 
 const validInput = {
   user: '65515f13d5dbce1dd781ef60',
@@ -27,7 +27,7 @@ const validInput = {
 };
 
 const invalidInput = {
-  user: '007',
+  user: '000000000000000000000000',
   scenario: 'SLOT_FILLING',
   type: 'AUTOMATED',
   domain: 'ECOMMERCE',
@@ -67,6 +67,25 @@ describe('POST /api/v1/simulation/run', () => {
 
   it('should return 400 for invalid input', () => {
     expect(invalidResponse.status).toBe(400);
+  });
+});
+
+describe('GET /api/v1/simulation/all', () => {
+  let validResponse: Response;
+
+  beforeEach(async () => {
+    validResponse = await request(app).get(`/api/v1/simulation/all`);
+    validSimulationId = validResponse.body[0]._id;
+    deleteValidSimulationId = validResponse.body[1]._id;
+    console.log(deleteValidSimulationId);
+  });
+
+  afterEach(() => {
+    validResponse = {} as Response;
+  });
+
+  it('should return 200 for valid simulation ID', () => {
+    expect(validResponse.status).toBe(200);
   });
 });
 
@@ -136,22 +155,6 @@ describe('GET /api/v1/simulation/:id/conversations', () => {
 
   it('should return 400 for invalid simulation ID', () => {
     expect(invalidResponse.status).toBe(400);
-  });
-});
-
-describe('GET /api/v1/simulation/all', () => {
-  let validResponse: Response;
-
-  beforeEach(async () => {
-    validResponse = await request(app).get(`/api/v1/simulation/all`);
-  });
-
-  afterEach(() => {
-    validResponse = {} as Response;
-  });
-
-  it('should return 200 for valid simulation ID', () => {
-    expect(validResponse.status).toBe(200);
   });
 });
 
