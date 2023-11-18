@@ -206,7 +206,7 @@ paths:
         400:
           description: Bad request - Invalid input provided
   "/api/v1/llm/models":
-    post:
+    get:
       summary: Retrive available LLM models
       tags: [LLMs]
       responses:
