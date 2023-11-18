@@ -2,6 +2,8 @@ import { body, param, ValidationChain, ValidationError, validationResult } from 
 import { Request, Response, NextFunction } from 'express';
 import { logger } from '../service/logging-service';
 
+import { ConversationType, ConversationDomain, SimulationScenario } from '../db/enum/enums';
+
 class CustomValidationError extends Error {
   errors: string[];
 
@@ -21,14 +23,14 @@ class simulationValidator {
       body('user').isMongoId().withMessage('User id must be a valid Mongo id.'),
       body('name').isString().withMessage('Simulation name must be a valid string.'),
       body('scenario')
-        .isIn(['SEQUENCE', 'SLOT_FILLING', 'CALL_FORWARD'])
-        .withMessage('Invalid scenario type. Must be one of: SEQUENCE, SLOT_FILLING, CALL_FORWARD'),
+        .isIn(Object.values(SimulationScenario))
+        .withMessage(`Invalid scenario type. Must be one of: ${Object.values(SimulationScenario).join(', ')}`),
       body('type')
-        .isIn(['MANUAL', 'AUTOMATED'])
-        .withMessage('Invalid simulation type. Must be one of: MANUAL, AUTOMATED'),
+        .isIn(Object.values(ConversationType))
+        .withMessage(`Invalid simulation type. Must be one of: ${Object.values(ConversationType).join(', ')}`),
       body('domain')
-        .isIn(['FLIGHT', 'INSURANCE'])
-        .withMessage('Invalid domain type. Must be one of: FLIGHT, INSURANCE'),
+        .isIn(Object.values(ConversationDomain))
+        .withMessage(`Invalid domain type. Must be one of: ${Object.values(ConversationDomain).join(', ')}`),
       body('numConversations').isInt().withMessage('Number of conversations must be a valid integer.'),
       body('serviceAgentConfig').isObject().withMessage('Service agent configuration must be an object.'),
       body('serviceAgentConfig.llm').isString().withMessage('Service agent model must be a valid string.'),
