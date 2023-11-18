@@ -5,7 +5,8 @@ import { RunSimulationRequest } from '../model/request/run-simulation.request';
 import { SimulationDocument } from '../db/models/simulation.model';
 import simulationService from '../service/simulation.service';
 import { Types } from 'mongoose';
-import { logger } from '../service/logging-service';
+import { logger } from '../service/logging.service';
+//import { UpdateSimulationRequest } from '@simulation/model/request/update-simulation.request';
 
 /**
  * Runs the simulation.
@@ -15,7 +16,7 @@ import { logger } from '../service/logging-service';
  */
 async function run(req: Request, res: Response) {
   try {
-    const simulationConfig = req.body as RunSimulationRequest;
+    const simulationConfig: RunSimulationRequest = req.body as RunSimulationRequest;
     const simulation: SimulationDocument = await simulationService.initiate(simulationConfig);
     res.status(201).send(simulation);
   } catch (error) {
@@ -71,7 +72,7 @@ async function getConversations(req: Request, res: Response) {
     res.status(200).send(conversations);
   } catch (error) {
     logger.error(`Simulation fetch conversations failed! ${error}`);
-    res.status(400).send({ error: error });
+    res.status(500).send({ error: error });
   }
 }
 
@@ -80,4 +81,7 @@ export default {
   poll,
   getDetails,
   getConversations,
+  getAll,
+  update,
+  del,
 };

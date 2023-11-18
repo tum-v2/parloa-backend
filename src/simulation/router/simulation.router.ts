@@ -3,6 +3,7 @@ import express from 'express';
 const router = express.Router();
 
 import simulationController from '../api/simulation.controller';
+import simulationValidator from '../validator/simulation.validator';
 
 /**
  * @swagger
@@ -191,9 +192,54 @@ import simulationController from '../api/simulation.controller';
  *         description: Simulation not found
  */
 
-router.post('/run', simulationController.run);
-router.get('/:id/poll', simulationController.poll);
-router.get('/:id/details', simulationController.getDetails);
-router.get('/:id/conversations', simulationController.getConversations);
+// region POST //
+router.post(
+  '/run',
+  simulationValidator.runValidation(),
+  simulationValidator.handleValidationErrors,
+  simulationController.run,
+);
+// endregion POST //
+
+// region GET //
+router.get(
+  '/:id/poll',
+  simulationValidator.idValidation(),
+  simulationValidator.handleValidationErrors,
+  simulationController.poll,
+);
+router.get(
+  '/:id/details',
+  simulationValidator.idValidation(),
+  simulationValidator.handleValidationErrors,
+  simulationController.getDetails,
+);
+router.get(
+  '/:id/conversations',
+  simulationValidator.idValidation(),
+  simulationValidator.handleValidationErrors,
+  simulationController.getConversations,
+);
+router.get('/all', simulationController.getAll);
+// region GET //
+
+// region PATCH //
+router.patch(
+  '/:id',
+  simulationValidator.runValidation(),
+  simulationValidator.idValidation(),
+  simulationValidator.handleValidationErrors,
+  simulationController.update,
+);
+// endregion PATCH //
+
+// region DELETE //
+router.delete(
+  '/:id',
+  simulationValidator.idValidation(),
+  simulationValidator.handleValidationErrors,
+  simulationController.del,
+);
+// endregion DELETE //
 
 export default router;

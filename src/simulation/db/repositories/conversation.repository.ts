@@ -1,5 +1,5 @@
 import { Model } from 'mongoose';
-import { logger } from '../../service/logging-service';
+import { logger } from '../../service/logging.service';
 import { BaseRepository } from './base.repository';
 import { ConversationDocument } from '../models/conversation.model';
 import { ConversationStatus } from '../enum/enums';
