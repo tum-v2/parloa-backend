@@ -3,9 +3,53 @@ info:
   title: Simulation API
   version: 1.0.0
 tags:
+  - name: Login
   - name: Simulation
   - name: Chat
+  - name: LLMs
 paths:
+  "/api/v1/auth/login":
+    post:
+      summary: Start a new simulation
+      tags: [Login]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                accessCode: 
+                  type: string
+                  example: 2986637656
+      responses:
+        "200":
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+        "500":
+          description: Bad request - Invalid access code
+  "/api/v1/simulation/all":
+    get:
+      summary: Retrieve all simulations
+      tags: [Simulation]
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/SimulationDocument"
+        "500":
+          description: Error retrieving simulations
   "/api/v1/simulation/run":
     post:
       summary: Start a new simulation
@@ -23,7 +67,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/SimulationDocument"
-        "400":
+        "500":
           description: Bad request - Invalid input provided
   "/api/v1/simulation/{simulationId}/poll":
     get:
@@ -33,8 +77,6 @@ paths:
         - in: path
           name: simulationId
           required: true
-          schema:
-            type: string
       responses:
         "200":
           description: OK
@@ -42,30 +84,65 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/SimulationDocument"
-        "404":
+        "500":
           description: Simulation not found
   "/api/v1/simulation/{simulationId}":
-    get:
+    patch:
       summary: Update simulation
       tags: [Simulation]
       parameters:
         - in: path
           name: simulationId
           required: true
-          schema:
-            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: Simulation 3
       responses:
         "200":
           description: OK
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/SimulationDocument"
+                type: object
+                properties:
+                  object:
+                    $ref: "#/components/schemas/SimulationDocument"
+                  success:
+                    type: boolean
+                    example: true
+        "404":
+          description: Simulation not found
+    delete:
+      summary: Delete simulation
+      tags: [Simulation]
+      parameters:
+        - in: path
+          name: simulationId
+          required: true 
+      responses:
+        "204":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
         "404":
           description: Simulation not found
   "api/v1/simulation/{simulationId}/conversations":
     get:
       summary: Retrieve simulation conversations
+      tags: [Simulation]
       parameters:
         - in: path
           name: simulationId
@@ -92,7 +169,7 @@ paths:
           description: Agent configuration
           required: true
           schema:
-            $ref: "#/components/schemas/ServiceAgent"
+              $ref: "#/components/schemas/ServiceAgent"
       responses:
         201:
           description: Chat started successfully
@@ -128,7 +205,28 @@ paths:
                     example: Hello
         400:
           description: Bad request - Invalid input provided
-components:
+  "/api/v1/llm/models":
+    post:
+      summary: Retrive available LLM models
+      tags: [LLMs]
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+                  enum:
+                    - GPT4
+                    - LLAMA2
+              example:
+                - GPT4
+                - LLAMA2  
+        "500":
+          description: Bad request
+components: 
   schemas:
     RunSimulationRequest:
       type: object
