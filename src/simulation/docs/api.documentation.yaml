@@ -223,6 +223,10 @@ paths:
       responses:
         201:
           description: Chat started successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AgentResponse"
         500:
           content:
             application/json:
@@ -246,13 +250,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  object:
-                    $ref: "#/components/schemas/ServiceAgent"
-                  success:
-                    type: boolean
-                    example: true
+                $ref: "#/components/schemas/AgentResponse"
         "404":
           content:
             application/json:
@@ -283,20 +281,18 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/ServiceAgent"
+              type: object
+              properties:
+                llm:
+                  type: string
+                  example: LLAMA2
       responses:
         "200":
           description: OK
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  object:
-                    $ref: "#/components/schemas/ServiceAgent"
-                  success:
-                    type: boolean
-                    example: true
+                $ref: "#/components/schemas/AgentResponse"
         "404":
           content:
             application/json:
@@ -325,7 +321,6 @@ paths:
       responses:
         "204":
           description: OK
-          
         "404":
           content:
             application/json:
@@ -552,9 +547,33 @@ components:
           usedEndpoints:
             type: array
             example: []
-
-
-
- 
-  
+    AgentResponse:
+      type: object
+      properties:
+        llm:
+          type: string
+          example: GPT4
+        temperature:
+          type: number
+          example: 0
+        maxTokens:
+          type: number
+          example: 256
+        prompt:
+          type: string
+          example: "you are a helpful bot"
+        _id:
+          type: string
+          example: "655a5982524f7361fefd4032"
+        createdAt:
+          type: string
+          format: date-time
+          example: "2023-11-19T18:52:50.192Z"
+        updatedAt:
+          type: string
+          format: date-time
+          example: "2023-11-19T18:52:50.192Z"
+        __v:
+          type: integer
+          example: 0
  
