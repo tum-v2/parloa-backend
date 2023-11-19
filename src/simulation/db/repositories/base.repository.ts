@@ -25,10 +25,9 @@ abstract class BaseRepository<T extends Document> {
       if (document) {
         logger.info(`Document found by ID: ${document}`);
         return document;
-      } else {
-        logger.warn(`Document not found by ID: ${id}`);
-        return null;
       }
+      logger.warn(`Document not found by ID: ${id}`);
+      return null;
     } catch (error) {
       logger.error('Error getting document by ID:', error);
       throw error;
@@ -42,22 +41,27 @@ abstract class BaseRepository<T extends Document> {
       if (updatedDocument) {
         logger.info(`Document updated by ID: ${updatedDocument}`);
         return updatedDocument;
-      } else {
-        logger.warn(`Document not found for update by ID ${id}`);
-        return null;
       }
+      logger.warn(`Document not found for update by ID ${id}`);
+      return null;
     } catch (error) {
       logger.error('Error updating document by ID:', error);
       throw error;
     }
   }
 
-  async deleteById(id: string): Promise<void> {
+  async deleteById(id: string): Promise<boolean> {
     try {
-      await this.model.findByIdAndDelete(id).exec();
-      logger.info(`Document deleted by ID: ${id}`);
+      const result = await this.model.findByIdAndDelete(id).exec();
+      if (result) {
+        logger.info(`Document deleted by ID: ${id}`);
+        return true;
+      }
+      logger.warn(`Document not found for delete by ID ${id}`);
+      return false;
     } catch (error) {
       logger.error('Error deleting document by ID:', error);
+      return false;
     }
   }
 }
