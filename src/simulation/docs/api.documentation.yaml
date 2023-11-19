@@ -269,7 +269,7 @@ paths:
                   error:
                     type: string
                     example: Error
-    patch:
+    put:
       summary: Update agent
       tags: [Agent]
       parameters:
@@ -312,7 +312,7 @@ paths:
                     type: string
                     example: Error
     delete:
-      summary: Delete simulation
+      summary: Delete agent
       tags: [Agent]
       parameters:
         - in: path
