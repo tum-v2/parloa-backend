@@ -17,7 +17,10 @@ import authRouter from './simulation/router/auth.router';
 import dashRouter from './simulation/router/dashboard.router';
 import llmRouter from './simulation/router/llms.router';
 
+import simulationValidator from './simulation/validator/simulation.validator';
+
 const apiSpec = YAML.load('./src/simulation/docs/api.documentation.yaml');
+
 const app = express();
 const port = process.env.NODE_DOCKER_PORT || 3000;
 
@@ -31,6 +34,8 @@ app.use('/api/v1/agent', agentRouter);
 app.use('/api/v1/auth', authRouter);
 app.use('/api/v1/dashboard', dashRouter);
 app.use('/api/v1/llm', llmRouter);
+
+app.use(simulationValidator.handleValidationErrors);
 
 app.get('/', (req: Request, res: Response) => {
   res.send('Hello, TypeScript Express!');
