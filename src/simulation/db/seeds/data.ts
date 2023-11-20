@@ -1,5 +1,5 @@
 import { connectToDatabase } from '../config/db.config';
-import { logger } from '../../service/logging-service';
+import { logger } from '../../service/logging.service';
 
 import { UserModel } from '../models/user.model';
 import { UserRepository } from '../repositories/user.repository';

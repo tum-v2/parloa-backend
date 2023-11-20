@@ -1,5 +1,5 @@
 import { Model } from 'mongoose';
-import { logger } from '../../service/logging-service';
+import { logger } from '../../service/logging.service';
 import { BaseRepository } from './base.repository';
 import { AgentDocument } from '../models/agent.model';
 import { LLMModel } from '../enum/enums';
@@ -7,17 +7,6 @@ import { LLMModel } from '../enum/enums';
 class AgentRepository extends BaseRepository<AgentDocument> {
   constructor(model: Model<AgentDocument>) {
     super(model);
-  }
-
-  async createAgent(config: Partial<AgentDocument>) {
-    try {
-      const agent = await this.model.create(config);
-      logger.info(`Agent created: ${agent}`);
-      return agent;
-    } catch (error) {
-      logger.error(`Error creating agent with configuration: ${config}`);
-      throw error;
-    }
   }
 
   async findByModelName(modelName: LLMModel): Promise<AgentDocument[] | null> {

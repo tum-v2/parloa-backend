@@ -1,5 +1,5 @@
 import { Model, Types } from 'mongoose';
-import { logger } from '../../service/logging-service';
+import { logger } from '../../service/logging.service';
 import { BaseRepository } from './base.repository';
 import { SimulationDocument } from '../models/simulation.model';
 import { ConversationDomain, ConversationType, SimulationStatus } from '../enum/enums';
@@ -10,28 +10,52 @@ class SimulationRepository extends BaseRepository<SimulationDocument> {
     super(model);
   }
 
-  async createSimulation(config: Partial<SimulationDocument>) {
+  // region GET_ATTRIBUTE //
+
+  async getConversationsById(id: string): Promise<ConversationDocument[]> {
     try {
-      const simulation = await this.model.create(config);
-      logger.info(`Simulation created: ${simulation}`);
-      return simulation;
+      const simulation: SimulationDocument = await this.findById(id);
+      if (simulation) {
+        return simulation.conversations as ConversationDocument[];
+      }
+      logger.warn(`No conversations found by simulation id: ${id}`);
+      return [];
     } catch (error) {
-      logger.error(`Error creating simulation with configuration: ${config}`);
+      logger.error(`Error fetching conversations by simulation id: ${id}`);
       throw error;
     }
   }
 
-  async findById(id: Types.ObjectId): Promise<SimulationDocument | null> {
+  // endegion GET_ATTRIBUTE //
+
+  // region FIND //
+
+  async findAll(): Promise<SimulationDocument[]> {
     try {
       const result = await this.model.aggregate([
-        { $match: { _id: id } },
         { $lookup: { from: 'users', localField: 'user', foreignField: '_id', as: 'user' } },
         { $lookup: { from: 'agents', localField: 'serviceAgent', foreignField: '_id', as: 'serviceAgent' } },
         { $lookup: { from: 'agents', localField: 'userAgent', foreignField: '_id', as: 'userAgent' } },
         { $lookup: { from: 'conversations', localField: 'conversations', foreignField: '_id', as: 'conversations' } },
         { $addFields: { user: { $arrayElemAt: ['$user', 0] } } },
       ]);
-      const simulation = result[0] as SimulationDocument | null;
+      return result;
+    } catch (error) {
+      logger.error(`Error finding simulations!`);
+      throw error;
+    }
+  }
+
+  async findById(id: string): Promise<SimulationDocument> {
+    try {
+      const result = await this.model.aggregate([
+        { $match: { _id: new Types.ObjectId(id) } },
+        { $lookup: { from: 'users', localField: 'user', foreignField: '_id', as: 'user' } },
+        { $lookup: { from: 'agents', localField: 'agents', foreignField: '_id', as: 'agents' } },
+        { $lookup: { from: 'conversations', localField: 'conversations', foreignField: '_id', as: 'conversations' } },
+        { $addFields: { user: { $arrayElemAt: ['$user', 0] } } },
+      ]);
+      const simulation = result[0] as SimulationDocument;
       if (simulation) {
         logger.info(`Simulation found by id: ${simulation}`);
       } else {
@@ -41,20 +65,6 @@ class SimulationRepository extends BaseRepository<SimulationDocument> {
       return simulation;
     } catch (error) {
       logger.error(`Error finding simulations by id: ${id}`);
-      throw error;
-    }
-  }
-
-  async getConversationsBySimulationId(id: Types.ObjectId): Promise<ConversationDocument[]> {
-    try {
-      const simulation: SimulationDocument | null = await this.findById(id);
-      if (simulation) {
-        return simulation.conversations as ConversationDocument[];
-      }
-      logger.warn(`No conversations found by simulation id: ${id}`);
-      return [];
-    } catch (error) {
-      logger.error(`Error fetching conversations by simulation id: ${id}`);
       throw error;
     }
   }
@@ -148,6 +158,8 @@ class SimulationRepository extends BaseRepository<SimulationDocument> {
       throw error;
     }
   }
+
+  // endregion FIND_BY_ATTRIBUTE //
 }
 
 export { SimulationRepository };
