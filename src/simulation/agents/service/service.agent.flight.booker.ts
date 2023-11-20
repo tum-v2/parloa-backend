@@ -177,6 +177,7 @@ export const flightBookingAgentConfig: CustomAgentConfig = new CustomAgentConfig
   }}
   
   Begin! Reminder to ALWAYS respond with a single valid json blob with a single action. Use available tools if necessary.
+  Don't forget curly brackets around your answer and "" for your response, it needs to be valid json!!!!
   `,
   `
   USER: {humanInput}

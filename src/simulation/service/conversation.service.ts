@@ -9,12 +9,36 @@ import { AzureOpenAIInput } from 'langchain/chat_models/openai';
 import { flightBookingAgentConfig } from '../agents/service/service.agent.flight.booker';
 import { Callback } from 'mongoose';
 import { MsgHistoryItem } from '../agents/custom.agent';
-import { AgentDocument } from '@simulation/db/models/agent.model';
+import { AgentDocument, AgentModel } from '@simulation/db/models/agent.model';
 import * as fs from 'fs';
 import * as path from 'path';
+import { HumanMessage } from 'langchain/schema';
 
-const openApiKey: string | undefined = process.env.AZURE_OPENAI_API_KEY;
-if (openApiKey === undefined) throw new Error('OpenApiKey Needs to be specified');
+let model = '';
+model = 'gpt-4'; //'gpt-35-turbo';
+
+let openApiKey: string | undefined;
+let azureApiInstanceName: string | undefined;
+let azureApiVersion: string | undefined;
+if (model !== 'gpt-4') {
+  openApiKey = process.env.AZURE_OPENAI_API_KEY;
+  if (openApiKey === undefined) throw new Error('AZURE_OPENAI_API_KEY Needs to be specified');
+
+  azureApiInstanceName = process.env.AZURE_OPENAI_API_INSTANCE_NAME;
+  if (azureApiInstanceName === undefined) throw new Error('AZURE_OPENAI_API_INSTANCE_NAME Needs to be specified');
+
+  azureApiVersion = process.env.AZURE_OPENAI_API_VERSION;
+  if (azureApiVersion === undefined) throw new Error('AZURE_OPENAI_API_VERSION Needs to be specified');
+} else {
+  openApiKey = process.env.AZURE_OPENAI_4_API_KEY;
+  if (openApiKey === undefined) throw new Error('AZURE_OPENAI_4_API_KEY Needs to be specified');
+
+  azureApiInstanceName = process.env.AZURE_OPENAI_4_INSTANCE_NAME;
+  if (azureApiInstanceName === undefined) throw new Error('AZURE_OPENAI_4_INSTANCE_NAME Needs to be specified');
+
+  azureApiVersion = process.env.AZURE_OPENAI_4_API_VERSION;
+  if (azureApiVersion === undefined) throw new Error('AZURE_OPENAI_4_API_VERSION Needs to be specified');
+}
 
 const timeStamp = new Date()
   .toISOString()
@@ -52,14 +76,12 @@ function createFile(filePath: string) {
 async function configureServiceAgent(simulationData: Partial<SimulationDocument>): Promise<CustomAgent> {
   const azureOpenAIInput: Partial<OpenAIChatInput> & Partial<AzureOpenAIInput> & BaseChatModelParams = {
     modelName: flightBookingAgentConfig.modelName,
-    azureOpenAIApiDeploymentName: 'gpt-35-turbo',
+    azureOpenAIApiDeploymentName: model,
     temperature: flightBookingAgentConfig.temperature,
     azureOpenAIApiKey: openApiKey,
-    //   azureOpenAIApiInstanceName:
-    azureOpenAIApiInstanceName: 'openai-parloa',
-    azureOpenAIApiVersion: '2023-11-16',
+    azureOpenAIApiInstanceName: azureApiInstanceName,
+    azureOpenAIApiVersion: azureApiVersion,
   };
-
   const agent_llm = new ChatOpenAI(azureOpenAIInput);
 
   const serviceAgent: CustomAgent = new CustomAgent(
@@ -77,15 +99,15 @@ async function configureServiceAgent(simulationData: Partial<SimulationDocument>
   return serviceAgent;
 }
 async function configureUserAgent(simulationData: Partial<SimulationDocument>): Promise<CustomAgent> {
-  const userSimConfig = getSimConfig('sarcastic'); // TODO persona
+  const userSimConfig = getSimConfig('nonative'); // TODO persona
 
   const azureOpenAIInput: Partial<OpenAIChatInput> & Partial<AzureOpenAIInput> & BaseChatModelParams = {
     modelName: userSimConfig.modelName,
-    azureOpenAIApiDeploymentName: 'gpt-35-turbo',
+    azureOpenAIApiDeploymentName: model,
     temperature: userSimConfig.temperature,
     azureOpenAIApiKey: openApiKey,
-    azureOpenAIApiInstanceName: 'openai-parloa',
-    azureOpenAIApiVersion: '2023-11-16',
+    azureOpenAIApiInstanceName: azureApiInstanceName,
+    azureOpenAIApiVersion: azureApiVersion,
   };
 
   const userLLM = new ChatOpenAI(azureOpenAIInput);
@@ -115,18 +137,12 @@ export async function runConversation(simulationData: Partial<SimulationDocument
 
   await userAgent.startAgent();
 
-  const maxTurnCount = 20;
+  const maxTurnCount = 15;
   let turnCount = 0;
 
   try {
     while (turnCount < maxTurnCount) {
-      console.log(agentResponse);
-      console.log('check 0');
-
       const userInput: string = await userAgent.processHumanInput(agentResponse);
-      console.log(userInput);
-
-      console.log('check 1');
 
       if (userInput.indexOf('/hangup') >= 0) {
         console.log(userInput);
@@ -135,7 +151,6 @@ export async function runConversation(simulationData: Partial<SimulationDocument
       }
 
       agentResponse = await serviceAgent.processHumanInput(userInput);
-      console.log('check 2');
 
       turnCount++;
     }

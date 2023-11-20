@@ -116,32 +116,28 @@ export class CustomAgent {
   async processHumanInput(humanInput: string, id: string | null = null): Promise<string> {
     const lcMsg: BaseMessage = await this.getHumanPrompt(humanInput);
     const msg = new MsgHistoryItem(lcMsg, MsgTypes.HUMANINPUT, humanInput, id ?? undefined);
-    console.log(msg);
     await this.addMessage(msg);
 
     let response: Record<string, any> = {};
     let action: string | null = null;
     let actionInput: string | Record<string, any> | null = null;
     let apiToolConfig: RestAPITool | null = null;
-    console.log('check 1.5');
 
     //call tools until we get a USER_MESSAGE_ACTION or an action which is not rest_apit_tool
     for (;;) {
-      console.log('check 1.55');
-
       const messages: BaseMessage[] = this.messageHistory.map((msg) => msg.lcMsg);
-      console.log('check 1.56');
+      // print all the messages
+      //console.log('check 1.555: ' + messages.map(x => JSON.stringify(x)).join('\n'));
 
       const responseMessage = await this.chatModel.call(messages);
-      console.log('check 1.6');
 
-      response = JSON.parse(responseMessage.content.toString());
-      action = response.get('action');
+      console.log('MESSAGE: \n' + responseMessage.content.toString() + '\n\n');
+      response = this.getFixedJson(responseMessage.content.toString());
+      action = response.action;
+      actionInput = response.action_input ?? {};
 
-      actionInput = response.get('action_input', {});
-      console.log('check 1.7');
-
-      if (action === MsgTypes.MSGTOUSER) {
+      //console.log("Message: check 1")
+      if (action === MsgTypes.MSGTOUSER || action == 'message_to_user' || action == 'None') {
         await this.addMessage(
           new MsgHistoryItem(
             responseMessage,
@@ -155,15 +151,14 @@ export class CustomAgent {
             id!,
           ),
         );
-        console.log('check 1.8');
-
         break;
       }
-      console.log('check 1.7');
-
+      // console.log("Message: check 2")
+      actionInput = actionInput === '' ? {} : actionInput;
       if (typeof actionInput !== 'object') {
         throw new Error(`ERROR: Invalid action_input in response: ${JSON.stringify(response, null, 4)}`);
       }
+      //console.log("Message: check 3")
 
       if (action && this.config.routingTools[action]) {
         await this.addMessage(
@@ -186,7 +181,6 @@ export class CustomAgent {
       if (action && !(action in this.config.restApiTools)) {
         throw new Error(`ERROR: Missing or invalid tool in response action: ${JSON.stringify(response, null, 4)}`);
       }
-      console.log('check 1.8');
 
       if (action) {
         apiToolConfig = this.config.restApiTools[action];
@@ -206,7 +200,9 @@ export class CustomAgent {
         );
 
         const toolOutput = apiToolConfig.func(actionInput);
+
         const lcMsg = await this.getToolOutputPrompt(action, toolOutput);
+
         await this.addMessage(
           new MsgHistoryItem(
             lcMsg,
@@ -270,7 +266,7 @@ export class CustomAgent {
   }
 
   getToolOutputPrompt(toolName: string, toolOutput: string) {
-    return HumanMessagePromptTemplate.fromTemplate(this.config.humanInputTemplate).format({
+    return HumanMessagePromptTemplate.fromTemplate(this.config.toolOutputTemplate).format({
       toolOutput: toolOutput,
       toolName: toolName,
     });
@@ -313,6 +309,31 @@ export class CustomAgent {
     }
     if (is_print && this.isVerbose) {
       console.log(`${Colors.END}${output}`);
+    }
+  }
+
+  getFixedJson(input: string) {
+    try {
+      const parsed = JSON.parse(input);
+      return parsed;
+    } catch (error) {
+      let fixedText = input.trim().replace(/"/g, '').replace('{', '').replace('}', '');
+      fixedText = '{' + fixedText;
+      fixedText = fixedText + '"}';
+
+      fixedText = fixedText.replace(/(\w+):/g, '"$1":'); // Fix keys
+
+      fixedText = fixedText.replace(/: (?!")/g, ': "');
+
+      fixedText = fixedText.replace(/(?<!{)\s*"(\w+)":/g, '","$1":');
+      fixedText = fixedText.replace(/""/g, '"');
+
+      // Replace newline characters with commas for proper JSON format
+      //fixedText = fixedText.replace(/\n/g, ',');
+
+      console.log('fixed Text: \n' + fixedText);
+      const parsed = JSON.parse(fixedText);
+      return parsed;
     }
   }
 }
