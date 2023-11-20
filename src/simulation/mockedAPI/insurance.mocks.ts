@@ -64,7 +64,7 @@ export function auth(policyNumber: number, dateOfBirth: string) {
   return { error: 'Authentication failed' };
 }
 
-function getPolicyInfo(policyNumber: number, authToken: string) {
+export function getPolicyInfo(policyNumber: number, authToken: string) {
   if (authToken != validTokenInsurance) {
     return { error: 'Authentication failed' };
   }
@@ -106,13 +106,13 @@ function getPolicyInfo(policyNumber: number, authToken: string) {
   return { error: "Policy number doesn't exist" };
 }
 
-function getProductInfo(productId: string) {
+export function getProductInfo(productId: string) {
   if (!(productId in productDetails)) {
     return { error: "Product doesn't exist" };
   }
   return productDetails[productId];
 }
 
-function getProductList() {
+export function getProductList() {
   return productList;
 }

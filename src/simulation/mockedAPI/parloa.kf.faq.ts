@@ -29,7 +29,7 @@ interface ChoiceResponse {
   };
 }
 // eslint-disable-next-line require-jsdoc, @typescript-eslint/no-unused-vars
-async function getFaqAnswer(question: string): Promise<string> {
+export async function getFaqAnswer(question: string): Promise<string> {
   const request: FAQRequest = {
     context: context,
     input: {
@@ -77,3 +77,6 @@ async function fetchWithTimeout(url: string, options: RequestInit = {}, timeout:
 
   return Promise.race([fetch(url, options), timeoutPromise]);
 }
+export default {
+  getFaqAnswer,
+};

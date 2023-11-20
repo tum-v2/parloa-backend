@@ -7,6 +7,8 @@ import {
   RouteToCoreTool,
 } from '../custom.agent.config';
 
+import { auth, bookingInfo, checkAvailability, changeFlightDate } from '../../mockedAPI/flightBooking.mocks';
+import { getFaqAnswer } from '../../mockedAPI/parloa.kf.faq';
 const bookingNumberParam = new APIParam(
   'booking_number',
   'The booking number. Format is 6 alphanumeric characters.',
@@ -14,12 +16,6 @@ const bookingNumberParam = new APIParam(
 );
 
 const authTokenParam = new APIParam('auth_token', 'auth_token returned by the auth tool', 'string');
-
-const auth = () => {};
-const bookingInfo = () => {};
-const checkAvailability = () => {};
-const changeFlightDate = () => {};
-const getFaqAnswer = () => {};
 
 const restApiTools: Record<string, RestAPITool> = {
   auth: new RestAPITool(
@@ -29,7 +25,7 @@ const restApiTools: Record<string, RestAPITool> = {
       new APIParam('last_name', 'Last Name of the person who made the booking.', 'string'),
     ]),
     new APIResponse('auth_token to be used for other tools'),
-    auth,
+    (data) => JSON.stringify(auth(data.booking_number, data.last_name)),
   ),
   bookingInfo: new RestAPITool(
     'Retrieves booking details',
@@ -37,7 +33,7 @@ const restApiTools: Record<string, RestAPITool> = {
     new APIResponse(
       '"flight number, departure and arrival airports, departure and arrival times, and the date of the flight"',
     ),
-    bookingInfo,
+    (data) => JSON.stringify(bookingInfo(data.booking_number, data.auth_token)),
   ),
   checkAvailability: new RestAPITool(
     'Returns a list of available flight for a given new date for which an existing booking can be changed.',
@@ -51,7 +47,24 @@ const restApiTools: Record<string, RestAPITool> = {
       ),
     ]),
     new APIResponse('List of available flights'),
-    checkAvailability,
+    (data) => {
+      let arrayResult: any[] = [];
+
+      if (data.new_date !== undefined) {
+        if (typeof data.new_date === 'string') {
+          arrayResult = checkAvailability(data.booking_number, data.new_date, data.auth_token) as any[];
+        } else {
+          const array: string[] = data.new_date as string[];
+          for (const element of array) {
+            const res: any[] = checkAvailability(data.booking_number, element, data.auth_token) as any[];
+            if (Array.isArray(res)) {
+              arrayResult = arrayResult.concat(res);
+            }
+          }
+        }
+      }
+      return JSON.stringify(arrayResult);
+    },
   ),
   changeFlightDate: new RestAPITool(
     'Used to modify an existing booking with a new flight date. The new date parameter must be in yyyy-mm-dd format but should not be disclosed to the user.',
@@ -65,13 +78,13 @@ const restApiTools: Record<string, RestAPITool> = {
       ),
     ]),
     new APIResponse('Success or Failure'),
-    changeFlightDate,
+    (data) => JSON.stringify(changeFlightDate(data.booking_number, data.new_date, data.auth_token)),
   ),
   getAnswerFromFaq: new RestAPITool(
     'Get an answer from the FAQ.',
     new APIRequest([new APIParam('question', 'The question to ask from the FAQ', 'string')]),
     new APIResponse('Answer to the question or ANSWER_NOT_FOUND'),
-    getFaqAnswer,
+    (data) => JSON.stringify(getFaqAnswer(data.question)),
   ),
 };
 

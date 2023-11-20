@@ -131,7 +131,7 @@ export class CustomAgent {
 
       const responseMessage = await this.chatModel.call(messages);
 
-      console.log('MESSAGE: \n' + responseMessage.content.toString() + '\n\n');
+      //console.log('MESSAGE: \n' + responseMessage.content.toString() + '\n\n');
       response = this.getFixedJson(responseMessage.content.toString());
       action = response.action;
       actionInput = response.action_input ?? {};
@@ -199,7 +199,7 @@ export class CustomAgent {
           ),
         );
 
-        const toolOutput = apiToolConfig.func(actionInput);
+        const toolOutput: string = apiToolConfig.func(actionInput);
 
         const lcMsg = await this.getToolOutputPrompt(action, toolOutput);
 
@@ -287,7 +287,7 @@ export class CustomAgent {
     } else if (msg.type === MsgTypes.HUMANINPUT) {
       this.logChat(`${Colors.GREEN}👧 ${msg.userInput}${Colors.END}`, this.isEchoHumanInput);
     } else if (msg.type === MsgTypes.TOOLCALL) {
-      this.logChat(`      🛠️ ${Colors.GREY}[${msg.action}] call input: ${msg.toolInput}${Colors.END}`);
+      this.logChat(`      🛠️ ${Colors.GREY}[${msg.action}] call input: ${JSON.stringify(msg.toolInput)}${Colors.END}`);
     } else if (msg.type === MsgTypes.TOOLOUTPUT) {
       this.logChat(`      🛠️ ${Colors.GREY}[${msg.action}] result: ${msg.toolOutput}${Colors.END}`);
     } else if (msg.type === MsgTypes.MSGTOUSER) {
