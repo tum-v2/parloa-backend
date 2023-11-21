@@ -40,9 +40,9 @@ app.get('/', (req: Request, res: Response) => {
   res.send('Hello, TypeScript Express!');
 });
 
-app.listen(port, async () => {
+const server = app.listen(port, async () => {
   await connectToDatabase();
   logger.info(`Server running at http://localhost:${port}`);
 });
 
-export default app;
+export { app, server };

@@ -18,4 +18,13 @@ const connectToDatabase = async () => {
   }
 };
 
-export { database, connectToDatabase };
+const disconnectFromDatabase = async () => {
+  try {
+    await database.closeConnection();
+  } catch (error) {
+    console.error('Error disconnecting from the database:', error);
+    process.exit(1);
+  }
+};
+
+export { database, connectToDatabase, disconnectFromDatabase };
