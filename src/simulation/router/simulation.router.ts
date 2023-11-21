@@ -22,12 +22,6 @@ router.get(
   simulationController.poll,
 );
 router.get(
-  '/:id/details',
-  simulationValidator.idValidation(),
-  simulationValidator.handleValidationErrors,
-  simulationController.getDetails,
-);
-router.get(
   '/:id/conversations',
   simulationValidator.idValidation(),
   simulationValidator.handleValidationErrors,

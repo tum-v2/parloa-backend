@@ -64,6 +64,16 @@ abstract class BaseRepository<T extends Document> {
       return false;
     }
   }
+
+  async findAll(): Promise<T[]> {
+    try {
+      const result = await this.model.find().exec();
+      return result;
+    } catch (error) {
+      logger.error(`Error finding documents!`);
+      throw error;
+    }
+  }
 }
 
 export { BaseRepository };

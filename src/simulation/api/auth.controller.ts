@@ -1,12 +1,13 @@
 /* eslint-disable require-jsdoc */
 // Controller that implements authentication
 import { Request, Response } from 'express';
+import { INTERNAL_SERVER_ERROR } from '../utils/errors';
 
-async function login(req: Request, res: Response) {
+async function login(req: Request, res: Response): Promise<void> {
   const { accessCode } = req.body;
 
   if (!accessCode) {
-    res.status(500).send('Please provide an accessCode.');
+    res.status(500).json(INTERNAL_SERVER_ERROR('Please provide an accessCode.'));
     return;
   }
   if (!process.env.LOGIN_ACCESS_CODE) {
