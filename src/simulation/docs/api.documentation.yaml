@@ -1,0 +1,353 @@
+openapi: 3.0.0
+info:
+  title: Simulation API
+  version: 1.0.0
+tags:
+  - name: Login
+  - name: Simulation
+  - name: Chat
+  - name: LLMs
+paths:
+  "/api/v1/auth/login":
+    post:
+      summary: Start a new simulation
+      tags: [Login]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                accessCode: 
+                  type: string
+                  example: 2986637656
+      responses:
+        "200":
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+        "500":
+          description: Bad request - Invalid access code
+  "/api/v1/simulation/all":
+    get:
+      summary: Retrieve all simulations
+      tags: [Simulation]
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/SimulationDocument"
+        "500":
+          description: Error retrieving simulations
+  "/api/v1/simulation/run":
+    post:
+      summary: Start a new simulation
+      tags: [Simulation]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RunSimulationRequest"
+      responses:
+        "201":
+          description: Simulation successfully created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SimulationDocument"
+        "500":
+          description: Bad request - Invalid input provided
+  "/api/v1/simulation/{simulationId}/poll":
+    get:
+      summary: Retrieve simulation
+      tags: [Simulation]
+      parameters:
+        - in: path
+          name: simulationId
+          required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SimulationDocument"
+        "500":
+          description: Simulation not found
+  "/api/v1/simulation/{simulationId}":
+    patch:
+      summary: Update simulation
+      tags: [Simulation]
+      parameters:
+        - in: path
+          name: simulationId
+          required: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: Simulation 3
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  object:
+                    $ref: "#/components/schemas/SimulationDocument"
+                  success:
+                    type: boolean
+                    example: true
+        "404":
+          description: Simulation not found
+    delete:
+      summary: Delete simulation
+      tags: [Simulation]
+      parameters:
+        - in: path
+          name: simulationId
+          required: true 
+      responses:
+        "204":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+        "404":
+          description: Simulation not found
+  "api/v1/simulation/{simulationId}/conversations":
+    get:
+      summary: Retrieve simulation conversations
+      tags: [Simulation]
+      parameters:
+        - in: path
+          name: simulationId
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ConversationDocument"
+        "404":
+          description: Simulation not found
+  "api/v1/chat/start":
+    post:
+      summary: Start a new chat
+      description: Endpoint to start a new manual chat.
+      tags: [Chat]
+      parameters:
+        - in: body
+          name: config
+          description: Agent configuration
+          required: true
+          schema:
+              $ref: "#/components/schemas/ServiceAgent"
+      responses:
+        201:
+          description: Chat started successfully
+        400:
+          description: Bad request - Invalid input provided
+  "api/v1/chat/send-message":
+    post:
+      summary: Send a message
+      description: Endpoint for sending a message manual chat.
+      tags: [Chat]
+      parameters:
+        - in: body
+          name: config
+          description: Chat configuration
+          required: true
+          schema:
+            type: object
+            required:
+              - message
+            properties:
+              message:
+                type: string
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Hello
+        400:
+          description: Bad request - Invalid input provided
+  "/api/v1/llm/models":
+    get:
+      summary: Retrive available LLM models
+      tags: [LLMs]
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+                  enum:
+                    - GPT4
+                    - LLAMA2
+              example:
+                - GPT4
+                - LLAMA2  
+        "500":
+          description: Bad request
+components: 
+  schemas:
+    RunSimulationRequest:
+      type: object
+      properties:
+        user:
+          type: string
+          example: 65515f13d5dbce1dd781ef60
+        name:
+          type: string
+          example: "Simulation 3"
+        scenario:
+          type: string
+          enum:
+            - SEQUENCE
+            - SLOT_FILLING
+            - CALL_FORWARD
+        type:
+          type: string
+          enum:
+            - MANUAL
+            - AUTOMATED
+        domain:
+          type: string
+          enum:
+            - FLIGHT
+            - INSURANCE
+        numConversations:
+          type: number
+          example: 100
+        serviceAgentConfig:
+          $ref: "#/components/schemas/ServiceAgent"
+        userAgentConfig:
+          $ref: "#/components/schemas/UserAgent"
+    ServiceAgent:
+      type: object
+      properties:
+        model:
+          type: string
+          example: GPT-3
+        temperature:
+          type: number
+          example: 1
+        maxTokens:
+          type: number
+          example: 2048
+        prompt:
+          type: string
+          example: "you are an helpful bot"
+    UserAgent:
+      type: object
+      properties:
+        model:
+          type: string
+          example: GPT-3
+        temperature:
+          type: number
+          example: 1
+        maxTokens:
+          type: number
+          example: 2048
+        prompt:
+          type: string
+          example: "you are an angry customer"
+    SimulationDocument:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: 6553a127fcad73273655d634
+        scenario:
+          type: string
+          example: SLOT_FILLING
+        type:
+          type: string
+          example: AUTOMATED
+        domain:
+          type: string
+          example: INSURANCE
+        agents:
+          type: array
+          items:
+            oneOf:
+              - $ref: '#/components/schemas/ServiceAgent'
+              - $ref: '#/components/schemas/UserAgent'
+        conversations:
+          type: array
+          items:
+            $ref: '#/components/schemas/ConversationDocument'
+        status:
+          type: string
+          enum: [SCHEDULED, STARTED, FINISHED]
+        createdAt:
+          type: string
+          example: "2023-11-14T16:32:39.419Z"
+        updatedAt:
+          type: string
+          example: "2023-11-14T16:32:39.419Z"
+        __v:
+          type: integer
+          example: 0
+    ConversationDocument:
+      type: array
+      items:
+        type: object
+        properties:
+          messages:
+            type: array
+            example: []
+          start:
+            type: string
+            format: date
+            example: 2023-12-12
+          status:
+            type: string
+            enum: [STARTED, FINISHED]
+          usedEndpoints:
+            type: array
+            example: []
+
+
+
+ 
+  
+ 
