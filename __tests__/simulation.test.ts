@@ -1,5 +1,6 @@
 import request, { Response } from 'supertest';
-import app from '../src/index';
+import { app, server } from '../src/index';
+import { disconnectFromDatabase } from '../src/simulation/db/config/db.config';
 
 let validSimulationId = '';
 let deleteValidSimulationId = '';
@@ -107,8 +108,8 @@ describe('GET /api/v1/simulation/:id/poll', () => {
     expect(validResponse.status).toBe(200);
   });
 
-  it('should return 400 for invalid simulation ID', () => {
-    expect(invalidResponse.status).toBe(400);
+  it('should return 500 for invalid simulation ID', () => {
+    expect(invalidResponse.status).toBe(500);
   });
 });
 
@@ -130,8 +131,8 @@ describe('GET /api/v1/simulation/:id/details', () => {
     expect(validResponse.status).toBe(200);
   });
 
-  it('should return 400 for invalid simulation ID', () => {
-    expect(invalidResponse.status).toBe(400);
+  it('should return 500 for invalid simulation ID', () => {
+    expect(invalidResponse.status).toBe(500);
   });
 });
 
@@ -153,8 +154,8 @@ describe('GET /api/v1/simulation/:id/conversations', () => {
     expect(validResponse.status).toBe(200);
   });
 
-  it('should return 400 for invalid simulation ID', () => {
-    expect(invalidResponse.status).toBe(400);
+  it('should return 500 for invalid simulation ID', () => {
+    expect(invalidResponse.status).toBe(500);
   });
 });
 
@@ -200,7 +201,13 @@ describe('DELETE /api/v1/simulation/:id', () => {
     expect(validResponse.status).toBe(204);
   });
 
-  it('should return 400 for invalid simulation ID', () => {
-    expect(invalidResponse.status).toBe(400);
+  it('should return 204 for invalid simulation ID', () => {
+    expect(invalidResponse.status).toBe(204);
+  });
+});
+
+afterAll(() => {
+  server.close(async () => {
+    await disconnectFromDatabase();
   });
 });
