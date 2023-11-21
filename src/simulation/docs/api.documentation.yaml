@@ -9,7 +9,7 @@ tags:
   - name: Chat
   - name: LLMs
 paths:
-  "/api/v1/auth/login":
+  /api/v1/auth/login:
     post:
       summary: Start a new simulation
       tags: [Login]
@@ -24,7 +24,7 @@ paths:
                   type: string
                   example: 2986637656
       responses:
-        "200":
+        200:
           description: Login successful
           content:
             application/json:
@@ -34,7 +34,8 @@ paths:
                   success:
                     type: boolean
                     example: true
-        "500":
+        500:
+          description: Bad Request
           content:
             application/json:
               schema:
@@ -43,12 +44,12 @@ paths:
                   error:
                     type: string
                     example: Error
-  "/api/v1/simulation/all":
+  /api/v1/simulation/all:
     get:
       summary: Retrieve all simulations
       tags: [Simulation]
       responses:
-        "200":
+        200:
           description: OK
           content:
             application/json:
@@ -56,7 +57,8 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/SimulationDocument"
-        "500":
+        500:
+          description: Bad Request
           content:
             application/json:
               schema:
@@ -65,7 +67,7 @@ paths:
                   error:
                     type: string
                     example: Error
-  "/api/v1/simulation/run":
+  /api/v1/simulation/run:
     post:
       summary: Start a new simulation
       tags: [Simulation]
@@ -76,13 +78,14 @@ paths:
             schema:
               $ref: "#/components/schemas/RunSimulationRequest"
       responses:
-        "201":
+        201:
           description: Simulation successfully created
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/SimulationDocument"
-        "500":
+        500:
+          description: Bad Request
           content:
             application/json:
               schema:
@@ -91,7 +94,7 @@ paths:
                   error:
                     type: string
                     example: Error
-  "/api/v1/simulation/{simulationId}/poll":
+  /api/v1/simulation/{simulationId}/poll:
     get:
       summary: Retrieve simulation
       tags: [Simulation]
@@ -99,14 +102,18 @@ paths:
         - in: path
           name: simulationId
           required: true
+          schema:
+            type: string
+            example: 6553a127fcad73273655d634
       responses:
-        "200":
+        200:
           description: OK
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/SimulationDocument"
-        "500":
+        500:
+          description: Bad Request
           content:
             application/json:
               schema:
@@ -115,7 +122,7 @@ paths:
                   error:
                     type: string
                     example: Error
-  "/api/v1/simulation/{simulationId}":
+  /api/v1/simulation/{simulationId}:
     patch:
       summary: Update simulation
       tags: [Simulation]
@@ -123,6 +130,9 @@ paths:
         - in: path
           name: simulationId
           required: true
+          schema:
+            type: string
+            example: 6553a127fcad73273655d634
       requestBody:
         required: true
         content:
@@ -134,7 +144,7 @@ paths:
                   type: string
                   example: Simulation 3
       responses:
-        "200":
+        200:
           description: OK
           content:
             application/json:
@@ -146,7 +156,8 @@ paths:
                   success:
                     type: boolean
                     example: true
-        "500":
+        500:
+          description: Bad Request
           content:
             application/json:
               schema:
@@ -162,8 +173,11 @@ paths:
         - in: path
           name: simulationId
           required: true 
+          schema:
+            type: string
+            example: 6553a127fcad73273655d634
       responses:
-        "204":
+        204:
           description: OK
           content:
             application/json:
@@ -173,7 +187,8 @@ paths:
                   success:
                     type: boolean
                     example: true
-        "500":
+        500:
+          description: Bad Request
           content:
             application/json:
               schema:
@@ -182,7 +197,7 @@ paths:
                   error:
                     type: string
                     example: Error
-  "api/v1/simulation/{simulationId}/conversations":
+  /api/v1/simulation/{simulationId}/conversations:
     get:
       summary: Retrieve simulation conversations
       tags: [Simulation]
@@ -192,14 +207,16 @@ paths:
           required: true
           schema:
             type: string
+            example: 6553a127fcad73273655d634
       responses:
-        "200":
+        200:
           description: OK
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ConversationDocument"
-        "500":
+        500:
+          description: Bad Request
           content:
             application/json:
               schema:
@@ -208,17 +225,16 @@ paths:
                   error:
                     type: string
                     example: Error
-  "/api/v1/agent":
+  /api/v1/agent:
     post:
       summary: Create a new agent
       description: Endpoint to create a new agent.
       tags: [Agent]
-      parameters:
-        - in: body
-          name: config
-          description: Agent configuration
-          required: true
-          schema:
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
               $ref: "#/components/schemas/ServiceAgent"
       responses:
         201:
@@ -228,6 +244,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/AgentResponse"
         500:
+          description: Bad Request
           content:
             application/json:
               schema:
@@ -236,7 +253,7 @@ paths:
                   error:
                     type: string
                     example: Error
-  "/api/v1/agent/{agentId}":
+  /api/v1/agent/{agentId}:
     get:
       summary: Get agent
       tags: [Agent]
@@ -244,14 +261,18 @@ paths:
         - in: path
           name: agentId
           required: true
+          schema:
+            type: string
+            example: 6553a127fcad73273655d634
       responses:
-        "200":
+        200:
           description: OK
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/AgentResponse"
-        "404":
+        404:
+          description: Not Found
           content:
             application/json:
               schema:
@@ -260,7 +281,8 @@ paths:
                   error:
                     type: string
                     example: "Agent 1 not found!"
-        "500":
+        500:
+          description: Bad Request
           content:
             application/json:
               schema:
@@ -276,6 +298,9 @@ paths:
         - in: path
           name: agentId
           required: true
+          schema:
+            type: string
+            example: 6553a127fcad73273655d634
       requestBody:
         required: true
         content:
@@ -287,13 +312,14 @@ paths:
                   type: string
                   example: LLAMA2
       responses:
-        "200":
+        200:
           description: OK
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/AgentResponse"
-        "404":
+        404:
+          description: Not Found
           content:
             application/json:
               schema:
@@ -302,7 +328,8 @@ paths:
                   error:
                     type: string
                     example: "Agent 1 not found!"
-        "500":
+        500:
+          description: Bad Request
           content:
             application/json:
               schema:
@@ -317,11 +344,15 @@ paths:
       parameters:
         - in: path
           name: agentId
-          required: true 
+          required: true
+          schema:
+            type: string
+            example: 6553a127fcad73273655d634
       responses:
-        "204":
+        204:
           description: OK
-        "404":
+        404:
+          description: Not Found
           content:
             application/json:
               schema:
@@ -330,7 +361,8 @@ paths:
                   error:
                     type: string
                     example: "Agent 1 not found!"
-        "500":
+        500:
+          description: Bad Request
           content:
             application/json:
               schema:
@@ -339,22 +371,22 @@ paths:
                   error:
                     type: string
                     example: Error
-  "api/v1/chat/start":
+  /api/v1/chat/start:
     post:
       summary: Start a new chat
       description: Endpoint to start a new manual chat.
       tags: [Chat]
-      parameters:
-        - in: body
-          name: config
-          description: Agent configuration
-          required: true
-          schema:
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
               $ref: "#/components/schemas/ServiceAgent"
       responses:
         201:
           description: Chat started successfully
         500:
+          description: Bad Request
           content:
             application/json:
               schema:
@@ -363,23 +395,22 @@ paths:
                   error:
                     type: string
                     example: Error
-  "api/v1/chat/send-message":
+  /api/v1/chat/send-message:
     post:
       summary: Send a message
       description: Endpoint for sending a message manual chat.
       tags: [Chat]
-      parameters:
-        - in: body
-          name: config
-          description: Chat configuration
-          required: true
-          schema:
-            type: object
-            required:
-              - message
-            properties:
-              message:
-                type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - message
+              properties:
+                message:
+                  type: string
       responses:
         200:
           description: OK
@@ -392,6 +423,7 @@ paths:
                     type: string
                     example: Hello
         500:
+          description: Bad Request
           content:
             application/json:
               schema:
@@ -400,12 +432,12 @@ paths:
                   error:
                     type: string
                     example: Error
-  "/api/v1/llm/models":
+  /api/v1/llm/models:
     get:
       summary: Retrive available LLM models
       tags: [LLMs]
       responses:
-        "200":
+        200:
           description: OK
           content:
             application/json:
@@ -419,7 +451,8 @@ paths:
               example:
                 - GPT4
                 - LLAMA2  
-        "500":
+        500:
+          description: Bad Request
           content:
             application/json:
               schema:
@@ -536,6 +569,8 @@ components:
         properties:
           messages:
             type: array
+            items:
+              type: string
             example: []
           start:
             type: string
@@ -546,6 +581,8 @@ components:
             enum: [STARTED, FINISHED]
           usedEndpoints:
             type: array
+            items:
+              type: string
             example: []
     AgentResponse:
       type: object
