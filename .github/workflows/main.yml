@@ -38,9 +38,12 @@ jobs:
           echo "MONGOEXPRESS_BASICAUTH_USERNAME=${{ secrets.MONGOEXPRESS_BASICAUTH_USERNAME }}" >> .env
           echo "MONGOEXPRESS_BASICAUTH_PASSWORD=${{ secrets.MONGOEXPRESS_BASICAUTH_PASSWORD }}" >> .env
       
+      - name: Install dependencies
+        run: npm install
+      
       - name: Start containers
         run: docker-compose -f "docker-compose.yml" up -d --build
-        
+
       - name: Run ESLint
         run: npm run lint
         
