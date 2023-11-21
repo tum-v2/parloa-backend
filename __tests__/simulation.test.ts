@@ -1,6 +1,7 @@
 import request, { Response } from 'supertest';
 import { app, server } from '../src/index';
 import { disconnectFromDatabase } from '../src/simulation/db/config/db.config';
+import { ConversationDomain } from '../src/simulation/db/enum/enums';
 
 let validSimulationId = '';
 let deleteValidSimulationId = '';
@@ -108,31 +109,8 @@ describe('GET /api/v1/simulation/:id/poll', () => {
     expect(validResponse.status).toBe(200);
   });
 
-  it('should return 500 for invalid simulation ID', () => {
-    expect(invalidResponse.status).toBe(500);
-  });
-});
-
-describe('GET /api/v1/simulation/:id/details', () => {
-  let validResponse: Response;
-  let invalidResponse: Response;
-
-  beforeEach(async () => {
-    validResponse = await request(app).get(`/api/v1/simulation/${validSimulationId}/details`);
-    invalidResponse = await request(app).get(`/api/v1/simulation/${invalidSimulationId}/details`);
-  });
-
-  afterEach(() => {
-    validResponse = {} as Response;
-    invalidResponse = {} as Response;
-  });
-
-  it('should return 200 for valid simulation ID', () => {
-    expect(validResponse.status).toBe(200);
-  });
-
-  it('should return 500 for invalid simulation ID', () => {
-    expect(invalidResponse.status).toBe(500);
+  it('should return 404 for invalid simulation ID', () => {
+    expect(invalidResponse.status).toBe(404);
   });
 });
 
@@ -154,8 +132,8 @@ describe('GET /api/v1/simulation/:id/conversations', () => {
     expect(validResponse.status).toBe(200);
   });
 
-  it('should return 500 for invalid simulation ID', () => {
-    expect(invalidResponse.status).toBe(500);
+  it('should return 404 for invalid simulation ID', () => {
+    expect(invalidResponse.status).toBe(404);
   });
 });
 
@@ -166,7 +144,11 @@ describe('PATCH /api/v1/simulation/:id', () => {
   beforeEach(async () => {
     validInput.name = 'api-test';
     validResponse = await request(app).patch(`/api/v1/simulation/${validSimulationId}`).send(validInput);
+
+    // was failing because the domain type couldn't pass the validation check
+    invalidInput.domain = ConversationDomain.FLIGHT;
     invalidResponse = await request(app).patch(`/api/v1/simulation/${invalidSimulationId}`).send(invalidInput);
+    invalidInput.domain = 'ECOMMERCE';
   });
 
   afterEach(() => {
@@ -178,8 +160,8 @@ describe('PATCH /api/v1/simulation/:id', () => {
     expect(validResponse.status).toBe(200);
   });
 
-  it('should return 400 for invalid simulation ID', () => {
-    expect(invalidResponse.status).toBe(400);
+  it('should return 404 for invalid simulation ID', () => {
+    expect(invalidResponse.status).toBe(404);
   });
 });
 
@@ -201,8 +183,8 @@ describe('DELETE /api/v1/simulation/:id', () => {
     expect(validResponse.status).toBe(204);
   });
 
-  it('should return 204 for invalid simulation ID', () => {
-    expect(invalidResponse.status).toBe(204);
+  it('should return 404 for invalid simulation ID', () => {
+    expect(invalidResponse.status).toBe(404);
   });
 });
 

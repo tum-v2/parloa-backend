@@ -13,7 +13,7 @@ class SimulationRepository extends BaseRepository<SimulationDocument> {
 
   // region GET_ATTRIBUTE //
 
-  async getConversationsById(id: string): Promise<ConversationDocument[]> {
+  async getConversationsById(id: string): Promise<ConversationDocument[] | null> {
     try {
       const simulation: SimulationDocument | null = await this.model.findById(id).populate({
         path: 'conversations', // replace 'conversations' IDs with actual documents
@@ -25,8 +25,8 @@ class SimulationRepository extends BaseRepository<SimulationDocument> {
       if (simulation) {
         return simulation.conversations as ConversationDocument[];
       }
-      logger.warn(`No conversations found by simulation id: ${id}`);
-      return [];
+      logger.error(`No simulations found by simulation id: ${id}`);
+      return null;
     } catch (error) {
       logger.error(`Error fetching conversations by simulation id: ${id}`);
       throw error;

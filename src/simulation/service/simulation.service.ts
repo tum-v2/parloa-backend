@@ -71,7 +71,7 @@ async function getDetails(id: string): Promise<SimulationDocument | null> {
  * @returns A promise that resolves to the conversation object list.
  * @throws Throws an error if there is an issue with the MongoDB query.
  */
-async function getConversations(id: string): Promise<ConversationDocument[]> {
+async function getConversations(id: string): Promise<ConversationDocument[] | null> {
   return await simulationRepository.getConversationsById(id);
 }
 

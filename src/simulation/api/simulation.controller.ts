@@ -75,8 +75,12 @@ async function getConversations(req: Request, res: Response): Promise<void> {
     }
 
     const id: string = req.params.id;
-    const conversations: ConversationDocument[] = await simulationService.getConversations(id);
-    res.status(200).send(conversations);
+    const conversations: ConversationDocument[] | null = await simulationService.getConversations(id);
+    if (conversations) {
+      res.status(200).send(conversations);
+    } else {
+      res.status(404).send({ error: `Simulation ${id} not found!` });
+    }
   } catch (error) {
     logger.error(`Simulation fetch conversations failed! ${error}`);
     res.status(500).json(INTERNAL_SERVER_ERROR(error));
