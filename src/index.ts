@@ -25,7 +25,6 @@ const app = express();
 const port = process.env.NODE_DOCKER_PORT || 3000;
 
 app.use(bodyParser.json());
-
 app.use('/api/v1/api-docs', swaggerUi.serve, swaggerUi.setup(apiSpec));
 app.use('/api/v1/simulation', simulationRouter);
 app.use('/api/v1/chat', chatRouter);
@@ -45,3 +44,5 @@ app.listen(port, async () => {
   await connectToDatabase();
   logger.info(`Server running at http://localhost:${port}`);
 });
+
+export default app;

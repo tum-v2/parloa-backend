@@ -1,4 +1,4 @@
-import { Document, Model } from 'mongoose';
+import { Document, Model, Types } from 'mongoose';
 import { logger } from '../../service/logging.service';
 
 abstract class BaseRepository<T extends Document> {
@@ -19,7 +19,7 @@ abstract class BaseRepository<T extends Document> {
     }
   }
 
-  async getById(id: string): Promise<T | null> {
+  async getById(id: Types.ObjectId): Promise<T | null> {
     try {
       const document = await this.model.findById(id).exec();
       if (document) {
@@ -34,7 +34,7 @@ abstract class BaseRepository<T extends Document> {
     }
   }
 
-  async updateById(id: string, data: Partial<T>): Promise<T | null> {
+  async updateById(id: Types.ObjectId, data: Partial<T>): Promise<T | null> {
     try {
       const updatedDocument = await this.model.findByIdAndUpdate(id, { $set: data }, { new: true }).exec();
 
