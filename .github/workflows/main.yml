@@ -13,7 +13,7 @@ on:
 jobs:
   lint-and-test:
     runs-on: ubuntu-latest
-
+    
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -22,10 +22,34 @@ jobs:
         uses: actions/setup-node@v2
         with:
           node-version: 18
-
+      
+      - name: Set up environment variables
+        run: |
+          touch .env
+          echo "MONGODB_USER=${{ secrets.MONGODB_USER }}" >> .env
+          echo "MONGODB_PASSWORD=${{ secrets.MONGODB_PASSWORD }}" >> .env
+          echo "MONGODB_DATABASE=${{ secrets.MONGODB_DATABASE }}" >> .env
+          echo "MONGODB_LOCAL_PORT=${{ secrets.MONGODB_LOCAL_PORT }}" >> .env
+          echo "MONGODB_DOCKER_PORT=${{ secrets.MONGODB_DOCKER_PORT }}" >> .env
+          echo "NODE_LOCAL_PORT=${{ secrets.NODE_LOCAL_PORT }}" >> .env
+          echo "NODE_DOCKER_PORT=${{ secrets.NODE_DOCKER_PORT }}" >> .env
+          echo "MONGOEXPRESS_LOCAL_PORT=${{ secrets.MONGOEXPRESS_LOCAL_PORT }}" >> .env
+          echo "MONGOEXPRESS_DOCKER_PORT=${{ secrets.MONGOEXPRESS_DOCKER_PORT }}" >> .env
+          echo "MONGOEXPRESS_BASICAUTH_USERNAME=${{ secrets.MONGOEXPRESS_BASICAUTH_USERNAME }}" >> .env
+          echo "MONGOEXPRESS_BASICAUTH_PASSWORD=${{ secrets.MONGOEXPRESS_BASICAUTH_PASSWORD }}" >> .env
+      
       - name: Install dependencies
         run: npm install
+      
+      - name: Start containers
+        run: docker-compose -f "docker-compose.yml" up -d --build
 
       - name: Run ESLint
         run: npm run lint
-
+        
+      - name: Run tests 
+        run: npm run test
+  
+      - name: Stop containers
+        if: always()
+        run: docker-compose -f "docker-compose.yml" down

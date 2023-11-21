@@ -39,6 +39,22 @@ class UserRepository extends BaseRepository<UserDocument> {
       throw error;
     }
   }
+
+  async findByAccessCode(accessCode: string): Promise<UserDocument | null> {
+    try {
+      const user = await this.model.findOne({ accessCode }).exec();
+      if (user) {
+        logger.info(`User found by access code: ${accessCode}`);
+        return user;
+      } else {
+        logger.warn(`User not found by access code: ${accessCode}`);
+        return null;
+      }
+    } catch (error) {
+      logger.error(`Error finding user by access code: ${accessCode}`);
+      throw error;
+    }
+  }
 }
 
 export { UserRepository };

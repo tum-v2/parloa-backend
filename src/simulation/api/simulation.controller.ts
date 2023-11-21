@@ -1,5 +1,6 @@
 // Controller that implements simulation related endpoints
 import { Request, Response } from 'express';
+import { validationResult } from 'express-validator';
 
 import { RunSimulationRequest } from '../model/request/run-simulation.request';
 import { SimulationDocument } from '../db/models/simulation.model';
@@ -17,6 +18,12 @@ import { INTERNAL_SERVER_ERROR } from '../utils/errors';
  */
 async function run(req: Request, res: Response): Promise<void> {
   try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      res.status(400).send({ error: errors });
+      return;
+    }
+
     const simulationConfig: RunSimulationRequest = req.body as RunSimulationRequest;
     const simulation: SimulationDocument = await simulationService.initiate(simulationConfig);
     res.status(201).send(simulation);
@@ -34,6 +41,12 @@ async function run(req: Request, res: Response): Promise<void> {
  */
 async function poll(req: Request, res: Response): Promise<void> {
   try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      res.status(400).send({ error: errors });
+      return;
+    }
+
     const id: string = req.params.id;
     const simulation: SimulationDocument | null = await simulationService.poll(id);
     if (simulation) {
@@ -55,6 +68,12 @@ async function poll(req: Request, res: Response): Promise<void> {
  */
 async function getConversations(req: Request, res: Response): Promise<void> {
   try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      res.status(400).send({ error: errors });
+      return;
+    }
+
     const id: string = req.params.id;
     const conversations: ConversationDocument[] = await simulationService.getConversations(id);
     res.status(200).send(conversations);
@@ -73,17 +92,17 @@ async function getConversations(req: Request, res: Response): Promise<void> {
 async function getAll(req: Request, res: Response): Promise<void> {
   try {
     // TODO Apply filters if needed
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      res.status(400).send({ error: errors });
+      return;
+    }
+
     const simulations: SimulationDocument[] = await simulationService.getAll();
     res.status(200).send(simulations);
   } catch (error) {
     logger.error(`All simulations fetch failed! ${error}`);
-    res.status(500).json({
-      error: {
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Internal server error occurred',
-        details: error instanceof Error ? error.message : String(error),
-      },
-    });
+    res.status(500).json(INTERNAL_SERVER_ERROR(error));
   }
 }
 
@@ -95,6 +114,12 @@ async function getAll(req: Request, res: Response): Promise<void> {
  */
 async function update(req: Request, res: Response): Promise<void> {
   try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      res.status(400).send({ error: errors });
+      return;
+    }
+
     const id: string = req.params.id;
     const updates: Partial<SimulationDocument> = req.body as Partial<SimulationDocument>;
     const updated: SimulationDocument | null = await simulationService.update(id, updates);
@@ -116,6 +141,12 @@ async function update(req: Request, res: Response): Promise<void> {
  */
 async function del(req: Request, res: Response): Promise<void> {
   try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      res.status(400).send({ error: errors });
+      return;
+    }
+
     const id: string = req.params.id;
     const success: boolean = await simulationService.del(id);
     if (success) {

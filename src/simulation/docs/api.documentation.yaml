@@ -5,6 +5,7 @@ info:
 tags:
   - name: Login
   - name: Simulation
+  - name: Agent
   - name: Chat
   - name: LLMs
 paths:
@@ -34,7 +35,14 @@ paths:
                     type: boolean
                     example: true
         "500":
-          description: Bad request - Invalid access code
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Error
   "/api/v1/simulation/all":
     get:
       summary: Retrieve all simulations
@@ -49,7 +57,14 @@ paths:
                 items:
                   $ref: "#/components/schemas/SimulationDocument"
         "500":
-          description: Error retrieving simulations
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Error
   "/api/v1/simulation/run":
     post:
       summary: Start a new simulation
@@ -68,7 +83,14 @@ paths:
               schema:
                 $ref: "#/components/schemas/SimulationDocument"
         "500":
-          description: Bad request - Invalid input provided
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Error
   "/api/v1/simulation/{simulationId}/poll":
     get:
       summary: Retrieve simulation
@@ -85,7 +107,14 @@ paths:
               schema:
                 $ref: "#/components/schemas/SimulationDocument"
         "500":
-          description: Simulation not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Error
   "/api/v1/simulation/{simulationId}":
     patch:
       summary: Update simulation
@@ -117,8 +146,15 @@ paths:
                   success:
                     type: boolean
                     example: true
-        "404":
-          description: Simulation not found
+        "500":
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Error
     delete:
       summary: Delete simulation
       tags: [Simulation]
@@ -137,8 +173,15 @@ paths:
                   success:
                     type: boolean
                     example: true
-        "404":
-          description: Simulation not found
+        "500":
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Error
   "api/v1/simulation/{simulationId}/conversations":
     get:
       summary: Retrieve simulation conversations
@@ -156,8 +199,146 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ConversationDocument"
+        "500":
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Error
+  "/api/v1/agent":
+    post:
+      summary: Create a new agent
+      description: Endpoint to create a new agent.
+      tags: [Agent]
+      parameters:
+        - in: body
+          name: config
+          description: Agent configuration
+          required: true
+          schema:
+              $ref: "#/components/schemas/ServiceAgent"
+      responses:
+        201:
+          description: Chat started successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AgentResponse"
+        500:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Error
+  "/api/v1/agent/{agentId}":
+    get:
+      summary: Get agent
+      tags: [Agent]
+      parameters:
+        - in: path
+          name: agentId
+          required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AgentResponse"
         "404":
-          description: Simulation not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Agent 1 not found!"
+        "500":
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Error
+    put:
+      summary: Update agent
+      tags: [Agent]
+      parameters:
+        - in: path
+          name: agentId
+          required: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                llm:
+                  type: string
+                  example: LLAMA2
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AgentResponse"
+        "404":
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Agent 1 not found!"
+        "500":
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Error
+    delete:
+      summary: Delete agent
+      tags: [Agent]
+      parameters:
+        - in: path
+          name: agentId
+          required: true 
+      responses:
+        "204":
+          description: OK
+        "404":
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Agent 1 not found!"
+        "500":
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Error
   "api/v1/chat/start":
     post:
       summary: Start a new chat
@@ -173,8 +354,15 @@ paths:
       responses:
         201:
           description: Chat started successfully
-        400:
-          description: Bad request - Invalid input provided
+        500:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Error
   "api/v1/chat/send-message":
     post:
       summary: Send a message
@@ -203,8 +391,15 @@ paths:
                   message:
                     type: string
                     example: Hello
-        400:
-          description: Bad request - Invalid input provided
+        500:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Error
   "/api/v1/llm/models":
     get:
       summary: Retrive available LLM models
@@ -225,7 +420,14 @@ paths:
                 - GPT4
                 - LLAMA2  
         "500":
-          description: Bad request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Error
 components: 
   schemas:
     RunSimulationRequest:
@@ -345,9 +547,33 @@ components:
           usedEndpoints:
             type: array
             example: []
-
-
-
- 
-  
+    AgentResponse:
+      type: object
+      properties:
+        llm:
+          type: string
+          example: GPT4
+        temperature:
+          type: number
+          example: 0
+        maxTokens:
+          type: number
+          example: 256
+        prompt:
+          type: string
+          example: "you are a helpful bot"
+        _id:
+          type: string
+          example: "655a5982524f7361fefd4032"
+        createdAt:
+          type: string
+          format: date-time
+          example: "2023-11-19T18:52:50.192Z"
+        updatedAt:
+          type: string
+          format: date-time
+          example: "2023-11-19T18:52:50.192Z"
+        __v:
+          type: integer
+          example: 0
  
