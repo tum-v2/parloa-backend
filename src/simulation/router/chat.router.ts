@@ -69,8 +69,12 @@ import chatController from '../api/chat.controller';
  *       400:
  *         description: Bad request - Invalid input provided
  */
-router.post('/start', chatController.startChat);
-router.get('/send-message', chatController.sendMessage);
-router.get('/end', chatController.endChat);
+router.post('/start', chatController.start);
+router.get('/all', chatController.getAll);
+router.post('/:id/send-message', chatController.sendMessage);
+router.get('/:id', chatController.get);
+router.get('/:id/end', chatController.end);
+router.put('/:id', chatController.update);
+router.delete('/:id', chatController.del);
 
 export default router;

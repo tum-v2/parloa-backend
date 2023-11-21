@@ -197,7 +197,6 @@ router.post('/run', simulationController.run);
 
 // region GET //
 router.get('/:id/poll', simulationController.poll);
-router.get('/:id/details', simulationController.getDetails);
 router.get('/:id/conversations', simulationController.getConversations);
 router.get('/all', simulationController.getAll);
 // region GET //
