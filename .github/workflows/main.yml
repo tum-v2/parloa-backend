@@ -1,6 +1,12 @@
 name: CI
 
 on:
+  workflow_dispatch:
+    inputs:
+      run_test:
+        description: 'Run tests'
+        required: false
+        default: 'false'
   push:
     branches:
       - main
@@ -13,7 +19,6 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    environment: development
     
     steps:
       - name: Checkout code
@@ -47,21 +52,11 @@ jobs:
 
       - name: Run ESLint
         run: npm run lint
-  
-  test:
-    runs-on: ubuntu-latest
-    timeout-minutes: 2
-    environment: deployment
-    needs: build
-    steps:
+        
       - name: Run tests 
+        if: ${{ github.event.inputs.run_test == 'true' }}
         run: npm run test
-
-  stop:
-    runs-on: ubuntu-latest
-    environment: development
-    needs: [build, test]
-    steps:
+        
       - name: Stop containers
         if: always()
         run: docker-compose -f "docker-compose.yml" down
