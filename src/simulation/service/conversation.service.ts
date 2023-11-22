@@ -91,15 +91,13 @@ async function configureServiceAgent(simulationData: Partial<SimulationDocument>
     SERVICE_CHAT_LOG_FILE_PATH,
     true,
     true,
-    async (agent: CustomAgent, historyItem: MsgHistoryItem): Promise<void> => {
-      // TODO
-    },
+    async (agent: CustomAgent, historyItem: MsgHistoryItem): Promise<void> => {},
   );
 
   return serviceAgent;
 }
 async function configureUserAgent(simulationData: Partial<SimulationDocument>): Promise<CustomAgent> {
-  const userSimConfig = getSimConfig('riddling'); // TODO persona
+  const userSimConfig = getSimConfig('sarcastic'); // TODO persona
 
   const azureOpenAIInput: Partial<OpenAIChatInput> & Partial<AzureOpenAIInput> & BaseChatModelParams = {
     modelName: userSimConfig.modelName,
@@ -119,9 +117,7 @@ async function configureUserAgent(simulationData: Partial<SimulationDocument>): 
     USER_CHAT_LOG_FILE_PATH,
     false,
     false,
-    async (agent: CustomAgent, historyItem: MsgHistoryItem): Promise<void> => {
-      // TODO
-    },
+    async (agent: CustomAgent, historyItem: MsgHistoryItem): Promise<void> => {},
   );
 
   return userAgent;
