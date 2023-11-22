@@ -59,7 +59,6 @@ class SimulationRepository extends BaseRepository<SimulationDocument> {
         logger.info(`Simulation found by id: ${simulation}`);
       } else {
         logger.error(`No simulations found by id: ${id}`);
-        throw `No simulations found by id: ${id}`;
       }
       return simulation;
     } catch (error) {

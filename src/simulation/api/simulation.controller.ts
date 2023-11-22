@@ -5,7 +5,10 @@ import { validationResult } from 'express-validator';
 import { RunSimulationRequest } from '../model/request/run-simulation.request';
 import { SimulationDocument } from '../db/models/simulation.model';
 import simulationService from '../service/simulation.service';
+import repositoryFactory from '../db/repositories/factory';
 import { logger } from '../service/logging.service';
+
+const simulationRepository = repositoryFactory.simulationRepository;
 
 /**
  * Runs the simulation.
@@ -49,6 +52,13 @@ async function poll(req: Request, res: Response) {
     }
 
     const id = req.params.id;
+    const existingSimulation = await simulationRepository.getById(id);
+    if (!existingSimulation) {
+      return res
+        .status(400)
+        .json({ error: `Simulation with this ID: ${id} not found. Please provide a valid simulation ID.` });
+    }
+
     const simulation = await simulationService.poll(id);
     res.status(200).send(simulation);
   } catch (error) {
@@ -77,6 +87,13 @@ async function getDetails(req: Request, res: Response) {
     }
 
     const id = req.params.id;
+    const existingSimulation = await simulationRepository.getById(id);
+    if (!existingSimulation) {
+      return res
+        .status(400)
+        .json({ error: `Simulation with this ID: ${id} not found. Please provide a valid simulation ID.` });
+    }
+
     const simulation = await simulationService.getDetails(id);
     res.status(200).send(simulation);
   } catch (error) {
@@ -105,6 +122,13 @@ async function getConversations(req: Request, res: Response) {
     }
 
     const id = req.params.id;
+    const existingSimulation = await simulationRepository.getById(id);
+    if (!existingSimulation) {
+      return res
+        .status(400)
+        .json({ error: `Simulation with this ID: ${id} not found. Please provide a valid simulation ID.` });
+    }
+
     const conversations = await simulationService.getConversations(id);
     res.status(200).send(conversations);
   } catch (error) {
@@ -161,6 +185,13 @@ async function update(req: Request, res: Response) {
     }
 
     const id: string = req.params.id;
+    const existingSimulation = await simulationRepository.getById(id);
+    if (!existingSimulation) {
+      return res
+        .status(400)
+        .json({ error: `Simulation with this ID: ${id} not found. Please provide a valid simulation ID.` });
+    }
+
     const updates: Partial<SimulationDocument> = req.body as Partial<SimulationDocument>;
     const updated = await simulationService.update(id, updates);
     console.log(updated);
@@ -191,6 +222,13 @@ async function del(req: Request, res: Response) {
     }
 
     const id: string = req.params.id;
+    const existingSimulation = await simulationRepository.getById(id);
+    if (!existingSimulation) {
+      return res
+        .status(400)
+        .json({ error: `Simulation with this ID: ${id} not found. Please provide a valid simulation ID.` });
+    }
+
     const success = await simulationService.del(id);
     res.status(204).send({ success: success });
   } catch (error) {

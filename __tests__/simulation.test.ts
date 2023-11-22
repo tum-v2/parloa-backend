@@ -108,8 +108,8 @@ describe('GET /api/v1/simulation/:id/poll', () => {
     expect(validResponse.status).toBe(200);
   });
 
-  it('should return 500 for invalid simulation ID', () => {
-    expect(invalidResponse.status).toBe(500);
+  it('should return 400 for invalid simulation ID', () => {
+    expect(invalidResponse.status).toBe(400);
   });
 });
 
@@ -131,8 +131,8 @@ describe('GET /api/v1/simulation/:id/details', () => {
     expect(validResponse.status).toBe(200);
   });
 
-  it('should return 500 for invalid simulation ID', () => {
-    expect(invalidResponse.status).toBe(500);
+  it('should return 400 for invalid simulation ID', () => {
+    expect(invalidResponse.status).toBe(400);
   });
 });
 
@@ -154,8 +154,8 @@ describe('GET /api/v1/simulation/:id/conversations', () => {
     expect(validResponse.status).toBe(200);
   });
 
-  it('should return 500 for invalid simulation ID', () => {
-    expect(invalidResponse.status).toBe(500);
+  it('should return 400 for invalid simulation ID', () => {
+    expect(invalidResponse.status).toBe(400);
   });
 });
 
@@ -166,7 +166,7 @@ describe('PATCH /api/v1/simulation/:id', () => {
   beforeEach(async () => {
     validInput.name = 'api-test';
     validResponse = await request(app).patch(`/api/v1/simulation/${validSimulationId}`).send(validInput);
-    invalidResponse = await request(app).patch(`/api/v1/simulation/${invalidSimulationId}`).send(invalidInput);
+    invalidResponse = await request(app).patch(`/api/v1/simulation/${invalidSimulationId}`).send(validInput);
   });
 
   afterEach(() => {
@@ -201,8 +201,8 @@ describe('DELETE /api/v1/simulation/:id', () => {
     expect(validResponse.status).toBe(204);
   });
 
-  it('should return 204 for invalid simulation ID', () => {
-    expect(invalidResponse.status).toBe(204);
+  it('should return 400 for invalid simulation ID', () => {
+    expect(invalidResponse.status).toBe(400);
   });
 });
 
