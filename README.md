@@ -119,7 +119,12 @@ To get a local copy up and running follow these simple example steps.
     ```sh
     docker-compose up
     ```
-3. Open your web browser and access the application at http://localhost:3000 (or the configured port).
+
+    **Optional:** If you have a problem of having a container running old version of the code, use this command (It will update the image the container is using):
+   ```sh
+   docker-compose up -d --build
+   ```
+4. Open your web browser and access the application at http://localhost:3000 (or the configured port).
 
 #### Without Docker
 1. Clone the repo
