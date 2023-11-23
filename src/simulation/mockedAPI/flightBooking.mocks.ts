@@ -16,6 +16,19 @@ const validNames: string[] = [
   'RINDSLAND',
 ];
 export function auth(bookingNumber: string, lastName: string) {
+  if (bookingNumber === undefined) {
+    return {
+      error:
+        'You forgot to provide a booking_number! Either the user already provided you with a bookingNumber or you have to ask for it.',
+    };
+  }
+  if (lastName === undefined) {
+    return {
+      error:
+        'You forgot to provide a last_name! Either the user already provided you with a lastname or you have to ask for it.',
+    };
+  }
+
   if (bookingNumber.toUpperCase() === 'PARL0A' && validNames.includes(lastName.toUpperCase())) {
     return { authToken: validToken };
   } else {
@@ -24,10 +37,16 @@ export function auth(bookingNumber: string, lastName: string) {
 }
 export function bookingInfo(bookingNumber: string, authToken: string) {
   if (bookingNumber === undefined) {
-    return { error: 'You forgot to input a booking_number!' };
+    return {
+      error:
+        'You forgot to provide a booking_number! Either the user already provided you with a bookingNumber or you have to ask for it.',
+    };
   }
   if (authToken === undefined) {
-    return { error: 'You forgot to input a auth_token!' };
+    return {
+      error:
+        'You forgot to provide a auth_token! Either you already got a authToken from auth, or you need to authenticate the user.',
+    };
   }
 
   if (bookingNumber.toUpperCase() == 'PARL0A' && authToken == validToken)
@@ -40,10 +59,29 @@ export function bookingInfo(bookingNumber: string, authToken: string) {
       passangers: 3,
     };
   else {
-    return { error: "Booking Number doesn't exist" };
+    return { error: "Booking Number doesn't exist." };
   }
 }
 export function checkAvailability(bookingNumber: string, newDate: string, authToken: string) {
+  if (bookingNumber === undefined) {
+    return {
+      error:
+        'You forgot to provide a booking_number! Either the user already provided you with a bookingNumber or you have to ask for it.',
+    };
+  }
+  if (authToken === undefined) {
+    return {
+      error:
+        'You forgot to provide a auth_token! Either you already got a authToken from auth, or you need to authenticate the user.',
+    };
+  }
+  if (newDate === undefined) {
+    return {
+      error:
+        'You forgot to provide a new_date! You can input a new_date like this: 2023-11-19 or multiple dates like this ["2023-11-19","2023-11-14"]',
+    };
+  }
+
   if (bookingNumber.toUpperCase() === 'PARL0A' && authToken === validToken)
     if (newDate == '2023-11-19')
       return [
@@ -104,13 +142,19 @@ export function checkAvailability(bookingNumber: string, newDate: string, authTo
 }
 export function changeFlightDate(bookingNumber: string, newDate: string, authToken: string): any {
   if (bookingNumber === undefined) {
-    return { error: 'You forgot to input a booking_number!' };
+    return {
+      error:
+        'You forgot to provide a booking_number! Either the user already provided you with a bookingNumber or you have to ask for it.',
+    };
   }
   if (authToken === undefined) {
-    return { error: 'You forgot to input a auth_token!' };
+    return {
+      error:
+        'You forgot to provide a auth_token! Either you already got a authToken from auth, or you need to authenticate the user.',
+    };
   }
   if (newDate === undefined) {
-    return { error: 'You forgot to input a new_date!' };
+    return { error: 'You forgot to provide a new_date!' };
   }
 
   if (

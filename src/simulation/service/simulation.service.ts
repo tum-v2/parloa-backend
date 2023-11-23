@@ -17,10 +17,10 @@ const simulationRepository = repositoryFactory.simulationRepository;
  * @throws {Error} Throws an error if there is an issue with the MongoDB query.
  */
 async function initiate(request: RunSimulationRequest): Promise<SimulationDocument> {
-  console.log('Simulation initiated...');
-  console.log('Configuration:', request);
+  //console.log('Simulation initiated...');
+  /// console.log('Configuration:', request);
 
-  console.log('Creating simulation object...');
+  //console.log('Creating simulation object...');
   const userAgent: AgentDocument = await agentRepository.create(request.userAgentConfig);
   const serviceAgent: AgentDocument = await agentRepository.create(request.serviceAgentConfig);
 

@@ -1,6 +1,6 @@
 import { BaseChatModel } from 'langchain/chat_models/base';
 import { HumanMessagePromptTemplate, SystemMessagePromptTemplate } from 'langchain/prompts';
-import { BaseMessage } from 'langchain/schema';
+import { BaseMessage, HumanMessage } from 'langchain/schema';
 import { CustomAgentConfig, RestAPITool, RouteToCoreTool } from './custom.agent.config';
 import moment from 'moment';
 import { appendFileSync } from 'fs';
@@ -122,100 +122,148 @@ export class CustomAgent {
     let action: string | null = null;
     let actionInput: string | Record<string, any> | null = null;
     let apiToolConfig: RestAPITool | null = null;
-
+    let responseMessage: BaseMessage = new HumanMessage('start', undefined);
     //call tools until we get a USER_MESSAGE_ACTION or an action which is not rest_apit_tool
-    for (;;) {
-      const messages: BaseMessage[] = this.messageHistory.map((msg) => msg.lcMsg);
-      // print all the messages
-      //console.log('check 1.555: ' + messages.map(x => JSON.stringify(x)).join('\n'));
+    for (let i = 0; i < 10; i++) {
+      try {
+        const messages: BaseMessage[] = this.messageHistory.map((msg) => msg.lcMsg);
+        // print all the messages
+        //console.log('check 1.555: ' + messages.map(x => JSON.stringify(x)).join('\n'));
+        responseMessage = await this.chatModel.call(messages);
 
-      const responseMessage = await this.chatModel.call(messages);
+        //console.log('MESSAGE: \n' + responseMessage.content.toString() + '\n\n');
+        response = await this.getFixedJson(responseMessage);
 
-      //console.log('MESSAGE: \n' + responseMessage.content.toString() + '\n\n');
-      response = this.getFixedJson(responseMessage.content.toString());
-      action = response.action;
-      actionInput = response.action_input ?? {};
+        if (response.action === undefined) {
+          throw new Error(`ERROR: You forgot to specify an action.`);
+        }
 
-      //console.log("Message: check 1")
-      if (action === MsgTypes.MSGTOUSER || action == 'message_to_user' || action == 'None') {
-        await this.addMessage(
-          new MsgHistoryItem(
-            responseMessage,
-            MsgTypes.MSGTOUSER,
-            undefined,
-            String(actionInput),
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            id!,
-          ),
-        );
-        break;
-      }
-      // console.log("Message: check 2")
-      actionInput = actionInput === '' ? {} : actionInput;
-      if (typeof actionInput !== 'object') {
-        throw new Error(`ERROR: Invalid action_input in response: ${JSON.stringify(response, null, 4)}`);
-      }
-      //console.log("Message: check 3")
+        action = response.action;
+        actionInput = response.action_input ?? {};
 
-      if (action && this.config.routingTools[action]) {
-        await this.addMessage(
-          new MsgHistoryItem(
-            responseMessage,
-            MsgTypes.ROUTE,
-            undefined,
-            undefined,
-            response.intermediate_message,
-            action,
-            actionInput!,
-            undefined,
-            id!,
-          ),
-        );
-        break;
-      }
+        //console.log("Message: check 1")
+        if (action === MsgTypes.MSGTOUSER || action == 'message_to_user' || action == 'None') {
+          await this.addMessage(
+            new MsgHistoryItem(
+              responseMessage,
+              MsgTypes.MSGTOUSER,
+              undefined,
+              String(actionInput),
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              id!,
+            ),
+          );
+          break;
+        }
+        // console.log("Message: check 2")
 
-      // It's API tool time!
-      if (action && !(action in this.config.restApiTools)) {
-        throw new Error(`ERROR: Missing or invalid tool in response action: ${JSON.stringify(response, null, 4)}`);
-      }
+        if (typeof actionInput === 'string') {
+          actionInput = { text: actionInput };
+        }
 
-      if (action) {
-        apiToolConfig = this.config.restApiTools[action];
+        if (typeof actionInput === 'number') {
+          actionInput = { number: actionInput };
+        }
+        //actionInput = actionInput === '' ? {} : actionInput;
+        if (typeof actionInput !== 'object') {
+          throw new Error(`ERROR: Invalid action_input in response: ${JSON.stringify(response, null, 4)}`);
+        }
+        //console.log("Message: check 3")
 
-        await this.addMessage(
-          new MsgHistoryItem(
-            responseMessage,
-            MsgTypes.TOOLCALL,
-            undefined,
-            undefined,
-            response.intermediate_message,
-            action,
-            actionInput!,
-            undefined,
-            id!,
-          ),
-        );
+        if (action && this.config.routingTools[action]) {
+          await this.addMessage(
+            new MsgHistoryItem(
+              responseMessage,
+              MsgTypes.ROUTE,
+              undefined,
+              undefined,
+              response.intermediate_message,
+              action,
+              actionInput!,
+              undefined,
+              id!,
+            ),
+          );
+          break;
+        }
 
-        const toolOutput: string = apiToolConfig.func(actionInput);
+        // It's API tool time!
+        if (action && !(action in this.config.restApiTools)) {
+          throw new Error(
+            `ERROR: Missing or action: \n Choose one of these actions:  message_to_user, ` +
+              Object.keys(this.config.restApiTools).join(', '),
+          );
+        }
 
-        const lcMsg = await this.getToolOutputPrompt(action, toolOutput);
+        if (action) {
+          apiToolConfig = this.config.restApiTools[action];
 
-        await this.addMessage(
-          new MsgHistoryItem(
-            lcMsg,
-            MsgTypes.TOOLOUTPUT,
-            undefined,
-            undefined,
-            undefined,
-            action,
-            undefined,
-            toolOutput,
-            id!,
-          ),
-        );
+          await this.addMessage(
+            new MsgHistoryItem(
+              responseMessage,
+              MsgTypes.TOOLCALL,
+              undefined,
+              undefined,
+              response.intermediate_message,
+              action,
+              actionInput!,
+              undefined,
+              id!,
+            ),
+          );
+
+          const toolOutput: string = apiToolConfig.func(actionInput);
+
+          const lcMsg = await this.getToolOutputPrompt(action, toolOutput);
+
+          await this.addMessage(
+            new MsgHistoryItem(
+              lcMsg,
+              MsgTypes.TOOLOUTPUT,
+              undefined,
+              undefined,
+              undefined,
+              action,
+              undefined,
+              toolOutput,
+              id!,
+            ),
+          );
+        }
+      } catch (error: any) {
+        if (error instanceof Error) {
+          console.log('Error');
+          await this.addMessage(
+            new MsgHistoryItem(
+              responseMessage,
+              MsgTypes.DISCARDED,
+              undefined,
+              JSON.stringify(response),
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              id!,
+            ),
+          );
+
+          await this.addMessage(
+            new MsgHistoryItem(
+              await this.getToolOutputPrompt('error', error.message),
+              MsgTypes.ERROR,
+              undefined,
+              undefined,
+              undefined,
+              'error',
+              undefined,
+              (error as Error).message,
+              id!,
+            ),
+          );
+        }
       }
     }
     return String(actionInput); // type: ignore[reportGeneralTypeIssues] -- we raise in while loop but Pylance doesn't spot
@@ -295,6 +343,10 @@ export class CustomAgent {
     } else if (msg.type === MsgTypes.ROUTE) {
       this.logChat(`   ⏳ ${Colors.BLUE}${msg.intermediateMsg}${Colors.END}`);
       this.logChat(`🏓 ${Colors.BLUE}${msg.action} ${Colors.GREY}${msg.toolInput}${Colors.END}`);
+    } else if (msg.type === MsgTypes.ERROR) {
+      this.logChat(`🤖 ${Colors.RED}${msg.toolOutput}${Colors.END}`);
+    } else if (msg.type === MsgTypes.DISCARDED) {
+      this.logChat(`🤖 ${Colors.YELLOW}${msg.msgToUser}${Colors.END}`);
     }
 
     if (this.promptLogFilePath) {
@@ -312,28 +364,72 @@ export class CustomAgent {
     }
   }
 
-  getFixedJson(input: string) {
-    try {
-      const parsed = JSON.parse(input);
-      return parsed;
-    } catch (error) {
-      let fixedText = input.trim().replace(/"/g, '').replace('{', '').replace('}', '');
-      fixedText = '{' + fixedText;
-      fixedText = fixedText + '"}';
+  async getFixedJson(inputBaseMessage: BaseMessage, id: string | null = null) {
+    let count = 0;
+    const maxCount = 5;
+    let baseMesage = inputBaseMessage;
+    let input = inputBaseMessage.content.toString();
+    while (count++ < maxCount) {
+      console.log(`${Colors.GREY} JSONFIXER input: ` + input + `${Colors.END}`);
+      try {
+        const parsed = JSON.parse(input);
+        return parsed;
+      } catch (error) {
+        const firstBraceIndex = input.indexOf('{');
 
-      fixedText = fixedText.replace(/(\w+):/g, '"$1":'); // Fix keys
+        if (firstBraceIndex !== -1) {
+          input = input.substring(firstBraceIndex);
+        }
 
-      fixedText = fixedText.replace(/: (?!")/g, ': "');
+        let fixedText = input.trim().replace(/"/g, '').replace('{', '').replace('}', '');
+        fixedText = '{' + fixedText;
+        fixedText = fixedText + '"}';
 
-      fixedText = fixedText.replace(/(?<!{)\s*"(\w+)":/g, '","$1":');
-      fixedText = fixedText.replace(/""/g, '"');
+        fixedText = fixedText.replace(/(\w+):/g, '"$1":');
+        fixedText = fixedText.replace(/: (?!")/g, ': "');
+        fixedText = fixedText.replace(/(?<!{)\s*"(\w+)":/g, '","$1":');
+        fixedText = fixedText.replace(/""/g, '"');
 
-      // Replace newline characters with commas for proper JSON format
-      //fixedText = fixedText.replace(/\n/g, ',');
+        try {
+          const parsed = JSON.parse(fixedText);
+          console.log('fixed Text: \n' + fixedText);
+          return parsed;
+        } catch (exc) {
+          //console.log('failed fix asking ai: \n' + fixedText + ' count: ' + count);
+          await this.addMessage(
+            new MsgHistoryItem(
+              inputBaseMessage,
+              MsgTypes.DISCARDED,
+              undefined,
+              inputBaseMessage.content.toString(),
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              id!,
+            ),
+          );
 
-      console.log('fixed Text: \n' + fixedText);
-      const parsed = JSON.parse(fixedText);
-      return parsed;
+          const msg = `JSON: Couldn't read your output. Remember to print only proper json! The format looks like this.  {"thought":"fill your thoughts here", "action":"your action e.g. message_to_user, auth ..","action_input": "either text" or input for tools: {}}. Only send the json blib in the brackets, nothing before or after!`;
+          await this.addMessage(
+            new MsgHistoryItem(
+              await this.getHumanPrompt(msg),
+              MsgTypes.ERROR,
+              undefined,
+              undefined,
+              undefined,
+              'error',
+              undefined,
+              msg,
+              id!,
+            ),
+          );
+          const messages: BaseMessage[] = this.messageHistory.map((msg) => msg.lcMsg);
+          baseMesage = await this.chatModel.call(messages);
+
+          input = baseMesage.content.toString();
+        }
+      }
     }
   }
 }

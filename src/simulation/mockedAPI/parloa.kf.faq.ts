@@ -30,6 +30,9 @@ interface ChoiceResponse {
 }
 // eslint-disable-next-line require-jsdoc, @typescript-eslint/no-unused-vars
 export async function getFaqAnswer(question: string): Promise<string> {
+  if (question === undefined) {
+    return 'You forgot to provide a question. A correct input_action would be {"question":"What is a booking number?")}';
+  }
   const request: FAQRequest = {
     context: context,
     input: {
@@ -45,16 +48,19 @@ export async function getFaqAnswer(question: string): Promise<string> {
     request.input.persona = persona;
   }
   try {
+    const body = JSON.stringify(request);
+    console.log('FAQ body: ' + body);
+
     const response = await fetchWithTimeout(retrievalUrl!, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(request),
+      body: body,
     });
 
     if (!response.ok) {
-      throw new Error('Error: HTTP status: ' + response.status);
+      throw new Error(' HTTP status: ' + response.status);
     }
     const data: ChoiceResponse = (await response.json()) as ChoiceResponse;
 

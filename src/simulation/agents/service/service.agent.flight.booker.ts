@@ -25,7 +25,9 @@ const restApiTools: Record<string, RestAPITool> = {
       new APIParam('last_name', 'Last Name of the person who made the booking.', 'string'),
     ]),
     new APIResponse('auth_token to be used for other tools'),
-    (data) => JSON.stringify(auth(data.booking_number, data.last_name)),
+    (data) => {
+      return JSON.stringify(auth(data.booking_number, data.last_name));
+    },
   ),
   bookingInfo: new RestAPITool(
     'Retrieves booking details',

@@ -37,6 +37,8 @@ enum MsgTypes {
   TOOLOUTPUT = 'TOOLOUTPUT',
   MSGTOUSER = 'MSGTOUSER',
   ROUTE = 'ROUTE',
+  DISCARDED = 'DISCARDED',
+  ERROR = 'ERROR',
 }
 
 export {

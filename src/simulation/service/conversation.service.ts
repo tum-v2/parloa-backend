@@ -15,11 +15,12 @@ import * as path from 'path';
 import { HumanMessage } from 'langchain/schema';
 
 let model = '';
-model = 'gpt-4'; //'gpt-35-turbo';
-
 let openApiKey: string | undefined;
 let azureApiInstanceName: string | undefined;
 let azureApiVersion: string | undefined;
+
+model = 'gpt-35-turbo';
+
 if (model !== 'gpt-4') {
   openApiKey = process.env.AZURE_OPENAI_API_KEY;
   if (openApiKey === undefined) throw new Error('AZURE_OPENAI_API_KEY Needs to be specified');
@@ -82,6 +83,8 @@ async function configureServiceAgent(simulationData: Partial<SimulationDocument>
     azureOpenAIApiInstanceName: azureApiInstanceName,
     azureOpenAIApiVersion: azureApiVersion,
   };
+  console.log(azureOpenAIInput);
+
   const agent_llm = new ChatOpenAI(azureOpenAIInput);
 
   const serviceAgent: CustomAgent = new CustomAgent(
@@ -107,7 +110,7 @@ async function configureUserAgent(simulationData: Partial<SimulationDocument>): 
     azureOpenAIApiInstanceName: azureApiInstanceName,
     azureOpenAIApiVersion: azureApiVersion,
   };
-
+  console.log(azureOpenAIInput);
   const userLLM = new ChatOpenAI(azureOpenAIInput);
 
   const userAgent: CustomAgent = new CustomAgent(
@@ -133,7 +136,7 @@ export async function runConversation(simulationData: Partial<SimulationDocument
 
   await userAgent.startAgent();
 
-  const maxTurnCount = 15;
+  const maxTurnCount = 5;
   let turnCount = 0;
 
   try {
