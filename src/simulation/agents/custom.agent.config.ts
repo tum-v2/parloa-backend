@@ -59,7 +59,7 @@ export class RestAPITool {
   isActive: boolean;
   request: APIRequest;
   response: APIResponse;
-  func: GenericFunction;
+  executeTool: GenericFunction;
 
   constructor(
     description: string,
@@ -72,7 +72,7 @@ export class RestAPITool {
     this.isActive = isActive;
     this.request = request;
     this.response = response;
-    this.func = func;
+    this.executeTool = func;
   }
 }
 

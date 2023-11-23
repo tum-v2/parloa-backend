@@ -159,11 +159,3 @@ export async function runConversation(simulationData: Partial<SimulationDocument
     }
   }
 }
-
-/* Questions 
-   - persona == prompt?
-   - azure services how to use
-   - what is together ai
-   - Azure Deployment name
-   // Error: [2023-11-16 15:01:54] [error]: Simulation run failed! Error: Azure OpenAI API instance name not found
-*/
