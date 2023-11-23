@@ -3,11 +3,12 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
+  "type": "module",
   "scripts": {
     "lint": "eslint src/**/*.ts",
     "format": "eslint src/**/*.ts --fix",
     "start:dev": "npx nodemon",
-    "build": "rimraf ./build && tsc",
+    "build": "rimraf ./build && tsc && tsc-alias",
     "start": "npm run build && node build/src/index.js",
     "test": "jest",
     "test:watch": "jest --watch",
@@ -41,6 +42,7 @@
     "supertest": "^6.3.3",
     "ts-jest": "^29.1.1",
     "ts-node": "^10.9.1",
+    "tsc-alias": "^1.8.8",
     "typescript": "^5.2.2",
     "yamljs": "^0.3.0"
   },
