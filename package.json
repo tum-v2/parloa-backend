@@ -7,7 +7,7 @@
   "scripts": {
     "lint": "eslint src/**/*.ts",
     "format": "eslint src/**/*.ts --fix",
-    "start:dev": "npx nodemon",
+    "start:dev": "tsx watch src",
     "build": "rimraf ./build && tsc && tsc-alias",
     "start": "npm run build && node build/src/index.js",
     "test": "jest",
@@ -36,13 +36,12 @@
     "lint-staged": "^15.0.2",
     "mongodb": "^5.9.1",
     "mongoose": "^8.0.0",
-    "nodemon": "^3.0.1",
     "prettier": "^3.0.3",
     "rimraf": "^5.0.5",
     "supertest": "^6.3.3",
     "ts-jest": "^29.1.1",
-    "ts-node": "^10.9.1",
     "tsc-alias": "^1.8.8",
+    "tsx": "^4.4.0",
     "typescript": "^5.2.2",
     "yamljs": "^0.3.0"
   },

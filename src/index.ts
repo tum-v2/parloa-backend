@@ -37,7 +37,7 @@ app.use('/api/v1/llm', llmRouter);
 app.use(simulationValidator.handleValidationErrors);
 
 app.get('/', (req: Request, res: Response) => {
-  res.send('Hello, TypeScript Express!');
+  res.send('Hello, TypeScript Express!!');
 });
 
 const server = app.listen(port, async () => {
