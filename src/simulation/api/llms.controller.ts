@@ -2,10 +2,13 @@
 import { Request, Response } from 'express';
 import { LLMModel } from '../db/enum/enums';
 
-async function getLLMs(req: Request, res: Response) {
-  // TODO
-  const list: LLMModel[] = [];
-  res.status(200).send(list);
+/**
+ * Get all LLMs
+ * @param req
+ * @param res
+ */
+async function getLLMs(req: Request, res: Response): Promise<void> {
+  res.status(200).send(Object.values(LLMModel));
 }
 
 export default {
