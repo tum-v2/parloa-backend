@@ -1,10 +1,11 @@
 import { Schema, Document, model } from 'mongoose';
-import { LLMModel } from '../enum/enums';
+import { ConversationDomain, LLMModel } from '../enum/enums';
 
 interface AgentDocument extends Document {
   llm: LLMModel;
   temperature: number;
   maxTokens: number;
+  domain: ConversationDomain;
   prompt: string;
 }
 
@@ -13,6 +14,7 @@ const agentSchema: Schema = new Schema(
     llm: { type: String, enum: Object.values(LLMModel), required: true },
     temperature: { type: Number, required: true },
     maxTokens: { type: Number, required: true },
+    conversations: [{ type: Schema.Types.ObjectId, ref: 'Conversation' }],
     prompt: { type: String, required: true },
   },
   { timestamps: true },

@@ -4,7 +4,6 @@ import { ConversationDocument } from '../models/conversation.model';
 import { SimulationDocument } from '../models/simulation.model';
 import { SimulationRepository } from './simulation.repository';
 import { ConversationStatus, ConversationType, SimulationStatus } from '../enum/enums';
-import { UserModel } from '../models/user.model';
 import { logger } from '../../service/logging.service';
 
 class ChatRepository extends SimulationRepository {
@@ -87,17 +86,7 @@ class ChatRepository extends SimulationRepository {
 
   async findAll(): Promise<SimulationDocument[]> {
     try {
-      const result: SimulationDocument[] = await this.model
-        .find({ type: ConversationType.MANUAL })
-        .populate({ path: 'user', model: UserModel })
-        .populate({
-          path: 'conversations',
-          populate: {
-            path: 'messages',
-            model: 'Message',
-          },
-        })
-        .populate('agents');
+      const result: SimulationDocument[] = await this.model.find({ type: ConversationType.MANUAL });
       return result;
     } catch (error) {
       logger.error(`Error finding chats!`);

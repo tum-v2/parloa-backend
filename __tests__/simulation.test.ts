@@ -8,7 +8,6 @@ let deleteValidSimulationId = '';
 const invalidSimulationId = '000000000000000000000000';
 
 const validInput = {
-  user: '65515f13d5dbce1dd781ef60',
   scenario: 'SLOT_FILLING',
   type: 'AUTOMATED',
   domain: 'FLIGHT',
@@ -29,7 +28,6 @@ const validInput = {
 };
 
 const invalidInput = {
-  user: '000000000000000000000000',
   scenario: 'SLOT_FILLING',
   type: 'AUTOMATED',
   domain: 'ECOMMERCE',

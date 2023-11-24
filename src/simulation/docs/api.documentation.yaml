@@ -433,9 +433,6 @@ components:
     RunSimulationRequest:
       type: object
       properties:
-        user:
-          type: string
-          example: 65515f13d5dbce1dd781ef60
         name:
           type: string
           example: "Simulation 3"

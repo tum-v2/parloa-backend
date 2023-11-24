@@ -4,7 +4,6 @@ import { BaseRepository } from './base.repository';
 import { SimulationDocument } from '../models/simulation.model';
 import { ConversationDomain, ConversationType, SimulationStatus } from '../enum/enums';
 import { ConversationDocument } from '../models/conversation.model';
-import { UserModel } from '../models/user.model';
 
 class SimulationRepository extends BaseRepository<SimulationDocument> {
   constructor(model: Model<SimulationDocument>) {
@@ -15,13 +14,7 @@ class SimulationRepository extends BaseRepository<SimulationDocument> {
 
   async getConversationsById(id: string): Promise<ConversationDocument[] | null> {
     try {
-      const simulation: SimulationDocument | null = await this.model.findById(id).populate({
-        path: 'conversations', // replace 'conversations' IDs with actual documents
-        populate: {
-          path: 'messages', // replace 'messages' IDs within each 'conversation' with actual documents
-          model: 'Message', // specify the model for 'messages'
-        },
-      });
+      const simulation: SimulationDocument | null = await this.model.findById(id).populate('conversations');
       if (simulation) {
         return simulation.conversations as ConversationDocument[];
       }
@@ -39,17 +32,7 @@ class SimulationRepository extends BaseRepository<SimulationDocument> {
 
   async findAll(): Promise<SimulationDocument[]> {
     try {
-      const result: SimulationDocument[] = await this.model
-        .find()
-        .populate({ path: 'user', model: UserModel })
-        .populate({
-          path: 'conversations',
-          populate: {
-            path: 'messages',
-            model: 'Message',
-          },
-        })
-        .populate('agents');
+      const result = await this.model.find();
       return result;
     } catch (error) {
       logger.error(`Error finding simulations!`);
@@ -76,21 +59,6 @@ class SimulationRepository extends BaseRepository<SimulationDocument> {
       return await this._populate(result);
     }
     return result;
-  }
-
-  async findByUser(userId: Types.ObjectId): Promise<SimulationDocument[]> {
-    try {
-      const result = await this.model.find({ user: userId }).exec();
-      if (result.length > 0) {
-        logger.info(`Simulations found by user: ${result}`);
-      } else {
-        logger.warn(`No simulations found by user: ${userId}`);
-      }
-      return result;
-    } catch (error) {
-      logger.error(`Error finding simulations by user: ${userId}`);
-      throw error;
-    }
   }
 
   async findByScenarioName(scenarioName: string): Promise<SimulationDocument[]> {
@@ -186,15 +154,6 @@ class SimulationRepository extends BaseRepository<SimulationDocument> {
   // endregion FIND_BY_ATTRIBUTE //
 
   async _populate(result: SimulationDocument): Promise<SimulationDocument> {
-    await result?.populate({ path: 'user', model: UserModel });
-    await result?.populate({
-      path: 'conversations',
-      populate: {
-        path: 'messages',
-        model: 'Message',
-      },
-    });
-    await result?.populate('agents');
     return result;
   }
 }
