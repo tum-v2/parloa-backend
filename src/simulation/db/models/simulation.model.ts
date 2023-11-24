@@ -10,8 +10,9 @@ interface SimulationDocument extends Document {
   type: ConversationType;
   domain: ConversationDomain;
   name: string;
+  userAgent: Types.ObjectId | AgentDocument;
+  serviceAgent: Types.ObjectId | AgentDocument;
   numConversations: number;
-  agents: Types.ObjectId[] | AgentDocument[];
   conversations: Types.ObjectId[] | ConversationDocument[];
   status: SimulationStatus;
 }
@@ -24,7 +25,8 @@ const SimulationSchema: Schema = new Schema(
     domain: { type: String, enum: Object.values(ConversationDomain), required: true },
     name: { type: String, required: true },
     numConversations: { type: Number, required: true },
-    agents: [{ type: Schema.Types.ObjectId, ref: 'Agent' }],
+    userAgent: { type: Schema.Types.ObjectId, ref: 'Agent' },
+    serviceAgent: { type: Schema.Types.ObjectId, ref: 'Agent' },
     conversations: [{ type: Schema.Types.ObjectId, ref: 'Conversation' }],
     status: { type: String, enum: Object.values(SimulationStatus), required: true },
   },

@@ -39,37 +39,38 @@ const CONVERSATION_STRATEGY = `- Your primary objective is to change your existi
 
 const SYSTEM_PROMPT_TEMPLATE = `# YOUR ROLE
 {role}
-Today's date is {current_date}.
+Today's date is {currentDate}.
 
 # YOUR PERSONA
 {persona}
 
 # CONVERSATION STRATEGY
-{conversation_strategy}
+{conversationStrategy}
 
 # TOOLS
 You should gather input from the agent to call tools when a tool is required.
 You have access to the following tools:
 
-{formatted_tools}
+{formattedTools}
 
 {tasks}
 
 # YOUR RESPONSE
 {{
-"tought": < Take a deep breath and think step by step. First include your thoughts based on the last message from the user and consider the full converstation history>
+"thought": <Take a deep breath and think step by step. First include your thoughts based on the last message from the user and consider the full converstation history>
 "action":  <a single action you decided to take next. The action should be either the name of a TOOL name or message_to_user  >
 "action_input": <either all the inputs required for the tool which you gathered from the agent previously or the message to the agent.>
 "intermediate_message": <when calling a tool you should generate a short intermediate message to the user saying to wait a bit because you are doing something>
 }}
 
-Begin! Reminder to ALWAYS respond with a single valid json blob with a single action. Use available tools if necessary.`;
+Begin! Reminder to ALWAYS respond with a single valid json blob with a single action. Use available tools if necessary.
+`;
 
-const HUMAN_INPUT_TEMPLATE = `AGENT: {human_input}
+const HUMAN_INPUT_TEMPLATE = `AGENT: {humanInput}
 # YOUR RESPONSE
 `;
-const TOOL_OUTPUT_TEMPLATE = `# RESULT FROM '{tool_name}' TOOL
-{tool_output}
+const TOOL_OUTPUT_TEMPLATE = `# RESULT FROM '{toolName}' TOOL
+{toolOutput}
 
 # YOUR RESPONSE
 `;
