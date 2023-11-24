@@ -20,7 +20,6 @@ class simulationValidator {
    */
   static runValidation(): ValidationChain[] {
     return [
-      body('user').isMongoId().withMessage('User id must be a valid Mongo id.'),
       body('name').isString().withMessage('Simulation name must be a valid string.'),
       body('scenario')
         .isIn(Object.values(SimulationScenario))
@@ -47,7 +46,6 @@ class simulationValidator {
 
       body().custom((value, { req }) => {
         const allowedFields = [
-          'user',
           'name',
           'scenario',
           'type',

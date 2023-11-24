@@ -1,12 +1,13 @@
 import { SimulationDocument } from '@simulation/db/models/simulation.model';
 import repositoryFactory from '../db/repositories/factory';
 import { MessageDocument } from '@simulation/db/models/message.model';
-import { SimulationStatus } from '../db/enum/enums';
+import { ConversationType, SimulationStatus } from '../db/enum/enums';
 
 const chatRepository = repositoryFactory.chatRepository;
 
 async function start(config: Partial<SimulationDocument>): Promise<SimulationDocument> {
   config.status = SimulationStatus.SCHEDULED;
+  config.type = ConversationType.MANUAL;
   const chat: SimulationDocument = await chatRepository.create(config);
   //TODO Initialize agent, update chat to SimulationStatus.RUNNING
   return chat;
