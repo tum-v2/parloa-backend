@@ -16,13 +16,20 @@ const validNames: string[] = [
   'RINDSLAND',
 ];
 export function auth(bookingNumber: string, lastName: string) {
-  if (bookingNumber.toUpperCase() == 'PARL0A' && lastName.toUpperCase() in validNames) {
+  if (bookingNumber.toUpperCase() === 'PARL0A' && validNames.includes(lastName.toUpperCase())) {
     return { authToken: validToken };
   } else {
     return { error: 'Authentication failed' };
   }
 }
-function bookingInfo(bookingNumber: string, authToken: string) {
+export function bookingInfo(bookingNumber: string, authToken: string) {
+  if (bookingNumber === undefined) {
+    return { error: 'You forgot to input a booking_number!' };
+  }
+  if (authToken === undefined) {
+    return { error: 'You forgot to input a auth_token!' };
+  }
+
   if (bookingNumber.toUpperCase() == 'PARL0A' && authToken == validToken)
     return {
       flightNumber: 'PA123',
@@ -36,8 +43,8 @@ function bookingInfo(bookingNumber: string, authToken: string) {
     return { error: "Booking Number doesn't exist" };
   }
 }
-function checkAvailability(bookingNumber: string, newDate: string, authToken: string) {
-  if (bookingNumber.toUpperCase() == 'PARL0A' && authToken == validToken)
+export function checkAvailability(bookingNumber: string, newDate: string, authToken: string) {
+  if (bookingNumber.toUpperCase() === 'PARL0A' && authToken === validToken)
     if (newDate == '2023-11-19')
       return [
         {
@@ -95,18 +102,32 @@ function checkAvailability(bookingNumber: string, newDate: string, authToken: st
 
   return { error: 'No flights available' };
 }
-function changeFlightDate(bookingNumber: string, newDate: string, authToken: string): boolean {
-  if (bookingNumber.toUpperCase() == 'PARL0A' && newDate in ['2023-11-19', '2024-04-01'] && authToken == validToken) {
+export function changeFlightDate(bookingNumber: string, newDate: string, authToken: string): any {
+  if (bookingNumber === undefined) {
+    return { error: 'You forgot to input a booking_number!' };
+  }
+  if (authToken === undefined) {
+    return { error: 'You forgot to input a auth_token!' };
+  }
+  if (newDate === undefined) {
+    return { error: 'You forgot to input a new_date!' };
+  }
+
+  if (
+    bookingNumber.toUpperCase() === 'PARL0A' &&
+    ['2023-11-19', '2024-04-01'].includes(newDate) &&
+    authToken === validToken
+  ) {
     return true;
   } else {
     return false;
   }
 }
-function isValidEmail(email: string): boolean {
+export function isValidEmail(email: string): boolean {
   const pattern = /^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$/;
   return pattern.test(email);
 }
-function sendBookingChangeEmail(
+export function sendBookingChangeEmail(
   email: string,
   bookingNumber: number,
   newDepartureDate: Date,

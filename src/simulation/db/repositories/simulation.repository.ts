@@ -4,70 +4,22 @@ import { BaseRepository } from './base.repository';
 import { SimulationDocument } from '../models/simulation.model';
 import { ConversationDomain, ConversationType, SimulationStatus } from '../enum/enums';
 import { ConversationDocument } from '../models/conversation.model';
-import { UpdateSimulationRequest } from '@simulation/model/request/update-simulation.request';
 
 class SimulationRepository extends BaseRepository<SimulationDocument> {
   constructor(model: Model<SimulationDocument>) {
     super(model);
   }
 
-  // region WRITE //
-
-  async createSimulation(config: Partial<SimulationDocument>): Promise<SimulationDocument> {
-    try {
-      const simulation = await this.model.create(config);
-      logger.info(`Simulation created: ${simulation}`);
-      return simulation;
-    } catch (error) {
-      logger.error(`Error creating simulation with configuration: ${config}`);
-      throw error;
-    }
-  }
-
-  async update(id: Types.ObjectId, updates: UpdateSimulationRequest): Promise<boolean> {
-    try {
-      const result = await this.model.updateOne({ _id: id }, { $set: updates });
-      if (result.modifiedCount === 1) {
-        logger.info(`Simulation ${id} updated successfully`);
-      } else {
-        logger.error(`Simulation ${id} not found or no updates applied`);
-        throw `Simulation ${id} not found or no updates applied`;
-      }
-      return result.modifiedCount === 1;
-    } catch (error) {
-      logger.error(`Error updating simulation with id: ${id}`);
-      throw error;
-    }
-  }
-
-  async delete(id: Types.ObjectId): Promise<boolean> {
-    try {
-      const result = await this.model.deleteOne({ _id: id });
-      if (result.deletedCount === 1) {
-        logger.info(`Simulation ${id} deleted successfully`);
-      } else {
-        logger.error(`Simulation ${id} not found or not deleted`);
-        throw `Simulation ${id} not found or not deleted`;
-      }
-      return result.deletedCount === 1;
-    } catch (error) {
-      logger.error(`Error deleting simulation with id: ${id}`);
-      throw error;
-    }
-  }
-
-  // endregion WRITE //
-
   // region GET_ATTRIBUTE //
 
-  async getConversationsBySimulationId(id: Types.ObjectId): Promise<ConversationDocument[]> {
+  async getConversationsById(id: string): Promise<ConversationDocument[] | null> {
     try {
-      const simulation: SimulationDocument = await this.findById(id);
+      const simulation: SimulationDocument | null = await this.model.findById(id).populate('conversations');
       if (simulation) {
         return simulation.conversations as ConversationDocument[];
       }
-      logger.warn(`No conversations found by simulation id: ${id}`);
-      return [];
+      logger.error(`No simulations found by simulation id: ${id}`);
+      return null;
     } catch (error) {
       logger.error(`Error fetching conversations by simulation id: ${id}`);
       throw error;
@@ -76,16 +28,11 @@ class SimulationRepository extends BaseRepository<SimulationDocument> {
 
   // endegion GET_ATTRIBUTE //
 
-  // region FIND_BY_ATTRIBUTE //
+  // region FIND //
 
   async findAll(): Promise<SimulationDocument[]> {
     try {
-      const result = await this.model.aggregate([
-        { $lookup: { from: 'users', localField: 'user', foreignField: '_id', as: 'user' } },
-        { $lookup: { from: 'agents', localField: 'agents', foreignField: '_id', as: 'agents' } },
-        { $lookup: { from: 'conversations', localField: 'conversations', foreignField: '_id', as: 'conversations' } },
-        { $addFields: { user: { $arrayElemAt: ['$user', 0] } } },
-      ]);
+      const result = await this.model.find();
       return result;
     } catch (error) {
       logger.error(`Error finding simulations!`);
@@ -93,42 +40,25 @@ class SimulationRepository extends BaseRepository<SimulationDocument> {
     }
   }
 
-  async findById(id: Types.ObjectId): Promise<SimulationDocument> {
+  async findById(id: string): Promise<SimulationDocument | null> {
     try {
-      const result = await this.model.aggregate([
-        { $match: { _id: id } },
-        { $lookup: { from: 'users', localField: 'user', foreignField: '_id', as: 'user' } },
-        { $lookup: { from: 'agents', localField: 'agents', foreignField: '_id', as: 'agents' } },
-        { $lookup: { from: 'conversations', localField: 'conversations', foreignField: '_id', as: 'conversations' } },
-        { $addFields: { user: { $arrayElemAt: ['$user', 0] } } },
-      ]);
-      const simulation = result[0] as SimulationDocument;
-      if (simulation) {
-        logger.info(`Simulation found by id: ${simulation}`);
-      } else {
-        logger.error(`No simulations found by id: ${id}`);
-        throw `No simulations found by id: ${id}`;
+      const result: SimulationDocument | null = await super.getById(id);
+      if (result) {
+        return await this._populate(result);
       }
-      return simulation;
+      return result;
     } catch (error) {
       logger.error(`Error finding simulations by id: ${id}`);
       throw error;
     }
   }
 
-  async findByUser(userId: Types.ObjectId): Promise<SimulationDocument[]> {
-    try {
-      const result = await this.model.find({ user: userId }).exec();
-      if (result.length > 0) {
-        logger.info(`Simulations found by user: ${result}`);
-      } else {
-        logger.warn(`No simulations found by user: ${userId}`);
-      }
-      return result;
-    } catch (error) {
-      logger.error(`Error finding simulations by user: ${userId}`);
-      throw error;
+  async updateById(id: string, data: Partial<SimulationDocument>): Promise<SimulationDocument | null> {
+    const result: SimulationDocument | null = await super.updateById(id, data);
+    if (result) {
+      return await this._populate(result);
     }
+    return result;
   }
 
   async findByScenarioName(scenarioName: string): Promise<SimulationDocument[]> {
@@ -176,6 +106,21 @@ class SimulationRepository extends BaseRepository<SimulationDocument> {
     }
   }
 
+  async findByName(name: string): Promise<SimulationDocument[]> {
+    try {
+      const result = await this.model.find({ name }).exec();
+      if (result.length > 0) {
+        logger.info(`Simulations found by model:  ${result}`);
+      } else {
+        logger.warn(`No simulations found by  name: ${name}`);
+      }
+      return result;
+    } catch (error) {
+      logger.error(`Error finding simulations by  name: ${name}`);
+      throw error;
+    }
+  }
+
   async findByAgent(agentId: Types.ObjectId): Promise<SimulationDocument[]> {
     try {
       const result = await this.model.find({ agents: agentId }).exec();
@@ -207,6 +152,10 @@ class SimulationRepository extends BaseRepository<SimulationDocument> {
   }
 
   // endregion FIND_BY_ATTRIBUTE //
+
+  async _populate(result: SimulationDocument): Promise<SimulationDocument> {
+    return result;
+  }
 }
 
 export { SimulationRepository };

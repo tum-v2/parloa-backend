@@ -42,8 +42,11 @@ services:
       - DB_PASSWORD=$MONGODB_PASSWORD
       - DB_NAME=$MONGODB_DATABASE
       - DB_PORT=$MONGODB_DOCKER_PORT
+    volumes:
+      - ./src:/usr/src/app/src
     stdin_open: true
     tty: true
+    command: npm run start:dev
 
 volumes:
   db:

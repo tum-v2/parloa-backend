@@ -1,137 +1,104 @@
-import { Types } from 'mongoose';
-
 import { SimulationDocument } from '../db/models/simulation.model';
 import { ConversationDocument } from '../db/models/conversation.model';
 import { RunSimulationRequest } from '../model/request/run-simulation.request';
-import { SimulationStatus } from '../db/enum/enums';
+import { ConversationType, SimulationStatus } from '../db/enum/enums';
 
 import repositoryFactory from '../db/repositories/factory';
-import { UpdateSimulationRequest } from '@simulation/model/request/update-simulation.request';
-import { UpdateSimulationResponse } from '@simulation/model/response/update-simulation.response';
+import { AgentDocument } from '@simulation/db/models/agent.model';
+import { runConversation } from './conversation.service';
 
 const agentRepository = repositoryFactory.agentRepository;
 const simulationRepository = repositoryFactory.simulationRepository;
 
 /**
  * Creates a simulation object and initiates the simulation.
- * @param {RunSimulationRequest} request - The simulation configuration.
- * @returns {Promise<SimulationDocument>} A promise that resolves to the simulation object.
- * @throws {Error} Throws an error if there is an issue with the MongoDB query.
+ * @param request - The simulation configuration.
+ * @returns A promise that resolves to the simulation object.
+ * @throws Throws an error if there is an issue with the MongoDB query.
  */
 async function initiate(request: RunSimulationRequest): Promise<SimulationDocument> {
   console.log('Simulation initiated...');
   console.log('Configuration:', request);
 
   console.log('Creating simulation object...');
-  const userAgent = await agentRepository.createAgent(request.userAgentConfig);
-  const serviceAgent = await agentRepository.createAgent(request.serviceAgentConfig);
+  const userAgent: AgentDocument = await agentRepository.create(request.userAgentConfig);
+  const serviceAgent: AgentDocument = await agentRepository.create(request.serviceAgentConfig);
 
   const simulationData: Partial<SimulationDocument> = {
-    user: request.user,
     scenario: request.scenario,
-    type: request.type,
-    domain: request.domain,
-    agents: [userAgent, serviceAgent],
+    type: ConversationType.AUTOMATED,
+    name: request.name,
+    userAgent: userAgent,
+    serviceAgent: serviceAgent,
+    numConversations: request.numConversations,
     conversations: [],
     status: SimulationStatus.SCHEDULED,
   };
 
-  const simulation = await simulationRepository.createSimulation(simulationData);
+  const simulation = await simulationRepository.create(simulationData);
   console.log(simulation);
+
+  await runConversation(simulationData);
+  //hello
   return simulation;
 }
 
-/**
- * Retrieves a simulation object with populated user, agent, and conversation fields.
- * @param {Types.ObjectId} simulationId - The ID of the simulation object to retrieve.
- * @returns {Promise<SimulationDocument | null>} A promise that resolves to the simulation object with populated references, or null if not found.
- * @throws {Error} Throws an error if there is an issue with the MongoDB query.
- */
-async function poll(simulationId: Types.ObjectId): Promise<SimulationDocument> {
-  console.log(simulationId);
-  const simulation = await simulationRepository.findById(simulationId);
-
-  // TODO Trim unnecessary details
-  return simulation;
-}
+//
 
 /**
- * Retrieves a simulation object with relevant details to show client-side.
- * @param {Types.ObjectId} simulationId - The ID of the simulation object to retrieve.
- * @returns {Promise<SimulationDocument | null>} A promise that resolves to the simulation object with populated references, or null if not found.
- * @throws {Error} Throws an error if there is an issue with the MongoDB query.
+ * Retrieves a simulation object with populated agent, and conversation fields.
+ * @param id - The ID of the simulation object to retrieve.
+ * @returns A promise that resolves to the simulation object with populated references, or null if not found.
+ * @throws Throws an error if there is an issue with the MongoDB query.
  */
-async function getDetails(simulationId: Types.ObjectId): Promise<SimulationDocument> {
-  console.log(simulationId);
-  const simulation = await simulationRepository.findById(simulationId);
-  // TODO trim unnecessary details
-
-  // return {timeToRun, numOfInteractions, numOfRuns, successRate}
-  return simulation;
+async function poll(id: string): Promise<SimulationDocument | null> {
+  return simulationRepository.findById(id);
 }
 
 /**
  * Retrieves conversations in a simulation object.
- * @param {Types.ObjectId} simulationId - The ID of the simulation object to retrieve.
- * @returns {Promise<ConversationDocument[]>} A promise that resolves to the conversation object list.
- * @throws {Error} Throws an error if there is an issue with the MongoDB query.
+ * @param id - The ID of the simulation object to retrieve.
+ * @returns A promise that resolves to the conversation object list.
+ * @throws Throws an error if there is an issue with the MongoDB query.
  */
-async function getConversations(simulationId: Types.ObjectId): Promise<ConversationDocument[]> {
-  console.log(simulationId);
-  const simulation = await simulationRepository.findById(simulationId);
-  if (simulation) {
-    return simulation.conversations as ConversationDocument[];
-  } else {
-    return [];
-  }
+async function getConversations(id: string): Promise<ConversationDocument[] | null> {
+  return await simulationRepository.getConversationsById(id);
 }
 
 /**
  * Fetches all simulations.
- * @returns {Promise<SimulationDocument[]>} A promise that resolves to simulation object list.
- * @throws {Error} Throws an error if there is an issue with the MongoDB query.
+ * @returns A promise that resolves to simulation object list.
+ * @throws Throws an error if there is an issue with the MongoDB query.
  */
 async function getAll(): Promise<SimulationDocument[]> {
-  const simulation = await simulationRepository.findAll();
-  if (simulation) {
-    return simulation;
-  } else {
-    return [];
-  }
+  const simulations: SimulationDocument[] = await simulationRepository.findAll();
+  return simulations;
 }
 
 /**
  * Updates the simulation object.
- * @param {Types.ObjectId} simulationId - The ID of the simulation object to update.
- * @param {UpdateSimulationRequest}
- * @returns {Promise<SimulationDocument>} A promise that resolves to the updated simulation object.
- * @throws {Error} Throws an error if there is an issue with the MongoDB query.
+ * @param id - The ID of the simulation object to update.
+ * @param updates - The updates to apply to the simulation object.
+ * @returns A promise that resolves to the updated simulation object.
+ * @throws Throws an error if there is an issue with the MongoDB query.
  */
-async function update(
-  simulationId: Types.ObjectId,
-  updates: UpdateSimulationRequest,
-): Promise<UpdateSimulationResponse> {
-  const success = await simulationRepository.update(simulationId, updates);
-  const simulation = await simulationRepository.findById(simulationId);
-  return { object: simulation, success: success };
+async function update(id: string, updates: Partial<SimulationDocument>): Promise<SimulationDocument | null> {
+  return await simulationRepository.updateById(id, updates);
 }
 
 /**
  * Deletes the simulation object.
- * @param {Types.ObjectId} simulationId - The ID of the simulation object to update.
- * @param {UpdateSimulationRequest}
- * @returns {Promise<SimulationDocument>} A promise that resolves to the updated simulation object.
- * @throws {Error} Throws an error if there is an issue with the MongoDB query.
+ * @param id - The ID of the simulation object to update.
+ * @returns A promise that resolves to the updated simulation object.
+ * @throws Throws an error if there is an issue with the MongoDB query.
  */
-async function del(simulationId: Types.ObjectId): Promise<boolean> {
-  const success = await simulationRepository.delete(simulationId);
-  return success;
+async function del(id: string): Promise<boolean> {
+  return await simulationRepository.deleteById(id);
 }
 
 export default {
   initiate,
   poll,
-  getDetails,
   getConversations,
   getAll,
   update,

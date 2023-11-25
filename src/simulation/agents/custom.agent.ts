@@ -6,7 +6,7 @@ import moment from 'moment';
 import { appendFileSync } from 'fs';
 import { MsgTypes } from '../db/enum/enums';
 
-class MsgHistoryItem {
+export class MsgHistoryItem {
   lcMsg: BaseMessage;
   type: MsgTypes;
   timestamp: Date;
@@ -67,8 +67,8 @@ type ToolDescription = {
   output?: string;
 };
 
-class CustomAgent {
-  chat_model: BaseChatModel;
+export class CustomAgent {
+  chatModel: BaseChatModel;
   config: CustomAgentConfig;
   promptLogFilePath: string | null;
   chatLogFilePath: string | null;
@@ -79,7 +79,7 @@ class CustomAgent {
   messageHistory: MsgHistoryItem[];
 
   constructor(
-    chat_model: BaseChatModel,
+    chatModel: BaseChatModel,
     config: CustomAgentConfig,
     promptLogFilePath?: string | null,
     chatLogFilePath?: string | null,
@@ -87,7 +87,7 @@ class CustomAgent {
     isEchoHumanInput: boolean = false,
     messageCallback?: Callback,
   ) {
-    this.chat_model = chat_model;
+    this.chatModel = chatModel;
     this.config = config;
     this.promptLogFilePath = promptLogFilePath || null;
     this.chatLogFilePath = chatLogFilePath || null;
@@ -107,6 +107,7 @@ class CustomAgent {
     Logs if log files set and prints if isVerbose for the class instance"""*/
 
     const lcMsg: BaseMessage = await this.getSystemPrompt();
+
     await this.addMessage(new MsgHistoryItem(lcMsg, MsgTypes.SYSTEMPROMPT));
 
     return this.config.welcomeMessage;
@@ -114,21 +115,24 @@ class CustomAgent {
 
   async processHumanInput(humanInput: string, id: string | null = null): Promise<string> {
     const lcMsg: BaseMessage = await this.getHumanPrompt(humanInput);
-    await this.addMessage(new MsgHistoryItem(lcMsg, MsgTypes.HUMANINPUT, humanInput, id ?? undefined));
+    const msg = new MsgHistoryItem(lcMsg, MsgTypes.HUMANINPUT, humanInput, id ?? undefined);
+    await this.addMessage(msg);
 
     let response: Record<string, any> = {};
     let action: string | null = null;
     let actionInput: string | Record<string, any> | null = null;
     let apiToolConfig: RestAPITool | null = null;
 
-    //call tools  until we get a USER_MESSAGE_ACTION or an action which is not rest_apit_tool
     for (;;) {
-      const responseMessage = await this.chat_model.call(this.messageHistory.map((msg) => msg.lcMsg));
-      response = JSON.parse(responseMessage.content.toString());
-      action = response.get('action');
-      actionInput = response.get('action_input', {});
+      const messages: BaseMessage[] = this.messageHistory.map((msg) => msg.lcMsg);
 
-      if (action === MsgTypes.MSGTOUSER) {
+      const responseMessage = await this.chatModel.call(messages);
+
+      response = this.getFixedJson(responseMessage.content.toString());
+      action = response.action;
+      actionInput = response.action_input ?? {};
+
+      if (action === MsgTypes.MSGTOUSER || action == 'message_to_user' || action == 'None') {
         await this.addMessage(
           new MsgHistoryItem(
             responseMessage,
@@ -144,11 +148,10 @@ class CustomAgent {
         );
         break;
       }
-
+      actionInput = actionInput === '' ? {} : actionInput;
       if (typeof actionInput !== 'object') {
         throw new Error(`ERROR: Invalid action_input in response: ${JSON.stringify(response, null, 4)}`);
       }
-
       if (action && this.config.routingTools[action]) {
         await this.addMessage(
           new MsgHistoryItem(
@@ -166,7 +169,6 @@ class CustomAgent {
         break;
       }
 
-      // It's API tool time!
       if (action && !(action in this.config.restApiTools)) {
         throw new Error(`ERROR: Missing or invalid tool in response action: ${JSON.stringify(response, null, 4)}`);
       }
@@ -188,8 +190,10 @@ class CustomAgent {
           ),
         );
 
-        const toolOutput = apiToolConfig.func(actionInput);
+        const toolOutput: string = apiToolConfig.executeTool(actionInput);
+
         const lcMsg = await this.getToolOutputPrompt(action, toolOutput);
+
         await this.addMessage(
           new MsgHistoryItem(
             lcMsg,
@@ -217,9 +221,9 @@ class CustomAgent {
 
         const inputs: Record<string, ParamType> = {};
         tool.request.parameters.forEach((param) => {
-          const param_name = param.nameForPrompt ? param.nameForPrompt : param.name;
+          const paramName = param.nameForPrompt ? param.nameForPrompt : param.name;
 
-          inputs[param_name] = {
+          inputs[paramName] = {
             description: param.description,
             type: param.type,
           };
@@ -239,23 +243,23 @@ class CustomAgent {
     return SystemMessagePromptTemplate.fromTemplate(this.config.systemPromptTemplate).format({
       role: this.config.role,
       persona: this.config.persona,
-      conversation: this.config.conversationStrategy,
+      conversationStrategy: this.config.conversationStrategy,
       tasks: JSON.stringify(this.config.tasks, null, 2),
-      current_date: moment().format('YYYY-MM-DD'),
-      formatted_tools: JSON.stringify(toolDescriptions, null, 2),
+      currentDate: moment().format('YYYY-MM-DD'),
+      formattedTools: JSON.stringify(toolDescriptions, null, 2),
     });
   }
 
   getHumanPrompt(humanInput: string) {
     return HumanMessagePromptTemplate.fromTemplate(this.config.humanInputTemplate).format({
-      human_input: humanInput,
+      humanInput: humanInput,
     });
   }
 
   getToolOutputPrompt(toolName: string, toolOutput: string) {
-    return HumanMessagePromptTemplate.fromTemplate(this.config.humanInputTemplate).format({
-      tool_output: toolOutput,
-      tool_name: toolName,
+    return HumanMessagePromptTemplate.fromTemplate(this.config.toolOutputTemplate).format({
+      toolOutput: toolOutput,
+      toolName: toolName,
     });
   }
 
@@ -274,7 +278,7 @@ class CustomAgent {
     } else if (msg.type === MsgTypes.HUMANINPUT) {
       this.logChat(`${Colors.GREEN}👧 ${msg.userInput}${Colors.END}`, this.isEchoHumanInput);
     } else if (msg.type === MsgTypes.TOOLCALL) {
-      this.logChat(`      🛠️ ${Colors.GREY}[${msg.action}] call input: ${msg.toolInput}${Colors.END}`);
+      this.logChat(`      🛠️ ${Colors.GREY}[${msg.action}] call input: ${JSON.stringify(msg.toolInput)}${Colors.END}`);
     } else if (msg.type === MsgTypes.TOOLOUTPUT) {
       this.logChat(`      🛠️ ${Colors.GREY}[${msg.action}] result: ${msg.toolOutput}${Colors.END}`);
     } else if (msg.type === MsgTypes.MSGTOUSER) {
@@ -296,6 +300,28 @@ class CustomAgent {
     }
     if (is_print && this.isVerbose) {
       console.log(`${Colors.END}${output}`);
+    }
+  }
+
+  getFixedJson(input: string) {
+    try {
+      const parsed = JSON.parse(input);
+      return parsed;
+    } catch (error) {
+      let fixedText = input.trim().replace(/"/g, '').replace('{', '').replace('}', '');
+      fixedText = '{' + fixedText;
+      fixedText = fixedText + '"}';
+
+      fixedText = fixedText.replace(/(\w+):/g, '"$1":'); // Fix keys
+
+      fixedText = fixedText.replace(/: (?!")/g, ': "');
+
+      fixedText = fixedText.replace(/(?<!{)\s*"(\w+)":/g, '","$1":');
+      fixedText = fixedText.replace(/""/g, '"');
+
+      console.log('fixed Text: \n' + fixedText);
+      const parsed = JSON.parse(fixedText);
+      return parsed;
     }
   }
 }

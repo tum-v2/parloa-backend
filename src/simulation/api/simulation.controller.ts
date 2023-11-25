@@ -1,138 +1,171 @@
 // Controller that implements simulation related endpoints
 import { Request, Response } from 'express';
+import { validationResult } from 'express-validator';
 
 import { RunSimulationRequest } from '../model/request/run-simulation.request';
 import { SimulationDocument } from '../db/models/simulation.model';
 import simulationService from '../service/simulation.service';
-import { Types } from 'mongoose';
 import { logger } from '../service/logging.service';
-import { UpdateSimulationRequest } from '@simulation/model/request/update-simulation.request';
+import { ConversationDocument } from '@simulation/db/models/conversation.model';
+
+import { INTERNAL_SERVER_ERROR } from '../utils/errors';
 
 /**
  * Runs the simulation.
- * @param {Request} req - Request object (RunSimulationRequest)
- * @param {Response} res - Response object (returns the created simulation)
- * @throws {Error} Throws an internal server error if there is an issue with the operation.
+ * @param req - Request object (RunSimulationRequest)
+ * @param res - Response object (returns the created simulation)
+ * @throws Throws an internal server error if there is an issue with the operation.
  */
-async function run(req: Request, res: Response) {
+async function run(req: Request, res: Response): Promise<void> {
   try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      res.status(400).send({ error: errors });
+      return;
+    }
+
     const simulationConfig: RunSimulationRequest = req.body as RunSimulationRequest;
     const simulation: SimulationDocument = await simulationService.initiate(simulationConfig);
     res.status(201).send(simulation);
   } catch (error) {
     logger.error(`Simulation run failed! ${error}`);
-    res.status(500).send({ error: error });
+    res.status(500).json(INTERNAL_SERVER_ERROR(error));
   }
 }
 
 /**
  * Polls the current state of the simulation.
- * @param {Request} req - Request object
- * @param {Response} res - Response object (returns the fetched simulation)
- * @throws {Error} Throws an internal server error if there is an issue with the operation.
+ * @param req - Request object
+ * @param res - Response object (returns the fetched simulation)
+ * @throws Throws an internal server error if there is an issue with the operation.
  */
-async function poll(req: Request, res: Response) {
+async function poll(req: Request, res: Response): Promise<void> {
   try {
-    const simulationId: Types.ObjectId = new Types.ObjectId(req.params.id);
-    const simulation = await simulationService.poll(simulationId);
-    res.status(200).send(simulation);
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      res.status(400).send({ error: errors });
+      return;
+    }
+
+    const id: string = req.params.id;
+    const simulation: SimulationDocument | null = await simulationService.poll(id);
+    if (simulation) {
+      res.status(200).send(simulation);
+    } else {
+      res.status(404).send({ error: `Simulation ${id} not found!` });
+    }
   } catch (error) {
     logger.error(`Simulation poll failed! ${error}`);
-    res.status(500).send({ error: error });
-  }
-}
-
-/**
- * Gets details of the simulation.
- * @param {Request} req - Request object
- * @param {Response} res - Response object (returns the fetched simulation)
- * @throws {Error} Throws an internal server error if there is an issue with the operation.
- */
-async function getDetails(req: Request, res: Response) {
-  try {
-    const simulationId: Types.ObjectId = new Types.ObjectId(req.params.id);
-    const simulation = await simulationService.getDetails(simulationId);
-    res.status(200).send(simulation);
-  } catch (error) {
-    logger.error(`Simulation fetch details failed! ${error}`);
-    res.status(500).send({ error: error });
+    res.status(500).json(INTERNAL_SERVER_ERROR(error));
   }
 }
 
 /**
  * Gets the conversations of the simulation.
- * @param {Request} req - Request object
- * @param {Response} res - Response object (returns the conversations of the simulation)
- * @throws {Error} Throws an internal server error if there is an issue with the operation.
+ * @param req - Request object
+ * @param res - Response object (returns the conversations of the simulation)
+ * @throws Throws an internal server error if there is an issue with the operation.
  */
-async function getConversations(req: Request, res: Response) {
+async function getConversations(req: Request, res: Response): Promise<void> {
   try {
-    const simulationId: Types.ObjectId = new Types.ObjectId(req.params.id);
-    const conversations = await simulationService.getConversations(simulationId);
-    res.status(200).send(conversations);
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      res.status(400).send({ error: errors });
+      return;
+    }
+
+    const id: string = req.params.id;
+    const conversations: ConversationDocument[] | null = await simulationService.getConversations(id);
+    if (conversations) {
+      res.status(200).send(conversations);
+    } else {
+      res.status(404).send({ error: `Simulation ${id} not found!` });
+    }
   } catch (error) {
     logger.error(`Simulation fetch conversations failed! ${error}`);
-    res.status(500).send({ error: error });
+    res.status(500).json(INTERNAL_SERVER_ERROR(error));
   }
 }
 
 /**
  * Gets the conversations of the simulation.
- * @param {Request} req - Request object
- * @param {Response} res - Response object (returns all simulations)
- * @throws {Error} Throws an internal server error if there is an issue with the operation.
+ * @param req - Request object
+ * @param res - Response object (returns all simulations)
+ * @throws Throws an internal server error if there is an issue with the operation.
  */
-async function getAll(req: Request, res: Response) {
+async function getAll(req: Request, res: Response): Promise<void> {
   try {
     // TODO Apply filters if needed
-    const simulations = await simulationService.getAll();
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      res.status(400).send({ error: errors });
+      return;
+    }
+
+    const simulations: SimulationDocument[] = await simulationService.getAll();
     res.status(200).send(simulations);
   } catch (error) {
     logger.error(`All simulations fetch failed! ${error}`);
-    res.status(500).send({ error: error });
+    res.status(500).json(INTERNAL_SERVER_ERROR(error));
   }
 }
 
 /**
  * Updates the simulation attributes.
- * @param {Request} req - Request object (includes changed attributes)
- * @param {Response} res - Response object
- * @throws {Error} Throws an internal server error if there is an issue with the operation.
+ * @param req - Request object (includes changed attributes)
+ * @param res - Response object
+ * @throws Throws an internal server error if there is an issue with the operation.
  */
-async function update(req: Request, res: Response) {
+async function update(req: Request, res: Response): Promise<void> {
   try {
-    const simulationId: Types.ObjectId = new Types.ObjectId(req.params.id);
-    const updates: UpdateSimulationRequest = req.body as UpdateSimulationRequest;
-    const response = await simulationService.update(simulationId, updates);
-    console.log(response);
-    res.status(response.success ? 200 : 500).send(response);
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      res.status(400).send({ error: errors });
+      return;
+    }
+
+    const id: string = req.params.id;
+    const updates: Partial<SimulationDocument> = req.body as Partial<SimulationDocument>;
+    const updated: SimulationDocument | null = await simulationService.update(id, updates);
+    if (updated) {
+      res.status(200).send(updated);
+    } else {
+      res.status(404).send({ error: `Simulation ${id} not found!` });
+    }
   } catch (error) {
-    logger.error(`Update simulation failed! ${error}`);
-    res.status(500).send({ error: error });
+    res.status(500).json(INTERNAL_SERVER_ERROR(error));
   }
 }
 
 /**
  * Deletes the simulation.
- * @param {Request} req - Request object
- * @param {Response} res - Response object
- * @throws {Error} Throws an internal server error if there is an issue with the operation.
+ * @param req - Request object
+ * @param res - Response object
+ * @throws Throws an internal server error if there is an issue with the operation.
  */
-async function del(req: Request, res: Response) {
+async function del(req: Request, res: Response): Promise<void> {
   try {
-    const simulationId: Types.ObjectId = new Types.ObjectId(req.params.id);
-    const success = await simulationService.del(simulationId);
-    res.status(success ? 204 : 500).send({ success: success });
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      res.status(400).send({ error: errors });
+      return;
+    }
+
+    const id: string = req.params.id;
+    const success: boolean = await simulationService.del(id);
+    if (success) {
+      res.status(204).send();
+    } else {
+      res.status(404).send({ error: `Simulation ${id} not found!` });
+    }
   } catch (error) {
-    logger.error(`Delete simulation failed! ${error}`);
-    res.status(500).send({ error: error });
+    res.status(500).json(INTERNAL_SERVER_ERROR(error));
   }
 }
 
 export default {
   run,
   poll,
-  getDetails,
   getConversations,
   getAll,
   update,
