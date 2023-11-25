@@ -97,7 +97,7 @@ async function configureServiceAgent(simulationData: Partial<SimulationDocument>
   return serviceAgent;
 }
 async function configureUserAgent(simulationData: Partial<SimulationDocument>): Promise<CustomAgent> {
-  const userSimConfig = getSimConfig('sarcastic'); // TODO persona
+  const userSimConfig = getSimConfig('nonative'); // TODO persona
 
   const azureOpenAIInput: Partial<OpenAIChatInput> & Partial<AzureOpenAIInput> & BaseChatModelParams = {
     modelName: userSimConfig.modelName,

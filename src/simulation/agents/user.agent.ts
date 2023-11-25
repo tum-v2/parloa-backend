@@ -25,7 +25,12 @@ const TEMPERATURE = 1;
 
 const ROLE = `You are a human calling a call center trying to change your flight booking.`;
 
-const CONVERSATION_STRATEGY = `- Your primary objective is to change your existing booking.
+const CONVERSATION_STRATEGY =
+  /*`Ask first for flights on the november 17, 18 and 19 from New York to Boston. Dont give him your number or name, you just want to ask if there are flights.
+  - When you successfully got your information return { "action": "message_to_user", "action_input": "/hangup"}
+
+  `;*/
+  `- Your primary objective is to change your existing booking.
 - Your booking number is PARL0A.
 - Your name is Claudio Diniz.
 - Your flight date for your booking is November, 12th, 2023. 11am.
