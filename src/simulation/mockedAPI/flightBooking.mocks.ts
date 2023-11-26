@@ -44,6 +44,9 @@ export function bookingInfo(bookingNumber: string, authToken: string) {
   }
 }
 export function checkAvailability(bookingNumber: string, newDate: string, authToken: string) {
+  if (bookingNumber === undefined) {
+    return { error: 'You forgot to input a booking_number!' };
+  }
   if (bookingNumber.toUpperCase() === 'PARL0A' && authToken === validToken)
     if (newDate == '2023-11-19')
       return [
