@@ -3,7 +3,7 @@ import { MessageDocument } from '../models/message.model';
 import { ConversationDocument } from '../models/conversation.model';
 import { SimulationDocument } from '../models/simulation.model';
 import { SimulationRepository } from './simulation.repository';
-import { ConversationStatus, ConversationType, SimulationStatus } from '../enum/enums';
+import { ConversationStatus, ConversationType, MsgSender, SimulationStatus } from '../enum/enums';
 import { logger } from '../../service/logging.service';
 
 class ChatRepository extends SimulationRepository {
@@ -28,6 +28,7 @@ class ChatRepository extends SimulationRepository {
       });
       config.conversations = [conversation._id];
       const chat: SimulationDocument = await super.create(config);
+
       return this._populate(chat);
     } catch (error) {
       logger.error(`Error creating chat!`);
@@ -35,10 +36,10 @@ class ChatRepository extends SimulationRepository {
     }
   }
 
-  async sendMessage(chatId: string, message: Partial<MessageDocument>): Promise<SimulationDocument> {
+  async sendMessage(chatId: string, message: string, sender: MsgSender): Promise<SimulationDocument> {
     try {
       // Step 1: Create a new message document
-      const newMessage: MessageDocument = await this.messageModel.create(message);
+      const newMessage: MessageDocument = await this.messageModel.create({ sender: sender, text: message });
 
       // get conversation id from chatId
       const chat: SimulationDocument | null = await this.model.findById(chatId);
@@ -69,6 +70,7 @@ class ChatRepository extends SimulationRepository {
       if (!updatedChat) {
         throw new Error(`Chat not found by id: ${chatId}`);
       }
+
       return updatedChat;
     } catch (error) {
       logger.error(`Error sending message to chat ${chatId}!`);

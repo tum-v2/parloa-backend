@@ -28,6 +28,7 @@ enum ConversationDomain {
 enum LLMModel {
   GPT4 = 'GPT4',
   LLAMA2 = 'LLAMA2',
+  GPT35 = 'GPT35',
 }
 
 enum MsgTypes {
@@ -39,6 +40,11 @@ enum MsgTypes {
   ROUTE = 'ROUTE',
 }
 
+enum MsgSender {
+  USER = 'USER',
+  AGENT = 'AGENT',
+}
+
 export {
   SimulationScenario,
   SimulationStatus,
@@ -47,4 +53,5 @@ export {
   ConversationDomain,
   LLMModel,
   MsgTypes,
+  MsgSender,
 };

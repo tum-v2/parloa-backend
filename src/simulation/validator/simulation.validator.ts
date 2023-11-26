@@ -27,9 +27,6 @@ class simulationValidator {
       body('type')
         .isIn(Object.values(ConversationType))
         .withMessage(`Invalid simulation type. Must be one of: ${Object.values(ConversationType).join(', ')}`),
-      body('domain')
-        .isIn(Object.values(ConversationDomain))
-        .withMessage(`Invalid domain type. Must be one of: ${Object.values(ConversationDomain).join(', ')}`),
       body('numConversations').isInt().withMessage('Number of conversations must be a valid integer.'),
       body('serviceAgentConfig').isObject().withMessage('Service agent configuration must be an object.'),
       body('serviceAgentConfig.llm').isString().withMessage('Service agent model must be a valid string.'),
@@ -37,11 +34,20 @@ class simulationValidator {
         .isNumeric()
         .withMessage('Service agent temperature must be a valid number.'),
       body('serviceAgentConfig.maxTokens').isNumeric().withMessage('Service agent maxTokens must be a valid number.'),
+      body('serviceAgentConfig.domain')
+        .isIn(Object.values(ConversationDomain))
+        .withMessage(
+          `Invalid service agent domain type. Must be one of: ${Object.values(ConversationDomain).join(', ')}`,
+        ),
       body('serviceAgentConfig.prompt').isString().withMessage('Service agent prompt must be a valid string.'),
       body('userAgentConfig').isObject().withMessage('User agent configuration must be an object.'),
       body('userAgentConfig.llm').isString().withMessage('User agent model must be a valid string.'),
       body('userAgentConfig.temperature').isNumeric().withMessage('User agent temperature must be a valid number.'),
       body('userAgentConfig.maxTokens').isNumeric().withMessage('User agent maxTokens must be a valid number.'),
+      body('userAgentConfig.domain')
+        .optional()
+        .isIn(Object.values(ConversationDomain))
+        .withMessage(`Invalid user agent domain type. Must be one of: ${Object.values(ConversationDomain).join(', ')}`),
       body('userAgentConfig.prompt').isString().withMessage('User agent prompt must be a valid string.'),
 
       body().custom((value, { req }) => {

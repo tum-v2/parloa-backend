@@ -1,6 +1,6 @@
 /* eslint-disable require-jsdoc */
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { SimulationDocument } from '@simulation/db/models/simulation.model';
+import { SimulationDocument } from '../db/models/simulation.model';
 import { CustomAgent } from '../agents/custom.agent';
 import { getSimConfig } from '../agents/user.agent';
 import { BaseChatModel, BaseChatModelParams } from 'langchain/chat_models/base';
@@ -9,13 +9,14 @@ import { AzureOpenAIInput } from 'langchain/chat_models/openai';
 import { flightBookingAgentConfig } from '../agents/service/service.agent.flight.booker';
 import { Callback } from 'mongoose';
 import { MsgHistoryItem } from '../agents/custom.agent';
-import { AgentDocument, AgentModel } from '@simulation/db/models/agent.model';
+import { AgentDocument, AgentModel } from '../db/models/agent.model';
 import * as fs from 'fs';
 import * as path from 'path';
 import { HumanMessage } from 'langchain/schema';
 
 let model = '';
-model = 'gpt-4'; //'gpt-35-turbo';
+model = 'gpt-4';
+// model = 'gpt-35-turbo';
 
 let openApiKey: string | undefined;
 let azureApiInstanceName: string | undefined;
@@ -51,7 +52,7 @@ const SERVICE_CHAT_LOG_FILE_PATH = path.join(logsDirectory, timeStamp + '-SIM-AG
 const USER_PROMPT_LOG_FILE_PATH = path.join(logsDirectory, timeStamp + '-SIM-HUMAN-PROMPTS.txt');
 const USER_CHAT_LOG_FILE_PATH = path.join(logsDirectory, timeStamp + '-SIM-HUMAN-CHAT.txt');
 
-function setupPath() {
+export function setupPath() {
   createFile(SERVICE_PROMPT_LOG_FILE_PATH);
   createFile(SERVICE_CHAT_LOG_FILE_PATH);
   createFile(USER_PROMPT_LOG_FILE_PATH);
@@ -73,11 +74,11 @@ function createFile(filePath: string) {
   fs.writeFileSync(filePath, ''); // Creates an empty file
 }
 
-async function configureServiceAgent(simulationData: Partial<SimulationDocument>): Promise<CustomAgent> {
+export async function configureServiceAgent(agent: AgentDocument): Promise<CustomAgent> {
   const azureOpenAIInput: Partial<OpenAIChatInput> & Partial<AzureOpenAIInput> & BaseChatModelParams = {
-    modelName: flightBookingAgentConfig.modelName,
+    modelName: agent.llm,
     azureOpenAIApiDeploymentName: model,
-    temperature: flightBookingAgentConfig.temperature,
+    temperature: agent.temperature,
     azureOpenAIApiKey: openApiKey,
     azureOpenAIApiInstanceName: azureApiInstanceName,
     azureOpenAIApiVersion: azureApiVersion,
@@ -96,13 +97,14 @@ async function configureServiceAgent(simulationData: Partial<SimulationDocument>
 
   return serviceAgent;
 }
-async function configureUserAgent(simulationData: Partial<SimulationDocument>): Promise<CustomAgent> {
+
+export async function configureUserAgent(agent: AgentDocument): Promise<CustomAgent> {
   const userSimConfig = getSimConfig('sarcastic'); // TODO persona
 
   const azureOpenAIInput: Partial<OpenAIChatInput> & Partial<AzureOpenAIInput> & BaseChatModelParams = {
-    modelName: userSimConfig.modelName,
+    modelName: agent.llm,
     azureOpenAIApiDeploymentName: model,
-    temperature: userSimConfig.temperature,
+    temperature: agent.temperature,
     azureOpenAIApiKey: openApiKey,
     azureOpenAIApiInstanceName: azureApiInstanceName,
     azureOpenAIApiVersion: azureApiVersion,
@@ -123,11 +125,11 @@ async function configureUserAgent(simulationData: Partial<SimulationDocument>): 
   return userAgent;
 }
 
-export async function runConversation(simulationData: Partial<SimulationDocument>) {
+export async function runConversation(serviceAgentConfig: AgentDocument, userAgentConfig: AgentDocument) {
   setupPath();
 
-  const serviceAgent: CustomAgent = await configureServiceAgent(simulationData);
-  const userAgent: CustomAgent = await configureUserAgent(simulationData);
+  const serviceAgent: CustomAgent = await configureServiceAgent(serviceAgentConfig);
+  const userAgent: CustomAgent = await configureUserAgent(userAgentConfig);
 
   let agentResponse: string = await serviceAgent.startAgent();
 
