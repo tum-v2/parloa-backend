@@ -4,8 +4,8 @@ import { Request, Response } from 'express';
 
 /**
  * Get dashboard data
- * @param req
- * @param res
+ * @param req - Request
+ * @param res - Response
  */
 async function getDashboardData(req: Request, res: Response): Promise<void> {
   const days = req.query.days;
