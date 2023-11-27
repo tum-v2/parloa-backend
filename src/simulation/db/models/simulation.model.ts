@@ -9,8 +9,8 @@ interface SimulationDocument extends Document {
   scenario: SimulationScenario;
   type: ConversationType;
   domain: ConversationDomain;
-  userAgent: Types.ObjectId | AgentDocument;
-  serviceAgent: Types.ObjectId | AgentDocument;
+  userAgent: AgentDocument;
+  serviceAgent: AgentDocument;
   conversations: Types.ObjectId[] | ConversationDocument[];
   status: SimulationStatus;
 }

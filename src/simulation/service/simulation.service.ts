@@ -21,8 +21,12 @@ async function initiate(request: RunSimulationRequest): Promise<SimulationDocume
   console.log('Configuration:', request);
 
   console.log('Creating simulation object...');
-  const userAgent: AgentDocument = await agentRepository.create(request.userAgentConfig);
-  const serviceAgent: AgentDocument = await agentRepository.create(request.serviceAgentConfig);
+  const userAgent: AgentDocument | null = await agentRepository.getById(request.userAgentConfig);
+  const serviceAgent: AgentDocument | null = await agentRepository.getById(request.serviceAgentConfig);
+
+  if (userAgent === null || serviceAgent === null) {
+    throw new Error('User agent or service agent id not found');
+  }
 
   const simulationData: Partial<SimulationDocument> = {
     user: request.user,
