@@ -1,7 +1,7 @@
 /* eslint-disable require-jsdoc */
 import { SimulationDocument } from '../db/models/simulation.model';
 import repositoryFactory from '../db/repositories/factory';
-import { ConversationType, SimulationStatus, MsgSender } from '../db/enum/enums';
+import { ConversationType, SimulationStatus, MsgSender, MsgTypes } from '../db/enum/enums';
 
 import { CustomAgent } from '../agents/custom.agent';
 import { configureServiceAgent, setupPath } from '../service/conversation.service';
@@ -23,22 +23,15 @@ async function start(config: Partial<SimulationDocument>): Promise<SimulationDoc
   config.status = SimulationStatus.RUNNING;
   config.type = ConversationType.MANUAL;
 
-  const serviceAgentModel: AgentDocument = await agentRepository.findByParameters(
-    config.serviceAgentConfig.llm,
-    config.serviceAgentConfig.temperature,
-    config.serviceAgentConfig.maxTokens,
-    config.serviceAgentConfig.domain,
-  );
+  const serviceAgentModel: AgentDocument = await agentRepository.getById(config.serviceAgentConfig);
 
   serviceAgent = await configureServiceAgent(serviceAgentModel);
-
-  console.log(serviceAgent);
 
   const agentResponse: string = await serviceAgent.startAgent();
 
   const chat: SimulationDocument = await chatRepository.create(config);
 
-  await chatRepository.sendMessage(chat._id, agentResponse, MsgSender.AGENT);
+  await chatRepository.send(chat._id, agentResponse, MsgSender.AGENT, MsgTypes.MSGTOUSER);
 
   return chat;
 }
@@ -59,11 +52,11 @@ async function getById(id: string): Promise<SimulationDocument | null> {
  * @returns A promise that resolves to the message response of service agents.
  */
 async function sendMessage(chatId: string, message: string): Promise<string> {
-  await chatRepository.sendMessage(chatId, message, MsgSender.USER);
+  await chatRepository.send(chatId, message, MsgSender.USER, MsgTypes.HUMANINPUT);
 
   const agentResponse: string = await forwardMessageToAgentAndWaitResponse(message);
 
-  await chatRepository.sendMessage(chatId, agentResponse, MsgSender.AGENT);
+  await chatRepository.send(chatId, agentResponse, MsgSender.AGENT, MsgTypes.MSGTOUSER);
 
   return agentResponse;
 }

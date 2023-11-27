@@ -3,7 +3,7 @@ import { MessageDocument } from '../models/message.model';
 import { ConversationDocument } from '../models/conversation.model';
 import { SimulationDocument } from '../models/simulation.model';
 import { SimulationRepository } from './simulation.repository';
-import { ConversationStatus, ConversationType, MsgSender, SimulationStatus } from '../enum/enums';
+import { ConversationStatus, ConversationType, MsgTypes, MsgSender, SimulationStatus } from '../enum/enums';
 import { logger } from '../../service/logging.service';
 
 class ChatRepository extends SimulationRepository {
@@ -36,10 +36,10 @@ class ChatRepository extends SimulationRepository {
     }
   }
 
-  async sendMessage(chatId: string, message: string, sender: MsgSender): Promise<SimulationDocument> {
+  async send(chatId: string, message: string, sender: MsgSender, type: MsgTypes): Promise<SimulationDocument> {
     try {
       // Step 1: Create a new message document
-      const newMessage: MessageDocument = await this.messageModel.create({ sender: sender, text: message });
+      const newMessage: MessageDocument = await this.messageModel.create({ sender: sender, text: message, type: type });
 
       // get conversation id from chatId
       const chat: SimulationDocument | null = await this.model.findById(chatId);

@@ -26,9 +26,10 @@ enum ConversationDomain {
 }
 
 enum LLMModel {
+  GPT35 = 'GPT35',
+  GPT35TURBO = 'GPT35TURBO',
   GPT4 = 'GPT4',
   LLAMA2 = 'LLAMA2',
-  GPT35 = 'GPT35',
 }
 
 enum MsgTypes {
@@ -43,6 +44,7 @@ enum MsgTypes {
 enum MsgSender {
   USER = 'USER',
   AGENT = 'AGENT',
+  TOOL = 'TOOL',
 }
 
 export {

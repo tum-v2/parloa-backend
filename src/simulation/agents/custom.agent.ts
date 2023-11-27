@@ -285,7 +285,7 @@ export class CustomAgent {
       this.logChat(`🤖 ${Colors.BLUE}${msg.msgToUser}${Colors.END}`);
     } else if (msg.type === MsgTypes.ROUTE) {
       this.logChat(`   ⏳ ${Colors.BLUE}${msg.intermediateMsg}${Colors.END}`);
-      this.logChat(`🏓 ${Colors.BLUE}${msg.action} ${Colors.GREY}${msg.toolInput}${Colors.END}`);
+      this.logChat(`🏓 ${Colors.BLUE}${msg.action} ${Colors.GREY}${JSON.stringify(msg.toolInput)}${Colors.END}`);
     }
 
     if (this.promptLogFilePath) {

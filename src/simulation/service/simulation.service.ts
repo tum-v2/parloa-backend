@@ -2,9 +2,11 @@ import { SimulationDocument } from '../db/models/simulation.model';
 import { ConversationDocument } from '../db/models/conversation.model';
 import { RunSimulationRequest } from '../model/request/run-simulation.request';
 import { ConversationType, SimulationStatus } from '../db/enum/enums';
+import { Types } from 'mongoose';
 
 import repositoryFactory from '../db/repositories/factory';
 import { AgentDocument } from '../db/models/agent.model';
+import { runConversation } from './conversation.service';
 
 const agentRepository = repositoryFactory.agentRepository;
 const simulationRepository = repositoryFactory.simulationRepository;
@@ -20,8 +22,12 @@ async function initiate(request: RunSimulationRequest): Promise<SimulationDocume
   console.log('Configuration:', request);
 
   console.log('Creating simulation object...');
-  const userAgent: AgentDocument = await agentRepository.create(request.userAgentConfig);
-  const serviceAgent: AgentDocument = await agentRepository.create(request.serviceAgentConfig);
+  const userAgent: AgentDocument | null = await agentRepository.getById(request.userAgentConfig);
+  const serviceAgent: AgentDocument | null = await agentRepository.getById(request.serviceAgentConfig);
+
+  if (userAgent === null || serviceAgent === null) {
+    throw new Error('User agent or service agent id not found');
+  }
 
   const simulationData: Partial<SimulationDocument> = {
     scenario: request.scenario,
@@ -37,6 +43,24 @@ async function initiate(request: RunSimulationRequest): Promise<SimulationDocume
   const simulation = await simulationRepository.create(simulationData);
   console.log(simulation);
 
+  const conversations: Types.ObjectId[] = [];
+
+  const numConversations = request.numConversations;
+  if (numConversations <= 0 || numConversations > 2) {
+    throw new Error(
+      'Number of conversations must be between 1 and 2 (just for now so nobody miss clicks and runs 100 conversations which would cost a lot of money))',
+    );
+  }
+
+  for (let i = 0; i < numConversations; i++) {
+    simulation.status = SimulationStatus.RUNNING;
+    await simulationRepository.updateById(simulation._id, simulation);
+    conversations.push(await runConversation(serviceAgent, userAgent));
+  }
+
+  simulation.status = SimulationStatus.FINISHED;
+  simulation.conversations = conversations;
+  await simulationRepository.updateById(simulation._id, simulation);
   return simulation;
 }
 
