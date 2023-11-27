@@ -4,9 +4,10 @@ interface RunSimulationRequest {
   scenario: SimulationScenario;
   type: SimulationType;
   name: string;
+  description: string;
   numConversations: number;
-  serviceAgentConfig: string;
-  userAgentConfig: string;
+  serviceAgentId: string;
+  userAgentId: string;
 }
 
 export { RunSimulationRequest };
