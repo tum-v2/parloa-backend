@@ -123,20 +123,15 @@ export class CustomAgent {
     let actionInput: string | Record<string, any> | null = null;
     let apiToolConfig: RestAPITool | null = null;
 
-    //call tools until we get a USER_MESSAGE_ACTION or an action which is not rest_apit_tool
     for (;;) {
       const messages: BaseMessage[] = this.messageHistory.map((msg) => msg.lcMsg);
-      // print all the messages
-      //console.log('check 1.555: ' + messages.map(x => JSON.stringify(x)).join('\n'));
 
       const responseMessage = await this.chatModel.call(messages);
 
-      //console.log('MESSAGE: \n' + responseMessage.content.toString() + '\n\n');
       response = this.getFixedJson(responseMessage.content.toString());
       action = response.action;
       actionInput = response.action_input ?? {};
 
-      //console.log("Message: check 1")
       if (action === MsgTypes.MSGTOUSER || action == 'message_to_user' || action == 'None') {
         await this.addMessage(
           new MsgHistoryItem(
@@ -153,13 +148,10 @@ export class CustomAgent {
         );
         break;
       }
-      // console.log("Message: check 2")
       actionInput = actionInput === '' ? {} : actionInput;
       if (typeof actionInput !== 'object') {
         throw new Error(`ERROR: Invalid action_input in response: ${JSON.stringify(response, null, 4)}`);
       }
-      //console.log("Message: check 3")
-
       if (action && this.config.routingTools[action]) {
         await this.addMessage(
           new MsgHistoryItem(
@@ -177,7 +169,6 @@ export class CustomAgent {
         break;
       }
 
-      // It's API tool time!
       if (action && !(action in this.config.restApiTools)) {
         throw new Error(`ERROR: Missing or invalid tool in response action: ${JSON.stringify(response, null, 4)}`);
       }
@@ -199,7 +190,7 @@ export class CustomAgent {
           ),
         );
 
-        const toolOutput: string = apiToolConfig.func(actionInput);
+        const toolOutput: string = apiToolConfig.executeTool(actionInput);
 
         const lcMsg = await this.getToolOutputPrompt(action, toolOutput);
 
@@ -327,9 +318,6 @@ export class CustomAgent {
 
       fixedText = fixedText.replace(/(?<!{)\s*"(\w+)":/g, '","$1":');
       fixedText = fixedText.replace(/""/g, '"');
-
-      // Replace newline characters with commas for proper JSON format
-      //fixedText = fixedText.replace(/\n/g, ',');
 
       console.log('fixed Text: \n' + fixedText);
       const parsed = JSON.parse(fixedText);

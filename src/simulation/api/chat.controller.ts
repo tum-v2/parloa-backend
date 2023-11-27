@@ -1,54 +1,157 @@
 // Controller that implements chat related endpoints
 import { Request, Response } from 'express';
-import { AgentDocument } from '../db/models/agent.model';
+import { SimulationDocument } from '@simulation/db/models/simulation.model';
 
-//TODO import chatService from '../service/chat.service';
+import chatService from '../service/chat.service';
+import { MessageDocument } from '@simulation/db/models/message.model';
+import { INTERNAL_SERVER_ERROR } from '../utils/errors';
 
 /**
  * Starts the chat (manual simulation)
- * @param {Request} req - Request object - TBD
- * @param {Response} res - Response object - TBD
+ * @param req - Request object - TBD
+ * @param res - Response object - TBD
  */
-async function startChat(req: Request, res: Response) {
-  const agentConfig: AgentDocument = req.body;
-  console.log(agentConfig);
+async function start(req: Request, res: Response): Promise<void> {
+  try {
+    const config: Partial<SimulationDocument> = req.body as Partial<SimulationDocument>;
+    console.log(config);
 
-  console.log('Starting chat...');
-  // TODO Start Chat
+    console.log('Starting chat...');
+    const chat: SimulationDocument = await chatService.start(config);
 
-  res.send(200);
+    res.status(200).send(chat);
+  } catch (error) {
+    res.status(500).json(INTERNAL_SERVER_ERROR(error));
+  }
 }
 
 /**
  * Sends a message from client to the agent
- * @param {Request} req - Request object - TBD
- * @param {Response} res - Response object - TBD
+ * @param req - Request object - TBD
+ * @param res - Response object - TBD
  */
-async function sendMessage(req: Request, res: Response) {
-  console.log('Message received from user...');
-  const message: string = req.body.message;
-  console.log(message);
+async function sendMessage(req: Request, res: Response): Promise<void> {
+  try {
+    console.log('Message received from user...');
+    const chatId: string = req.params.id;
+    const message: MessageDocument = req.body as MessageDocument;
+    console.log(message);
 
-  console.log('Sending message...');
-  // TODO Forward message to agent
+    console.log('Sending message...');
+    // TODO Forward message to agent
+    const simulationWithAgentResponse: SimulationDocument = await chatService.sendMessage(chatId, message);
+    res.status(200).send(simulationWithAgentResponse);
+  } catch (error) {
+    res.status(500).json(INTERNAL_SERVER_ERROR(error));
+  }
+}
 
-  res.send(200);
+/**
+ * Gets the chat by id
+ * @param req - Request object
+ * @param res - Response object
+ */
+async function get(req: Request, res: Response): Promise<void> {
+  try {
+    console.log('Getting chat...');
+    const id: string = req.params.id;
+    console.log(id);
+    const chat: SimulationDocument | null = await chatService.getById(id);
+    if (chat) {
+      res.status(200).send(chat);
+    } else {
+      res.status(404).send({ error: `Chat ${id} not found!` });
+    }
+  } catch (error) {
+    res.status(500).json(INTERNAL_SERVER_ERROR(error));
+  }
 }
 
 /**
  * Ends the chat
- * @param {Request} req - Request object - TBD
- * @param {Response} res - Response object - TBD
+ * @param req - Request object - TBD
+ * @param res - Response object - TBD
  */
-async function endChat(req: Request, res: Response) {
-  console.log('Ending chat...');
-  // TODO End Chat
+async function end(req: Request, res: Response): Promise<void> {
+  try {
+    console.log('Ending chat...');
+    const id: string = req.params.id;
+    console.log(id);
+    const chat: SimulationDocument | null = await chatService.end(id);
+    if (chat) {
+      res.status(200).send(chat);
+    } else {
+      res.status(404).send({ error: `Chat ${id} not found!` });
+    }
+  } catch (error) {
+    res.status(500).json(INTERNAL_SERVER_ERROR(error));
+  }
+}
 
-  res.send(200);
+/**
+ * Gets all chats
+ * @param req - Request object
+ * @param res - Response object
+ */
+async function getAll(req: Request, res: Response): Promise<void> {
+  try {
+    console.log('Getting all chats...');
+    const chats: SimulationDocument[] = await chatService.getAll();
+
+    res.status(200).send(chats);
+  } catch (error) {
+    res.status(500).json(INTERNAL_SERVER_ERROR(error));
+  }
+}
+
+/**
+ * Updates the chat
+ * @param req - Request object
+ * @param res - Response object
+ */
+async function update(req: Request, res: Response): Promise<void> {
+  try {
+    console.log('Updating chat...');
+    const id: string = req.params.id;
+    const updates: Partial<SimulationDocument> = req.body as Partial<SimulationDocument>;
+    console.log(updates);
+    const updatedChat: SimulationDocument | null = await chatService.update(id, updates);
+    if (updatedChat) {
+      res.status(200).send(updatedChat);
+    } else {
+      res.status(404).send({ error: `Chat ${id} not found!` });
+    }
+  } catch (error) {
+    res.status(500).json(INTERNAL_SERVER_ERROR(error));
+  }
+}
+
+/**
+ * Deletes the chat
+ * @param req - Request object
+ * @param res - Response object
+ */
+async function del(req: Request, res: Response): Promise<void> {
+  try {
+    console.log('Deleting chat...');
+    const id: string = req.params.id;
+    const success: boolean = await chatService.del(id);
+    if (success) {
+      res.status(204).send();
+    } else {
+      res.status(404).send({ error: `Chat ${id} not found!` });
+    }
+  } catch (error) {
+    res.status(500).json(INTERNAL_SERVER_ERROR(error));
+  }
 }
 
 export default {
-  startChat,
+  start,
   sendMessage,
-  endChat,
+  get,
+  end,
+  getAll,
+  update,
+  del,
 };

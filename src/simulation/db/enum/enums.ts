@@ -41,6 +41,11 @@ enum MsgTypes {
   ROUTE = 'ROUTE',
 }
 
+enum MsgSender {
+  USER = 'USER',
+  AGENT = 'AGENT',
+}
+
 export {
   SimulationScenario,
   SimulationStatus,
@@ -49,4 +54,5 @@ export {
   ConversationDomain,
   LLMModel,
   MsgTypes,
+  MsgSender,
 };

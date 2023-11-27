@@ -5,10 +5,11 @@ info:
 tags:
   - name: Login
   - name: Simulation
+  - name: Agent
   - name: Chat
   - name: LLMs
 paths:
-  "/api/v1/auth/login":
+  /api/v1/auth/login:
     post:
       summary: Start a new simulation
       tags: [Login]
@@ -23,7 +24,7 @@ paths:
                   type: string
                   example: 2986637656
       responses:
-        "200":
+        200:
           description: Login successful
           content:
             application/json:
@@ -33,14 +34,28 @@ paths:
                   success:
                     type: boolean
                     example: true
-        "500":
-          description: Bad request - Invalid access code
-  "/api/v1/simulation/all":
+        500:
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: string
+                    example: INTERNAL_SERVER_ERROR
+                  message:
+                    type: string
+                    example: Internal server error occurred
+                  details:
+                    type: string
+                    example: Error
+  /api/v1/simulation/all:
     get:
       summary: Retrieve all simulations
       tags: [Simulation]
       responses:
-        "200":
+        200:
           description: OK
           content:
             application/json:
@@ -48,9 +63,23 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/SimulationDocument"
-        "500":
-          description: Error retrieving simulations
-  "/api/v1/simulation/run":
+        500:
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: string
+                    example: INTERNAL_SERVER_ERROR
+                  message:
+                    type: string
+                    example: Internal server error occurred
+                  details:
+                    type: string
+                    example: Error
+  /api/v1/simulation/run:
     post:
       summary: Start a new simulation
       tags: [Simulation]
@@ -61,15 +90,29 @@ paths:
             schema:
               $ref: "#/components/schemas/RunSimulationRequest"
       responses:
-        "201":
+        201:
           description: Simulation successfully created
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/SimulationDocument"
-        "500":
-          description: Bad request - Invalid input provided
-  "/api/v1/simulation/{simulationId}/poll":
+        500:
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: string
+                    example: INTERNAL_SERVER_ERROR
+                  message:
+                    type: string
+                    example: Internal server error occurred
+                  details:
+                    type: string
+                    example: Error
+  /api/v1/simulation/{simulationId}/poll:
     get:
       summary: Retrieve simulation
       tags: [Simulation]
@@ -77,16 +120,43 @@ paths:
         - in: path
           name: simulationId
           required: true
+          schema:
+            type: string
+            example: 6553a127fcad73273655d634
       responses:
-        "200":
+        200:
           description: OK
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/SimulationDocument"
-        "500":
-          description: Simulation not found
-  "/api/v1/simulation/{simulationId}":
+        404:
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Simulation 1 not found!"
+        500:
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: string
+                    example: INTERNAL_SERVER_ERROR
+                  message:
+                    type: string
+                    example: Internal server error occurred
+                  details:
+                    type: string
+                    example: Error
+  /api/v1/simulation/{simulationId}:
     patch:
       summary: Update simulation
       tags: [Simulation]
@@ -94,6 +164,9 @@ paths:
         - in: path
           name: simulationId
           required: true
+          schema:
+            type: string
+            example: 6553a127fcad73273655d634
       requestBody:
         required: true
         content:
@@ -105,7 +178,7 @@ paths:
                   type: string
                   example: Simulation 3
       responses:
-        "200":
+        200:
           description: OK
           content:
             application/json:
@@ -117,8 +190,32 @@ paths:
                   success:
                     type: boolean
                     example: true
-        "404":
-          description: Simulation not found
+        404:
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Simulation 1 not found!"
+        500:
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: string
+                    example: INTERNAL_SERVER_ERROR
+                  message:
+                    type: string
+                    example: Internal server error occurred
+                  details:
+                    type: string
+                    example: Error
     delete:
       summary: Delete simulation
       tags: [Simulation]
@@ -126,20 +223,39 @@ paths:
         - in: path
           name: simulationId
           required: true 
+          schema:
+            type: string
+            example: 6553a127fcad73273655d634
       responses:
-        "204":
+        204:
           description: OK
+        404:
+          description: Not Found
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  success:
-                    type: boolean
-                    example: true
-        "404":
-          description: Simulation not found
-  "api/v1/simulation/{simulationId}/conversations":
+                  error:
+                    type: string
+                    example: "Simulation 1 not found!"
+        500:
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: string
+                    example: INTERNAL_SERVER_ERROR
+                  message:
+                    type: string
+                    example: Internal server error occurred
+                  details:
+                    type: string
+                    example: Error
+  /api/v1/simulation/{simulationId}/conversations:
     get:
       summary: Retrieve simulation conversations
       tags: [Simulation]
@@ -149,49 +265,281 @@ paths:
           required: true
           schema:
             type: string
+            example: 6553a127fcad73273655d634
       responses:
-        "200":
+        200:
           description: OK
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ConversationDocument"
-        "404":
-          description: Simulation not found
-  "api/v1/chat/start":
+        500:
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: string
+                    example: INTERNAL_SERVER_ERROR
+                  message:
+                    type: string
+                    example: Internal server error occurred
+                  details:
+                    type: string
+                    example: Error
+  /api/v1/agent:
     post:
-      summary: Start a new chat
-      description: Endpoint to start a new manual chat.
-      tags: [Chat]
-      parameters:
-        - in: body
-          name: config
-          description: Agent configuration
-          required: true
-          schema:
+      summary: Create a new agent
+      description: Endpoint to create a new agent.
+      tags: [Agent]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
               $ref: "#/components/schemas/ServiceAgent"
       responses:
         201:
           description: Chat started successfully
-        400:
-          description: Bad request - Invalid input provided
-  "api/v1/chat/send-message":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AgentResponse"
+        500:
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: string
+                    example: INTERNAL_SERVER_ERROR
+                  message:
+                    type: string
+                    example: Internal server error occurred
+                  details:
+                    type: string
+                    example: Error
+  /api/v1/agent/all:
+    get:
+      summary: Retrieve all agents
+      tags: [Agent]
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AgentResponse"
+        500:
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: string
+                    example: INTERNAL_SERVER_ERROR
+                  message:
+                    type: string
+                    example: Internal server error occurred
+                  details:
+                    type: string
+                    example: Error
+  /api/v1/agent/{agentId}:
+    get:
+      summary: Get agent
+      tags: [Agent]
+      parameters:
+        - in: path
+          name: agentId
+          required: true
+          schema:
+            type: string
+            example: 6553a127fcad73273655d634
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AgentResponse"
+        404:
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Agent 1 not found!"
+        500:
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: string
+                    example: INTERNAL_SERVER_ERROR
+                  message:
+                    type: string
+                    example: Internal server error occurred
+                  details:
+                    type: string
+                    example: Error
+    put:
+      summary: Update agent
+      tags: [Agent]
+      parameters:
+        - in: path
+          name: agentId
+          required: true
+          schema:
+            type: string
+            example: 6553a127fcad73273655d634
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                llm:
+                  type: string
+                  example: LLAMA2
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AgentResponse"
+        404:
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Agent 1 not found!"
+        500:
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: string
+                    example: INTERNAL_SERVER_ERROR
+                  message:
+                    type: string
+                    example: Internal server error occurred
+                  details:
+                    type: string
+                    example: Error
+    delete:
+      summary: Delete agent
+      tags: [Agent]
+      parameters:
+        - in: path
+          name: agentId
+          required: true
+          schema:
+            type: string
+            example: 6553a127fcad73273655d634
+      responses:
+        204:
+          description: OK
+        404:
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: string
+                    example: INTERNAL_SERVER_ERROR
+                  message:
+                    type: string
+                    example: Internal server error occurred
+                  details:
+                    type: string
+                    example: Error
+        500:
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Error
+  /api/v1/chat/start:
+    post:
+      summary: Start a new chat
+      description: Endpoint to start a new manual chat.
+      tags: [Chat]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: "Chat 3"
+                serviceAgentConfig:
+                  $ref: "#/components/schemas/ServiceAgent"
+      responses:
+        201:
+          description: Chat started successfully
+        500:
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: string
+                    example: INTERNAL_SERVER_ERROR
+                  message:
+                    type: string
+                    example: Internal server error occurred
+                  details:
+                    type: string
+                    example: Error
+  /api/v1/chat/send-message:
     post:
       summary: Send a message
       description: Endpoint for sending a message manual chat.
       tags: [Chat]
-      parameters:
-        - in: body
-          name: config
-          description: Chat configuration
-          required: true
-          schema:
-            type: object
-            required:
-              - message
-            properties:
-              message:
-                type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - message
+              properties:
+                message:
+                  type: string
       responses:
         200:
           description: OK
@@ -203,14 +551,200 @@ paths:
                   message:
                     type: string
                     example: Hello
-        400:
-          description: Bad request - Invalid input provided
-  "/api/v1/llm/models":
+        500:
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: string
+                    example: INTERNAL_SERVER_ERROR
+                  message:
+                    type: string
+                    example: Internal server error occurred
+                  details:
+                    type: string
+                    example: Error
+  /api/v1/chat/all:
+    get:
+      summary: Retrieve all chats
+      description: Endpoint for fething all simulations.
+      tags: [Chat]
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/SimulationDocument"     
+        500:
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: string
+                    example: INTERNAL_SERVER_ERROR
+                  message:
+                    type: string
+                    example: Internal server error occurred
+                  details:
+                    type: string
+                    example: Error    
+  /api/v1/chat/{chatId}:
+    get:
+      summary: Retrieve chat
+      tags: [Chat]
+      parameters:
+        - in: path
+          name: chatId
+          required: true
+          schema:
+            type: string
+            example: 6553a127fcad73273655d634
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SimulationDocument"
+        404:
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Chat 1 not found!"
+        500:
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: string
+                    example: INTERNAL_SERVER_ERROR
+                  message:
+                    type: string
+                    example: Internal server error occurred
+                  details:
+                    type: string
+                    example: Error
+    put:
+      summary: Update chat
+      tags: [Chat]
+      parameters:
+        - in: path
+          name: chatId
+          required: true
+          schema:
+            type: string
+            example: 6553a127fcad73273655d634
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: Chat 3
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  object:
+                    $ref: "#/components/schemas/SimulationDocument"
+                  success:
+                    type: boolean
+                    example: true
+        404:
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Chat 1 not found!"
+        500:
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: string
+                    example: INTERNAL_SERVER_ERROR
+                  message:
+                    type: string
+                    example: Internal server error occurred
+                  details:
+                    type: string
+                    example: Error
+    delete:
+      summary: Delete chat
+      tags: [Chat]
+      parameters:
+        - in: path
+          name: chatId
+          required: true 
+          schema:
+            type: string
+            example: 6553a127fcad73273655d634
+      responses:
+        204:
+          description: OK
+        404:
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Chat 1 not found!"    
+        500:
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: string
+                    example: INTERNAL_SERVER_ERROR
+                  message:
+                    type: string
+                    example: Internal server error occurred
+                  details:
+                    type: string
+                    example: Error
+  /api/v1/llm/models:
     get:
       summary: Retrive available LLM models
       tags: [LLMs]
       responses:
-        "200":
+        200:
           description: OK
           content:
             application/json:
@@ -224,16 +758,27 @@ paths:
               example:
                 - GPT4
                 - LLAMA2  
-        "500":
-          description: Bad request
+        500:
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: string
+                    example: INTERNAL_SERVER_ERROR
+                  message:
+                    type: string
+                    example: Internal server error occurred
+                  details:
+                    type: string
+                    example: Error
 components: 
   schemas:
     RunSimulationRequest:
       type: object
       properties:
-        user:
-          type: string
-          example: 65515f13d5dbce1dd781ef60
         name:
           type: string
           example: "Simulation 3"
@@ -272,6 +817,11 @@ components:
         maxTokens:
           type: number
           example: 2048
+        domain:
+          type: string
+          enum:
+            - FLIGHT
+            - INSURANCE
         prompt:
           type: string
           example: "you are an helpful bot"
@@ -287,6 +837,8 @@ components:
         maxTokens:
           type: number
           example: 2048
+        domain:
+          type: string
         prompt:
           type: string
           example: "you are an angry customer"
@@ -334,6 +886,8 @@ components:
         properties:
           messages:
             type: array
+            items:
+              type: string
             example: []
           start:
             type: string
@@ -344,10 +898,36 @@ components:
             enum: [STARTED, FINISHED]
           usedEndpoints:
             type: array
+            items:
+              type: string
             example: []
-
-
-
- 
-  
+    AgentResponse:
+      type: object
+      properties:
+        llm:
+          type: string
+          example: GPT4
+        temperature:
+          type: number
+          example: 0
+        maxTokens:
+          type: number
+          example: 256
+        prompt:
+          type: string
+          example: "you are a helpful bot"
+        _id:
+          type: string
+          example: "655a5982524f7361fefd4032"
+        createdAt:
+          type: string
+          format: date-time
+          example: "2023-11-19T18:52:50.192Z"
+        updatedAt:
+          type: string
+          format: date-time
+          example: "2023-11-19T18:52:50.192Z"
+        __v:
+          type: integer
+          example: 0
  

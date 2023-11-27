@@ -1,14 +1,11 @@
-import { Schema, Document, model, Types } from 'mongoose';
-import { UserModel } from './user.model'; // Import your User model
+import { Schema, Document, model } from 'mongoose';
 
 interface OptimizationDocument extends Document {
-  user: Types.ObjectId | typeof UserModel;
   prompt: string;
 }
 
 const optimizationSchema: Schema = new Schema(
   {
-    user: { type: Schema.Types.ObjectId, ref: 'User', required: true },
     prompt: { type: String, required: true },
   },
   { timestamps: true },

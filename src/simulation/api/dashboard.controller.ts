@@ -2,7 +2,12 @@
 import DashboardData from '../db/models/dashboardData.model';
 import { Request, Response } from 'express';
 
-async function getDashboardData(req: Request, res: Response) {
+/**
+ * Get dashboard data
+ * @param req - Request
+ * @param res - Response
+ */
+async function getDashboardData(req: Request, res: Response): Promise<void> {
   const days = req.query.days;
   if (!days) {
     res.status(500).send('Please provide a number of days: e.g. ?days=10 ');
