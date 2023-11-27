@@ -7,12 +7,18 @@ import { BaseChatModel, BaseChatModelParams } from 'langchain/chat_models/base';
 import { ChatOpenAI, OpenAIChatInput } from 'langchain/chat_models/openai';
 import { AzureOpenAIInput } from 'langchain/chat_models/openai';
 import { flightBookingAgentConfig } from '../agents/service/service.agent.flight.booker';
-import { Callback, model } from 'mongoose';
+import { Callback, Types, model } from 'mongoose';
 import { MsgHistoryItem } from '../agents/custom.agent';
 import { AgentDocument, AgentModel } from '../db/models/agent.model';
 import * as fs from 'fs';
 import * as path from 'path';
 import { HumanMessage } from 'langchain/schema';
+import repositoryFactory from '../db/repositories/factory';
+import { MessageDocument } from '../db/models/message.model';
+import { MsgSender, MsgTypes, ConversationStatus } from '../db/enum/enums';
+
+const messageRepository = repositoryFactory.messageRepository;
+const conversationRepository = repositoryFactory.conversationRepository;
 import { LLM } from 'langchain/dist/llms/base';
 import { LLMModel } from '../db/enum/enums';
 import { CustomAgentConfig } from '../agents/custom.agent.config';
@@ -194,7 +200,63 @@ async function configureUserAgent(agentData: AgentDocument): Promise<CustomAgent
   return userAgent;
 }
 
+async function createMessageDocument(
+  msg: MsgHistoryItem,
+  welcomeMessage: string,
+  usedEndpoints: string[],
+): Promise<MessageDocument> {
+  let sender: MsgSender;
+  let text: string;
+
+  if (msg.type === MsgTypes.SYSTEMPROMPT) {
+    sender = MsgSender.AGENT;
+    text = `AGENT: ${welcomeMessage}`;
+  } else if (msg.type === MsgTypes.HUMANINPUT) {
+    sender = MsgSender.USER;
+    text = `USER: ${msg.userInput}`;
+  } else if (msg.type === MsgTypes.TOOLCALL) {
+    sender = MsgSender.TOOL;
+    text = `TOOL: [${msg.action}] call input: ${JSON.stringify(msg.toolInput)}`;
+    if (msg.action !== null) {
+      usedEndpoints.push(msg.action);
+    }
+  } else if (msg.type === MsgTypes.TOOLOUTPUT) {
+    sender = MsgSender.TOOL;
+    text = `TOOL: [${msg.action}] result: ${msg.toolOutput}`;
+  } else if (msg.type === MsgTypes.MSGTOUSER) {
+    sender = MsgSender.AGENT;
+    text = `AGENT: ${msg.msgToUser}`;
+  } else if (msg.type === MsgTypes.ROUTE) {
+    sender = MsgSender.AGENT;
+    text = `TOOL: ${msg.action} ${msg.toolInput}`;
+    if (msg.action !== null) {
+      usedEndpoints.push(msg.action);
+    }
+  } else {
+    throw new Error(`Unknown message type: ${msg.type}`);
+  }
+
+  const message: MessageDocument = await messageRepository.create({
+    sender: sender,
+    text: text,
+    type: msg.type,
+    timestamp: msg.timestamp,
+    intermediateMsg: msg.intermediateMsg,
+    action: msg.action,
+    toolInput: msg.toolInput,
+  });
+  return message;
+}
+
 export async function runConversation(serviceAgentData: AgentDocument, userAgentData: AgentDocument) {
+  const startTime: Date = new Date();
+  const conversation = await conversationRepository.create({
+    messages: undefined,
+    startTime: startTime,
+    endTime: undefined,
+    status: ConversationStatus.ONGOING,
+    usedEndpoints: undefined,
+  });
   setupPath();
 
   const serviceAgent: CustomAgent = await configureServiceAgent(serviceAgentData);
@@ -204,7 +266,7 @@ export async function runConversation(serviceAgentData: AgentDocument, userAgent
 
   await userAgent.startAgent();
 
-  const maxTurnCount = 3;
+  const maxTurnCount = 1;
   let turnCount = 0;
 
   try {
@@ -214,19 +276,39 @@ export async function runConversation(serviceAgentData: AgentDocument, userAgent
       if (userInput.indexOf('/hangup') >= 0) {
         console.log(userInput);
         console.log(`\n👋👋👋 HANGUP by human_sim agent. Turn count: ${turnCount} 👋👋👋\n`);
-        return;
+        break;
       }
 
       agentResponse = await serviceAgent.processHumanInput(userInput);
 
       turnCount++;
     }
+    //const messages: MessageDocument[] = serviceAgent.messageHistory.map((msg: MsgHistoryItem) =>
+    //  createMessageDocument(msg, serviceAgent.config.welcomeMessage),
+    //);
+    const endTime: Date = new Date();
+
+    const usedEndpoints: string[] = [];
+    const messages: MessageDocument[] = [];
+    for (let i = 0; i < serviceAgent.messageHistory.length; i++) {
+      messages.push(
+        await createMessageDocument(serviceAgent.messageHistory[i], serviceAgent.config.welcomeMessage, usedEndpoints),
+      );
+    }
+
+    conversation.messages = messages.map((msg: MessageDocument) => msg._id);
+    conversation.endTime = endTime;
+    conversation.status = ConversationStatus.FINISHED;
+    conversation.usedEndpoints = usedEndpoints;
+    await conversationRepository.updateById(conversation._id, conversation);
+    return conversation._id;
   } catch (error) {
     if (error instanceof Error) {
       const er = error as Error;
       console.log('Errors / this : ' + er.message + ' ' + er.stack);
       console.log(`\n👋👋👋 STOPPED by user. Turn count: ${turnCount} 👋👋👋\n`);
-      return;
+      return new Types.ObjectId();
     }
   }
+  return new Types.ObjectId();
 }

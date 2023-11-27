@@ -39,7 +39,12 @@ class ChatRepository extends SimulationRepository {
   async send(chatId: string, message: string, sender: MsgSender, type: MsgTypes): Promise<SimulationDocument> {
     try {
       // Step 1: Create a new message document
-      const newMessage: MessageDocument = await this.messageModel.create({ sender: sender, text: message, type: type });
+      const newMessage: MessageDocument = await this.messageModel.create({
+        sender: sender,
+        text: message,
+        type: type,
+        timestamp: new Date(),
+      });
 
       // get conversation id from chatId
       const chat: SimulationDocument | null = await this.model.findById(chatId);

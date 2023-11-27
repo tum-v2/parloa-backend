@@ -802,9 +802,11 @@ components:
           type: number
           example: 100
         serviceAgentConfig:
-          $ref: "#/components/schemas/ServiceAgent"
+          type: string
+          example: 6553a127fcad73273655d634
         userAgentConfig:
-          $ref: "#/components/schemas/UserAgent"
+          type: string
+          example: 6553a127fcad73273655d634
     ServiceAgent:
       type: object
       properties:
