@@ -36,7 +36,8 @@
       "@simulation/docs/*": ["simulation/docs/*"],
       "@simulation/model/*": ["simulation/model/*"],
       "@simulation/router/*": ["simulation/router/*"],
-      "@simulation/service/*": ["simulation/service/*"]
+      "@simulation/service/*": ["simulation/service/*"],
+      "@simulation/utils/*": ["simulation/utils/*"]
     },
     // "rootDirs": [],                                   /* Allow multiple folders to be treated as one when resolving modules. */
     // "typeRoots": [],                                  /* Specify multiple folders that act like './node_modules/@types'. */
