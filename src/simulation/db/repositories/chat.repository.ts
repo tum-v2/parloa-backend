@@ -3,7 +3,7 @@ import { MessageDocument } from '../models/message.model';
 import { ConversationDocument } from '../models/conversation.model';
 import { SimulationDocument } from '../models/simulation.model';
 import { SimulationRepository } from './simulation.repository';
-import { ConversationStatus, ConversationType, SimulationStatus } from '../enum/enums';
+import { ConversationStatus, SimulationType, SimulationStatus } from '../enum/enums';
 import { logger } from '../../service/logging.service';
 
 class ChatRepository extends SimulationRepository {
@@ -86,7 +86,7 @@ class ChatRepository extends SimulationRepository {
 
   async findAll(): Promise<SimulationDocument[]> {
     try {
-      const result: SimulationDocument[] = await this.model.find({ type: ConversationType.MANUAL });
+      const result: SimulationDocument[] = await this.model.find({ type: SimulationType.MANUAL });
       return result;
     } catch (error) {
       logger.error(`Error finding chats!`);

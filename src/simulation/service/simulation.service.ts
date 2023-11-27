@@ -1,7 +1,7 @@
 import { SimulationDocument } from '../db/models/simulation.model';
 import { ConversationDocument } from '../db/models/conversation.model';
 import { RunSimulationRequest } from '../model/request/run-simulation.request';
-import { ConversationType, SimulationStatus } from '../db/enum/enums';
+import { SimulationType, SimulationStatus } from '../db/enum/enums';
 import { Types } from 'mongoose';
 
 import repositoryFactory from '../db/repositories/factory';
@@ -31,7 +31,7 @@ async function initiate(request: RunSimulationRequest): Promise<SimulationDocume
 
   const simulationData: Partial<SimulationDocument> = {
     scenario: request.scenario,
-    type: ConversationType.AUTOMATED,
+    type: SimulationType.AUTOMATED,
     name: request.name,
     userAgent: userAgent,
     serviceAgent: serviceAgent,

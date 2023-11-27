@@ -2,7 +2,7 @@ import { body, param, ValidationChain, ValidationError, validationResult } from 
 import { Request, Response, NextFunction } from 'express';
 import { logger } from '../service/logging.service';
 
-import { ConversationType, ConversationDomain, SimulationScenario } from '../db/enum/enums';
+import { SimulationType, ConversationDomain, SimulationScenario } from '../db/enum/enums';
 
 class CustomValidationError extends Error {
   errors: string[];
@@ -26,8 +26,8 @@ class simulationValidator {
         .isIn(Object.values(SimulationScenario))
         .withMessage(`Invalid scenario type. Must be one of: ${Object.values(SimulationScenario).join(', ')}`),
       body('type')
-        .isIn(Object.values(ConversationType))
-        .withMessage(`Invalid simulation type. Must be one of: ${Object.values(ConversationType).join(', ')}`),
+        .isIn(Object.values(SimulationType))
+        .withMessage(`Invalid simulation type. Must be one of: ${Object.values(SimulationType).join(', ')}`),
       body('domain')
         .isIn(Object.values(ConversationDomain))
         .withMessage(`Invalid domain type. Must be one of: ${Object.values(ConversationDomain).join(', ')}`),
