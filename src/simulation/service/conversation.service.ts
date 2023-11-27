@@ -13,6 +13,10 @@ import { AgentDocument, AgentModel } from '@simulation/db/models/agent.model';
 import * as fs from 'fs';
 import * as path from 'path';
 import { HumanMessage } from 'langchain/schema';
+import repositoryFactory from '../db/repositories/factory';
+import { MessageDocument } from '../db/models/message.model';
+
+const messageRepository = repositoryFactory.messageRepository;
 
 let model = '';
 model = 'gpt-4'; //'gpt-35-turbo';
@@ -143,13 +147,21 @@ export async function runConversation(simulationData: Partial<SimulationDocument
       if (userInput.indexOf('/hangup') >= 0) {
         console.log(userInput);
         console.log(`\n👋👋👋 HANGUP by human_sim agent. Turn count: ${turnCount} 👋👋👋\n`);
-        return;
+        break;
       }
 
       agentResponse = await serviceAgent.processHumanInput(userInput);
 
       turnCount++;
     }
+    /*const messages: MessageDocument[] = serviceAgent.messageHistory.map((msg: MsgHistoryItem) => {
+      const message: MessageDocument = {
+        sender: msg.sender,
+        text: msg.text,
+        timestamp: msg.timestamp,
+      };
+      return message;
+    });*/
   } catch (error) {
     if (error instanceof Error) {
       const er = error as Error;

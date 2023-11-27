@@ -38,7 +38,17 @@ async function initiate(request: RunSimulationRequest): Promise<SimulationDocume
   const simulation = await simulationRepository.create(simulationData);
   console.log(simulation);
 
-  await runConversation(simulationData);
+  const numConversations = request.numConversations;
+  if (numConversations <= 0 || numConversations > 2) {
+    throw new Error(
+      'Number of conversations must be between 1 and 2 (just for now so nobody missclicks and runs 100 conversations which would cost a lot of money))',
+    );
+  }
+
+  for (let i = 0; i < numConversations; i++) {
+    await runConversation(simulationData);
+  }
+
   //hello
   return simulation;
 }
