@@ -31,4 +31,4 @@ const EvaluationSchema: Schema = new Schema(
 
 const EvaluationModel = model<EvaluationDocument>('Evaluation', EvaluationSchema);
 
-export { EvaluationModel, EvaluationDocument };
+export { EvaluationModel, EvaluationDocument, MetricEnum };
