@@ -200,7 +200,7 @@ async function configureUserAgent(agentData: AgentDocument): Promise<CustomAgent
   return userAgent;
 }
 
-async function createMessageDocument(
+export async function createMessageDocument(
   msg: MsgHistoryItem,
   welcomeMessage: string,
   usedEndpoints: string[],

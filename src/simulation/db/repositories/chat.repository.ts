@@ -3,7 +3,7 @@ import { MessageDocument } from '../models/message.model';
 import { ConversationDocument } from '../models/conversation.model';
 import { SimulationDocument } from '../models/simulation.model';
 import { SimulationRepository } from './simulation.repository';
-import { ConversationStatus, ConversationType, MsgTypes, MsgSender, SimulationStatus } from '../enum/enums';
+import { ConversationStatus, ConversationType, SimulationStatus } from '../enum/enums';
 import { logger } from '../../service/logging.service';
 
 class ChatRepository extends SimulationRepository {
@@ -36,16 +36,8 @@ class ChatRepository extends SimulationRepository {
     }
   }
 
-  async send(chatId: string, message: string, sender: MsgSender, type: MsgTypes): Promise<SimulationDocument> {
+  async send(chatId: string, message: MessageDocument): Promise<SimulationDocument> {
     try {
-      // Step 1: Create a new message document
-      const newMessage: MessageDocument = await this.messageModel.create({
-        sender: sender,
-        text: message,
-        type: type,
-        timestamp: new Date(),
-      });
-
       // get conversation id from chatId
       const chat: SimulationDocument | null = await this.model.findById(chatId);
       if (!chat) {
@@ -57,7 +49,7 @@ class ChatRepository extends SimulationRepository {
       // Step 2: Update the conversation with the new message
       const updatedConversation: ConversationDocument | null = await this.conversationModel.findOneAndUpdate(
         { _id: conversationId }, // find a conversation with this _id
-        { $push: { messages: newMessage._id } }, // push the new message _id to the messages array
+        { $push: { messages: message._id } }, // push the new message _id to the messages array
         { new: true }, // option to return the updated document
       );
 

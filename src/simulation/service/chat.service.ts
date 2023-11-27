@@ -1,16 +1,18 @@
 /* eslint-disable require-jsdoc */
 import { SimulationDocument } from '../db/models/simulation.model';
 import repositoryFactory from '../db/repositories/factory';
-import { ConversationType, SimulationStatus, MsgSender, MsgTypes } from '../db/enum/enums';
+import { ConversationType, SimulationStatus } from '../db/enum/enums';
 
 import { CustomAgent } from '../agents/custom.agent';
-import { configureServiceAgent, setupPath } from '../service/conversation.service';
+import { configureServiceAgent, createMessageDocument, setupPath } from '../service/conversation.service';
 import { AgentDocument } from '../db/models/agent.model';
+import { MessageDocument } from '../db/models/message.model';
 
 const agentRepository = repositoryFactory.agentRepository;
 const chatRepository = repositoryFactory.chatRepository;
 
 let serviceAgent: CustomAgent | null = null;
+let count = 0;
 
 /**
  * Start a chat with the service agent
@@ -31,7 +33,13 @@ async function start(config: Partial<SimulationDocument>): Promise<SimulationDoc
 
   const chat: SimulationDocument = await chatRepository.create(config);
 
-  await chatRepository.send(chat._id, agentResponse, MsgSender.AGENT, MsgTypes.MSGTOUSER);
+  const usedEndpoints: string[] = [];
+  const newMessage: MessageDocument = await createMessageDocument(
+    serviceAgent.messageHistory[count++],
+    agentResponse,
+    usedEndpoints,
+  );
+  await chatRepository.send(chat._id, newMessage);
 
   return chat;
 }
@@ -52,11 +60,23 @@ async function getById(id: string): Promise<SimulationDocument | null> {
  * @returns A promise that resolves to the message response of service agents.
  */
 async function sendMessage(chatId: string, message: string): Promise<string> {
-  await chatRepository.send(chatId, message, MsgSender.USER, MsgTypes.HUMANINPUT);
+  const usedEndpoints: string[] = [];
 
   const agentResponse: string = await forwardMessageToAgentAndWaitResponse(message);
 
-  await chatRepository.send(chatId, agentResponse, MsgSender.AGENT, MsgTypes.MSGTOUSER);
+  const userMessage: MessageDocument = await createMessageDocument(
+    serviceAgent.messageHistory[count++],
+    message,
+    usedEndpoints,
+  );
+  await chatRepository.send(chatId, userMessage);
+
+  const agentMessage: MessageDocument = await createMessageDocument(
+    serviceAgent.messageHistory[count++],
+    agentResponse,
+    usedEndpoints,
+  );
+  await chatRepository.send(chatId, agentMessage);
 
   return agentResponse;
 }
