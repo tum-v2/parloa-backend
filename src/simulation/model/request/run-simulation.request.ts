@@ -1,4 +1,3 @@
-import { AgentDocument } from '../../db/models/agent.model';
 import { ConversationType, SimulationScenario } from '../../db/enum/enums';
 
 interface RunSimulationRequest {
@@ -6,8 +5,8 @@ interface RunSimulationRequest {
   type: ConversationType;
   name: string;
   numConversations: number;
-  serviceAgentConfig: AgentDocument;
-  userAgentConfig: AgentDocument;
+  serviceAgentConfig: string;
+  userAgentConfig: string;
 }
 
 export { RunSimulationRequest };
