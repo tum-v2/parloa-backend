@@ -16,6 +16,13 @@ const validNames: string[] = [
   'RINDSLAND',
 ];
 export function auth(bookingNumber: string, lastName: string) {
+  if (bookingNumber === undefined) {
+    return { error: 'You forgot to input a booking_number!' };
+  }
+  if (lastName === undefined) {
+    return { error: 'You forgot to input a last_name!' };
+  }
+
   if (bookingNumber.toUpperCase() === 'PARL0A' && validNames.includes(lastName.toUpperCase())) {
     return { authToken: validToken };
   } else {

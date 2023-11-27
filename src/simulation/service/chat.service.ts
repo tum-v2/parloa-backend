@@ -27,6 +27,8 @@ async function start(config: Partial<SimulationDocument>): Promise<SimulationDoc
 
   serviceAgent = await configureServiceAgent(serviceAgentModel);
 
+  console.log(serviceAgent);
+
   const agentResponse: string = await serviceAgent.startAgent();
 
   const chat: SimulationDocument = await chatRepository.create(config);

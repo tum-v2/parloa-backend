@@ -13,32 +13,34 @@ import { AgentDocument, AgentModel } from '../db/models/agent.model';
 import * as fs from 'fs';
 import * as path from 'path';
 import { HumanMessage } from 'langchain/schema';
+import { LLMModel } from '../db/enum/enums';
 
 let model = '';
-model = 'gpt-4';
-// model = 'gpt-35-turbo';
-
 let openApiKey: string | undefined;
 let azureApiInstanceName: string | undefined;
 let azureApiVersion: string | undefined;
-if (model !== 'gpt-4') {
-  openApiKey = process.env.AZURE_OPENAI_API_KEY;
-  if (openApiKey === undefined) throw new Error('AZURE_OPENAI_API_KEY Needs to be specified');
 
-  azureApiInstanceName = process.env.AZURE_OPENAI_API_INSTANCE_NAME;
-  if (azureApiInstanceName === undefined) throw new Error('AZURE_OPENAI_API_INSTANCE_NAME Needs to be specified');
+function setUpOpenApiKey(llm: LLMModel) {
+  model = llm === LLMModel.GPT4 ? 'gpt-4' : 'gpt-35-turbo';
+  if (model !== 'gpt-4') {
+    openApiKey = process.env.AZURE_OPENAI_API_KEY;
+    if (openApiKey === undefined) throw new Error('AZURE_OPENAI_API_KEY Needs to be specified');
 
-  azureApiVersion = process.env.AZURE_OPENAI_API_VERSION;
-  if (azureApiVersion === undefined) throw new Error('AZURE_OPENAI_API_VERSION Needs to be specified');
-} else {
-  openApiKey = process.env.AZURE_OPENAI_4_API_KEY;
-  if (openApiKey === undefined) throw new Error('AZURE_OPENAI_4_API_KEY Needs to be specified');
+    azureApiInstanceName = process.env.AZURE_OPENAI_API_INSTANCE_NAME;
+    if (azureApiInstanceName === undefined) throw new Error('AZURE_OPENAI_API_INSTANCE_NAME Needs to be specified');
 
-  azureApiInstanceName = process.env.AZURE_OPENAI_4_INSTANCE_NAME;
-  if (azureApiInstanceName === undefined) throw new Error('AZURE_OPENAI_4_INSTANCE_NAME Needs to be specified');
+    azureApiVersion = process.env.AZURE_OPENAI_API_VERSION;
+    if (azureApiVersion === undefined) throw new Error('AZURE_OPENAI_API_VERSION Needs to be specified');
+  } else {
+    openApiKey = process.env.AZURE_OPENAI_4_API_KEY;
+    if (openApiKey === undefined) throw new Error('AZURE_OPENAI_4_API_KEY Needs to be specified');
 
-  azureApiVersion = process.env.AZURE_OPENAI_4_API_VERSION;
-  if (azureApiVersion === undefined) throw new Error('AZURE_OPENAI_4_API_VERSION Needs to be specified');
+    azureApiInstanceName = process.env.AZURE_OPENAI_4_INSTANCE_NAME;
+    if (azureApiInstanceName === undefined) throw new Error('AZURE_OPENAI_4_INSTANCE_NAME Needs to be specified');
+
+    azureApiVersion = process.env.AZURE_OPENAI_4_API_VERSION;
+    if (azureApiVersion === undefined) throw new Error('AZURE_OPENAI_4_API_VERSION Needs to be specified');
+  }
 }
 
 const timeStamp = new Date()
@@ -75,6 +77,7 @@ function createFile(filePath: string) {
 }
 
 export async function configureServiceAgent(agent: AgentDocument): Promise<CustomAgent> {
+  setUpOpenApiKey(agent.llm);
   const azureOpenAIInput: Partial<OpenAIChatInput> & Partial<AzureOpenAIInput> & BaseChatModelParams = {
     modelName: agent.llm,
     azureOpenAIApiDeploymentName: model,
@@ -99,6 +102,8 @@ export async function configureServiceAgent(agent: AgentDocument): Promise<Custo
 }
 
 export async function configureUserAgent(agent: AgentDocument): Promise<CustomAgent> {
+  setUpOpenApiKey(agent.llm);
+
   const userSimConfig = getSimConfig('sarcastic'); // TODO persona
 
   const azureOpenAIInput: Partial<OpenAIChatInput> & Partial<AzureOpenAIInput> & BaseChatModelParams = {
