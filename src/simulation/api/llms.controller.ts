@@ -4,8 +4,8 @@ import { LLMModel } from '../db/enum/enums';
 
 /**
  * Get all LLMs
- * @param req
- * @param res
+ * @param req - Request
+ * @param res - Response
  */
 async function getLLMs(req: Request, res: Response): Promise<void> {
   res.status(200).send(Object.values(LLMModel));

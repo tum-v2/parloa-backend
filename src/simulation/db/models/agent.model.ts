@@ -14,7 +14,7 @@ const agentSchema: Schema = new Schema(
     llm: { type: String, enum: Object.values(LLMModel), required: true },
     temperature: { type: Number, required: true },
     maxTokens: { type: Number, required: true },
-    domain: { type: String, enum: Object.values(ConversationDomain), required: false },
+    domain: { type: String, enum: Object.values(ConversationDomain), required: true },
     prompt: { type: String, required: true },
   },
   { timestamps: true },
