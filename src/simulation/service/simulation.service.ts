@@ -2,6 +2,7 @@ import { SimulationDocument } from '../db/models/simulation.model';
 import { ConversationDocument } from '../db/models/conversation.model';
 import { RunSimulationRequest } from '../model/request/run-simulation.request';
 import { ConversationType, SimulationStatus } from '../db/enum/enums';
+import { Types } from 'mongoose';
 
 import repositoryFactory from '../db/repositories/factory';
 import { AgentDocument } from '@simulation/db/models/agent.model';
@@ -42,6 +43,8 @@ async function initiate(request: RunSimulationRequest): Promise<SimulationDocume
   const simulation = await simulationRepository.create(simulationData);
   console.log(simulation);
 
+  const conversations: Types.ObjectId[] = [];
+
   const numConversations = request.numConversations;
   if (numConversations <= 0 || numConversations > 2) {
     throw new Error(
@@ -50,9 +53,14 @@ async function initiate(request: RunSimulationRequest): Promise<SimulationDocume
   }
 
   for (let i = 0; i < numConversations; i++) {
-    await runConversation(simulationData);
+    simulation.status = SimulationStatus.RUNNING;
+    await simulationRepository.updateById(simulation._id, simulation);
+    conversations.push(await runConversation(simulationData));
   }
 
+  simulation.status = SimulationStatus.FINISHED;
+  simulation.conversations = conversations;
+  await simulationRepository.updateById(simulation._id, simulation);
   return simulation;
 }
 
