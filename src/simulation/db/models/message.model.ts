@@ -1,9 +1,9 @@
-import { Schema, Document, model, Types } from 'mongoose';
-import { AgentModel } from './agent.model';
 import { MsgTypes } from '../enum/enums';
+import { Schema, Document, model } from 'mongoose';
+import { MsgSender } from '../enum/enums';
 
 interface MessageDocument extends Document {
-  sender: Types.ObjectId | typeof AgentModel | typeof String;
+  sender: MsgSender;
   text: string;
   type: MsgTypes;
   timestamp: Date;
@@ -14,7 +14,7 @@ interface MessageDocument extends Document {
 
 const messageSchema: Schema = new Schema(
   {
-    sender: { type: Schema.Types.ObjectId, ref: 'Agent', required: true },
+    sender: { type: String, enum: Object.values(MsgSender), required: true },
     text: { type: String, required: true },
   },
   { timestamps: true },

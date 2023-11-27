@@ -17,6 +17,7 @@ class CustomValidationError extends Error {
 class simulationValidator {
   /**
    * Validate the request body for the /run endpoint
+   * @returns Validation chain array that checks simulation run request
    */
   static runValidation(): ValidationChain[] {
     return [
@@ -67,8 +68,9 @@ class simulationValidator {
   }
 
   /**
-   * Validate the request parameters for the /{simulationId}/poll,
-   * /{simulationId}/details, and /{simulationId}/conversations endpoints
+   * Validate the request parameters for the /:id/poll,
+   * /:id/details, and /:id/conversations endpoints
+   * @returns Validation chain array that checks simulation run request
    */
   static idValidation(): ValidationChain[] {
     return [param('id').isMongoId().withMessage('Invalid simulation ID.')];
@@ -76,6 +78,9 @@ class simulationValidator {
 
   /**
    * Middleware to handle validation errors
+   * @param req - Request
+   * @param res - Response
+   * @param next - Next function
    */
   static handleValidationErrors(req: Request, res: Response, next: NextFunction): void {
     const errors = validationResult(req);
