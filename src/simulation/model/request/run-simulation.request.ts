@@ -1,12 +1,13 @@
-import { ConversationType, SimulationScenario } from '../../db/enum/enums';
+import { SimulationType, SimulationScenario } from '../../db/enum/enums';
 
 interface RunSimulationRequest {
   scenario: SimulationScenario;
-  type: ConversationType;
+  type: SimulationType;
   name: string;
+  description: string;
   numConversations: number;
-  serviceAgentConfig: string;
-  userAgentConfig: string;
+  serviceAgentId: string;
+  userAgentId: string;
 }
 
 export { RunSimulationRequest };

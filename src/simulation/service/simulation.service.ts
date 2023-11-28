@@ -1,7 +1,7 @@
 import { SimulationDocument } from '../db/models/simulation.model';
 import { ConversationDocument } from '../db/models/conversation.model';
 import { RunSimulationRequest } from '../model/request/run-simulation.request';
-import { ConversationType, SimulationStatus } from '../db/enum/enums';
+import { SimulationStatus } from '../db/enum/enums';
 import { Types } from 'mongoose';
 
 import repositoryFactory from '../db/repositories/factory';
@@ -22,8 +22,8 @@ async function initiate(request: RunSimulationRequest): Promise<SimulationDocume
   console.log('Configuration:', request);
 
   console.log('Creating simulation object...');
-  const userAgent: AgentDocument | null = await agentRepository.getById(request.userAgentConfig);
-  const serviceAgent: AgentDocument | null = await agentRepository.getById(request.serviceAgentConfig);
+  const userAgent: AgentDocument | null = await agentRepository.getById(request.userAgentId);
+  const serviceAgent: AgentDocument | null = await agentRepository.getById(request.serviceAgentId);
 
   if (userAgent === null || serviceAgent === null) {
     throw new Error('User agent or service agent id not found');
@@ -31,7 +31,7 @@ async function initiate(request: RunSimulationRequest): Promise<SimulationDocume
 
   const simulationData: Partial<SimulationDocument> = {
     scenario: request.scenario,
-    type: ConversationType.AUTOMATED,
+    type: request.type,
     name: request.name,
     userAgent: userAgent,
     serviceAgent: serviceAgent,

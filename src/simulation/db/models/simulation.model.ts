@@ -1,12 +1,13 @@
 import { Schema, Document, model, Types } from 'mongoose';
 import { AgentDocument } from './agent.model';
 import { ConversationDocument } from './conversation.model';
-import { ConversationType, SimulationStatus, SimulationScenario } from '../enum/enums';
+import { SimulationType, SimulationStatus, SimulationScenario } from '../enum/enums';
 
 interface SimulationDocument extends Document {
   scenario: SimulationScenario;
-  type: ConversationType;
+  type: SimulationType;
   name: string;
+  description: string;
   userAgent: AgentDocument | Types.ObjectId;
   serviceAgent: AgentDocument | Types.ObjectId;
   numConversations: number;
@@ -17,8 +18,9 @@ interface SimulationDocument extends Document {
 const SimulationSchema: Schema = new Schema(
   {
     scenario: { type: String, enum: Object.values(SimulationScenario), required: true },
-    type: { type: String, enum: Object.values(ConversationType), required: true },
+    type: { type: String, enum: Object.values(SimulationType), required: true },
     name: { type: String, required: true },
+    description: { type: String },
     numConversations: { type: Number, required: true },
     userAgent: { type: Schema.Types.ObjectId, ref: 'Agent' },
     serviceAgent: { type: Schema.Types.ObjectId, ref: 'Agent' },

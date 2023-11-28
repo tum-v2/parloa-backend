@@ -1,3 +1,10 @@
+enum SimulationType {
+  MANUAL = 'MANUAL',
+  AUTOMATED = 'AUTOMATED',
+  OPTIMIZATION = 'OPTIMIZATION',
+  AB_TESTING = 'A/B TESTING',
+}
+
 enum SimulationScenario {
   SEQUENCE = 'SEQUENCE',
   SLOT_FILLING = 'SLOT_FILLING',
@@ -13,11 +20,6 @@ enum SimulationStatus {
 enum ConversationStatus {
   ONGOING = 'ONGOING',
   FINISHED = 'FINISHED',
-}
-
-enum ConversationType {
-  MANUAL = 'MANUAL',
-  AUTOMATED = 'AUTOMATED',
 }
 
 enum ConversationDomain {
@@ -51,7 +53,7 @@ export {
   SimulationScenario,
   SimulationStatus,
   ConversationStatus,
-  ConversationType,
+  SimulationType,
   ConversationDomain,
   LLMModel,
   MsgTypes,

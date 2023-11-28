@@ -2,7 +2,7 @@ import { body, param, ValidationChain, ValidationError, validationResult } from 
 import { Request, Response, NextFunction } from 'express';
 import { logger } from '../service/logging.service';
 
-import { ConversationType, SimulationScenario } from '../db/enum/enums';
+import { SimulationType, SimulationScenario } from '../db/enum/enums';
 
 class CustomValidationError extends Error {
   errors: string[];
@@ -26,14 +26,21 @@ class simulationValidator {
         .isIn(Object.values(SimulationScenario))
         .withMessage(`Invalid scenario type. Must be one of: ${Object.values(SimulationScenario).join(', ')}`),
       body('type')
-        .isIn(Object.values(ConversationType))
-        .withMessage(`Invalid simulation type. Must be one of: ${Object.values(ConversationType).join(', ')}`),
+        .isIn(Object.values(SimulationType))
+        .withMessage(`Invalid simulation type. Must be one of: ${Object.values(SimulationType).join(', ')}`),
       body('numConversations').isInt().withMessage('Number of conversations must be a valid integer.'),
-      body('serviceAgentConfig').isString().withMessage('Service agent configuration must be a string.'),
-      body('userAgentConfig').isString().withMessage('User agent configuration must be a string.'),
+      body('serviceAgentId').isString().withMessage('Service agent configuration must be an ID string.'),
+      body('userAgentId').isString().withMessage('User agent configuration must be an ID string.'),
 
       body().custom((value, { req }) => {
-        const allowedFields = ['name', 'scenario', 'type', 'numConversations', 'serviceAgentConfig', 'userAgentConfig'];
+        const allowedFields = [
+          'name',
+          'scenario',
+          'type',
+          'numConversations',
+          'serviceAgentId',
+          'userAgentId',
+        ];
 
         const extraFields = Object.keys(req.body).filter((field) => !allowedFields.includes(field));
 
