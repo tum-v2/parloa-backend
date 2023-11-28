@@ -1,9 +1,18 @@
-import { SimulationDocument } from '@simulation/db/models/simulation.model';
+/* eslint-disable require-jsdoc */
+import { SimulationDocument } from '../db/models/simulation.model';
 import repositoryFactory from '../db/repositories/factory';
-import { MessageDocument } from '@simulation/db/models/message.model';
 import { ConversationType, SimulationStatus } from '../db/enum/enums';
 
+import { CustomAgent } from '../agents/custom.agent';
+import { configureServiceAgent, createMessageDocument, setupPath } from '../service/conversation.service';
+import { AgentDocument } from '../db/models/agent.model';
+import { MessageDocument } from '../db/models/message.model';
+
+const agentRepository = repositoryFactory.agentRepository;
 const chatRepository = repositoryFactory.chatRepository;
+
+let serviceAgent: CustomAgent | null = null;
+let count = 0;
 
 /**
  * Start a chat with the service agent
@@ -11,10 +20,27 @@ const chatRepository = repositoryFactory.chatRepository;
  * @returns A promise that resolves to the chat simulation object.
  */
 async function start(config: Partial<SimulationDocument>): Promise<SimulationDocument> {
-  config.status = SimulationStatus.SCHEDULED;
+  setupPath();
+
+  config.status = SimulationStatus.RUNNING;
   config.type = ConversationType.MANUAL;
+
+  const serviceAgentModel: AgentDocument = await agentRepository.getById(config.serviceAgentConfig);
+
+  serviceAgent = await configureServiceAgent(serviceAgentModel);
+
+  const agentResponse: string = await serviceAgent.startAgent();
+
   const chat: SimulationDocument = await chatRepository.create(config);
-  //TODO Initialize agent, update chat to SimulationStatus.RUNNING
+
+  const usedEndpoints: string[] = [];
+  const newMessage: MessageDocument = await createMessageDocument(
+    serviceAgent.messageHistory[count++],
+    agentResponse,
+    usedEndpoints,
+  );
+  await chatRepository.send(chat._id, newMessage);
+
   return chat;
 }
 
@@ -33,12 +59,31 @@ async function getById(id: string): Promise<SimulationDocument | null> {
  * @param message - Message
  * @returns A promise that resolves to the message response of service agents.
  */
-async function sendMessage(chatId: string, message: MessageDocument): Promise<SimulationDocument> {
-  const chat: SimulationDocument = await chatRepository.sendMessage(chatId, message);
-  return chat;
-  // TODO: Forward message to agent (remove void return type afterwards)
-  // const agentResponse: MessageDocument = await forward_message_to_agent_and_wait_response()
-  // return agentResponse;
+async function sendMessage(chatId: string, message: string): Promise<string> {
+  const usedEndpoints: string[] = [];
+
+  const agentResponse: string = await forwardMessageToAgentAndWaitResponse(message);
+
+  const userMessage: MessageDocument = await createMessageDocument(
+    serviceAgent.messageHistory[count++],
+    message,
+    usedEndpoints,
+  );
+  await chatRepository.send(chatId, userMessage);
+
+  const agentMessage: MessageDocument = await createMessageDocument(
+    serviceAgent.messageHistory[count++],
+    agentResponse,
+    usedEndpoints,
+  );
+  await chatRepository.send(chatId, agentMessage);
+
+  return agentResponse;
+}
+
+async function forwardMessageToAgentAndWaitResponse(message: string): Promise<string> {
+  const agentResponse = await serviceAgent.processHumanInput(message);
+  return agentResponse;
 }
 
 /**

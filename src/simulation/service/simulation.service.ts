@@ -5,7 +5,7 @@ import { ConversationType, SimulationStatus } from '../db/enum/enums';
 import { Types } from 'mongoose';
 
 import repositoryFactory from '../db/repositories/factory';
-import { AgentDocument } from '@simulation/db/models/agent.model';
+import { AgentDocument } from '../db/models/agent.model';
 import { runConversation } from './conversation.service';
 
 const agentRepository = repositoryFactory.agentRepository;
@@ -48,14 +48,14 @@ async function initiate(request: RunSimulationRequest): Promise<SimulationDocume
   const numConversations = request.numConversations;
   if (numConversations <= 0 || numConversations > 2) {
     throw new Error(
-      'Number of conversations must be between 1 and 2 (just for now so nobody missclicks and runs 100 conversations which would cost a lot of money))',
+      'Number of conversations must be between 1 and 2 (just for now so nobody miss clicks and runs 100 conversations which would cost a lot of money))',
     );
   }
 
   for (let i = 0; i < numConversations; i++) {
     simulation.status = SimulationStatus.RUNNING;
     await simulationRepository.updateById(simulation._id, simulation);
-    conversations.push(await runConversation(simulationData));
+    conversations.push(await runConversation(serviceAgent, userAgent));
   }
 
   simulation.status = SimulationStatus.FINISHED;
