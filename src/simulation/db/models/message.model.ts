@@ -4,6 +4,8 @@ import { MsgSender } from '../enum/enums';
 interface MessageDocument extends Document {
   sender: MsgSender;
   text: string;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 const messageSchema: Schema = new Schema(
