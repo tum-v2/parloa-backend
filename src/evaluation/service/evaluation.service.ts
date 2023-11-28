@@ -56,6 +56,13 @@ async function calculateAverageResponseTime(conversation: ConversationDocument) 
   return averageResponseTime;
 }
 
+/**
+ * Runs an evaluation on a conversation.
+ * @param conversationId - The ID of the conversation to evaluate.
+ * @param simulationId - The ID of the simulation the conversation belongs to.
+ * @returns - The evaluation object.
+ */
+
 async function runEvaluation(conversationId: string, simulationId: string) {
   const conversation = await ConversationModel.findById(conversationId).populate('messages');
   if (!conversation) {
