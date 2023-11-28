@@ -801,10 +801,10 @@ components:
         numConversations:
           type: number
           example: 100
-        serviceAgentConfig:
+        serviceAgentId:
           type: string
           example: 6553a127fcad73273655d634
-        userAgentConfig:
+        userAgentId:
           type: string
           example: 6553a127fcad73273655d634
     ServiceAgent:
