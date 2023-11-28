@@ -23,25 +23,33 @@ async function start(config: Partial<SimulationDocument>): Promise<SimulationDoc
   setupPath();
 
   config.status = SimulationStatus.RUNNING;
-  config.type = ConversationType.MANUAL;
+  config.type = SimulationType.MANUAL;
 
-  const serviceAgentModel: AgentDocument = await agentRepository.getById(config.serviceAgentConfig);
+  let serviceAgentModel: AgentDocument | null = null;
+  if (config.serviceAgent) {
+    serviceAgentModel = await agentRepository.getById(config.serviceAgent.toString());
+  }
 
-  serviceAgent = await configureServiceAgent(serviceAgentModel);
+  if (serviceAgentModel) {
+    serviceAgent = await configureServiceAgent(serviceAgentModel);
 
-  const agentResponse: string = await serviceAgent.startAgent();
+    const agentResponse: string = await serviceAgent.startAgent();
 
-  const chat: SimulationDocument = await chatRepository.create(config);
+    const chat: SimulationDocument = await chatRepository.create(config);
 
-  const usedEndpoints: string[] = [];
-  const newMessage: MessageDocument = await createMessageDocument(
-    serviceAgent.messageHistory[count++],
-    agentResponse,
-    usedEndpoints,
-  );
-  await chatRepository.send(chat._id, newMessage);
+    const usedEndpoints: string[] = [];
 
-  return chat;
+    const newMessage: MessageDocument = await createMessageDocument(
+      serviceAgent.messageHistory[count++],
+      agentResponse,
+      usedEndpoints,
+    );
+    await chatRepository.send(chat._id, newMessage);
+
+    return chat;
+  }
+
+  throw new Error('Service agent not found!');
 }
 
 /**
