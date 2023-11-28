@@ -6,16 +6,26 @@ import { getSimConfig } from '../agents/user.agent';
 import { BaseChatModel, BaseChatModelParams } from 'langchain/chat_models/base';
 import { ChatOpenAI, OpenAIChatInput } from 'langchain/chat_models/openai';
 import { AzureOpenAIInput } from 'langchain/chat_models/openai';
-import { flightBookingAgentConfig } from '../agents/service/service.agent.flight.booker';
+import {
+  flightBookingAgentConfig,
+  fakeUserAgentResponses,
+  fakeServiceAgentResponses,
+} from '../agents/service/service.agent.flight.booker';
 import { Callback } from 'mongoose';
 import { MsgHistoryItem } from '../agents/custom.agent';
 import { AgentDocument, AgentModel } from '@simulation/db/models/agent.model';
 import * as fs from 'fs';
 import * as path from 'path';
 import { HumanMessage } from 'langchain/schema';
+import { FakeListChatModel } from 'langchain/chat_models/fake';
 
 let model = '';
-model = 'gpt-4'; //'gpt-35-turbo';
+model = 'FAKE'; //'gpt-35-turbo';
+
+const isDev = process.env.IS_DEVELOPER;
+if (isDev === undefined) throw new Error('IS_DEVELOPER Needs to be specified');
+
+const useFake = model === 'FAKE' && isDev === 'true';
 
 let openApiKey: string | undefined;
 let azureApiInstanceName: string | undefined;
@@ -74,15 +84,20 @@ function createFile(filePath: string) {
 }
 
 async function configureServiceAgent(simulationData: Partial<SimulationDocument>): Promise<CustomAgent> {
-  const azureOpenAIInput: Partial<OpenAIChatInput> & Partial<AzureOpenAIInput> & BaseChatModelParams = {
-    modelName: flightBookingAgentConfig.modelName,
-    azureOpenAIApiDeploymentName: model,
-    temperature: flightBookingAgentConfig.temperature,
-    azureOpenAIApiKey: openApiKey,
-    azureOpenAIApiInstanceName: azureApiInstanceName,
-    azureOpenAIApiVersion: azureApiVersion,
-  };
-  const agent_llm = new ChatOpenAI(azureOpenAIInput);
+  let agent_llm: BaseChatModel;
+  if (!useFake) {
+    const azureOpenAIInput: Partial<OpenAIChatInput> & Partial<AzureOpenAIInput> & BaseChatModelParams = {
+      modelName: flightBookingAgentConfig.modelName,
+      azureOpenAIApiDeploymentName: model,
+      temperature: flightBookingAgentConfig.temperature,
+      azureOpenAIApiKey: openApiKey,
+      azureOpenAIApiInstanceName: azureApiInstanceName,
+      azureOpenAIApiVersion: azureApiVersion,
+    };
+    agent_llm = new ChatOpenAI(azureOpenAIInput);
+  } else {
+    agent_llm = new FakeListChatModel({ responses: fakeServiceAgentResponses, sleep: 100 });
+  }
 
   const serviceAgent: CustomAgent = new CustomAgent(
     agent_llm,
@@ -97,21 +112,24 @@ async function configureServiceAgent(simulationData: Partial<SimulationDocument>
   return serviceAgent;
 }
 async function configureUserAgent(simulationData: Partial<SimulationDocument>): Promise<CustomAgent> {
-  const userSimConfig = getSimConfig('sarcastic'); // TODO persona
-
-  const azureOpenAIInput: Partial<OpenAIChatInput> & Partial<AzureOpenAIInput> & BaseChatModelParams = {
-    modelName: userSimConfig.modelName,
-    azureOpenAIApiDeploymentName: model,
-    temperature: userSimConfig.temperature,
-    azureOpenAIApiKey: openApiKey,
-    azureOpenAIApiInstanceName: azureApiInstanceName,
-    azureOpenAIApiVersion: azureApiVersion,
-  };
-
-  const userLLM = new ChatOpenAI(azureOpenAIInput);
+  let agent_llm: BaseChatModel;
+  const userSimConfig = getSimConfig('nonative'); // TODO persona
+  if (!useFake) {
+    const azureOpenAIInput: Partial<OpenAIChatInput> & Partial<AzureOpenAIInput> & BaseChatModelParams = {
+      modelName: userSimConfig.modelName,
+      azureOpenAIApiDeploymentName: model,
+      temperature: userSimConfig.temperature,
+      azureOpenAIApiKey: openApiKey,
+      azureOpenAIApiInstanceName: azureApiInstanceName,
+      azureOpenAIApiVersion: azureApiVersion,
+    };
+    agent_llm = new ChatOpenAI(azureOpenAIInput);
+  } else {
+    agent_llm = new FakeListChatModel({ responses: fakeUserAgentResponses, sleep: 100 });
+  }
 
   const userAgent: CustomAgent = new CustomAgent(
-    userLLM,
+    agent_llm,
     userSimConfig,
     USER_PROMPT_LOG_FILE_PATH,
     USER_CHAT_LOG_FILE_PATH,
