@@ -1,16 +1,17 @@
 // Evaluation-specific functionality called by controllers or other services
 
 import { MessageDocument, MessageModel } from '../../simulation/db/models/message.model';
-import { ConversationDocument } from '../../simulation/db/models/conversation.model';
+import { ConversationDocument, ConversationModel } from '../../simulation/db/models/conversation.model';
 import { Types } from 'mongoose';
-import { MsgSender } from '@simulation/db/enum/enums';
+import { MsgSender } from '../../simulation/db/enum/enums';
+import { EvaluationModel } from '../db/models/evaluation.model';
 
 /**
  * Counts the number of messages in a conversation.
  * @param conversation - The conversation to count the messages of.
  * @returns Number of messages in the conversation.
  */
-export function countSteps(conversation: ConversationDocument) {
+function countSteps(conversation: ConversationDocument) {
   return conversation.messages.length;
 }
 
@@ -19,7 +20,7 @@ export function countSteps(conversation: ConversationDocument) {
  * @param conversation - The conversation to calculate the average response time of.
  * @returns Average response time of the agent in the conversation.
  */
-export async function calculateAverageResponseTime(conversation: ConversationDocument) {
+async function calculateAverageResponseTime(conversation: ConversationDocument) {
   if (conversation.messages.length < 2) {
     return 0;
   }
@@ -54,3 +55,27 @@ export async function calculateAverageResponseTime(conversation: ConversationDoc
   const averageResponseTime = totalResponseTimeOfAgent / countAgentMessages;
   return averageResponseTime;
 }
+
+async function runEvaluation(conversationId: string, simulationId: string) {
+  const conversation = await ConversationModel.findById(conversationId).populate('messages');
+  if (!conversation) {
+    throw new Error(`Conversation with id ${conversationId} not found`);
+  }
+
+  const numSteps = countSteps(conversation);
+  const averageResponseTime = await calculateAverageResponseTime(conversation);
+
+  const evaluation = await EvaluationModel.create({
+    simulation: simulationId,
+    conversation: conversationId,
+    metrics: {
+      message_count: numSteps,
+      response_time: averageResponseTime,
+    },
+  });
+  return evaluation;
+}
+
+export default {
+  runEvaluation,
+};
