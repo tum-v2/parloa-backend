@@ -68,6 +68,9 @@ async function getById(id: string): Promise<SimulationDocument | null> {
  * @returns A promise that resolves to the message response of service agents.
  */
 async function sendMessage(chatId: string, message: string): Promise<string> {
+  if (!serviceAgent) {
+    throw new Error('Service agent not found!');
+  }
   const usedEndpoints: string[] = [];
 
   const agentResponse: string = await forwardMessageToAgentAndWaitResponse(message);
@@ -90,6 +93,9 @@ async function sendMessage(chatId: string, message: string): Promise<string> {
 }
 
 async function forwardMessageToAgentAndWaitResponse(message: string): Promise<string> {
+  if (!serviceAgent) {
+    throw new Error('Service agent not found!');
+  }
   const agentResponse = await serviceAgent.processHumanInput(message);
   return agentResponse;
 }
