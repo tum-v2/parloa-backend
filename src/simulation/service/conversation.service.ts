@@ -62,7 +62,7 @@ const SERVICE_CHAT_LOG_FILE_PATH = path.join(logsDirectory, timeStamp + '-SIM-AG
 const USER_PROMPT_LOG_FILE_PATH = path.join(logsDirectory, timeStamp + '-SIM-HUMAN-PROMPTS.txt');
 const USER_CHAT_LOG_FILE_PATH = path.join(logsDirectory, timeStamp + '-SIM-HUMAN-CHAT.txt');
 
-function setupPath() {
+export function setupPath() {
   createFile(SERVICE_PROMPT_LOG_FILE_PATH);
   createFile(SERVICE_CHAT_LOG_FILE_PATH);
   createFile(USER_PROMPT_LOG_FILE_PATH);
@@ -125,12 +125,11 @@ function setModelConfig(
   return azureOpenAIInput;
 }
 
-async function configureServiceAgent(simulationData: Partial<SimulationDocument>): Promise<CustomAgent> {
+export async function configureServiceAgent(agentData: AgentDocument): Promise<CustomAgent> {
   let modelName: string;
   let temperature: number;
   let maxTokens: number;
 
-  const agentData = simulationData.serviceAgent as AgentDocument;
   if (agentData.llm === undefined) {
     modelName = flightBookingAgentConfig.modelName;
   } else {
@@ -162,12 +161,11 @@ async function configureServiceAgent(simulationData: Partial<SimulationDocument>
 
   return serviceAgent;
 }
-async function configureUserAgent(simulationData: Partial<SimulationDocument>): Promise<CustomAgent> {
+async function configureUserAgent(agentData: AgentDocument): Promise<CustomAgent> {
   let modelName: string;
   let temperature: number;
   let maxTokens: number;
 
-  const agentData = simulationData.userAgent as AgentDocument;
   const userSimConfig = getSimConfig(agentData.prompt);
   if (agentData.llm === undefined) {
     modelName = userSimConfig.modelName;
@@ -202,7 +200,7 @@ async function configureUserAgent(simulationData: Partial<SimulationDocument>): 
   return userAgent;
 }
 
-async function createMessageDocument(
+export async function createMessageDocument(
   msg: MsgHistoryItem,
   welcomeMessage: string,
   usedEndpoints: string[],
@@ -250,7 +248,7 @@ async function createMessageDocument(
   return message;
 }
 
-export async function runConversation(simulationData: Partial<SimulationDocument>): Promise<Types.ObjectId> {
+export async function runConversation(serviceAgentData: AgentDocument, userAgentData: AgentDocument) {
   const startTime: Date = new Date();
   const conversation = await conversationRepository.create({
     messages: undefined,
@@ -261,14 +259,14 @@ export async function runConversation(simulationData: Partial<SimulationDocument
   });
   setupPath();
 
-  const serviceAgent: CustomAgent = await configureServiceAgent(simulationData);
-  const userAgent: CustomAgent = await configureUserAgent(simulationData);
+  const serviceAgent: CustomAgent = await configureServiceAgent(serviceAgentData);
+  const userAgent: CustomAgent = await configureUserAgent(userAgentData);
 
   let agentResponse: string = await serviceAgent.startAgent();
 
   await userAgent.startAgent();
 
-  const maxTurnCount = 15;
+  const maxTurnCount = 1;
   let turnCount = 0;
 
   try {

@@ -6,7 +6,7 @@ import { RunSimulationRequest } from '../model/request/run-simulation.request';
 import { SimulationDocument } from '../db/models/simulation.model';
 import simulationService from '../service/simulation.service';
 import { logger } from '../service/logging.service';
-import { ConversationDocument } from '@simulation/db/models/conversation.model';
+import { ConversationDocument } from '../db/models/conversation.model';
 
 import { INTERNAL_SERVER_ERROR } from '../utils/errors';
 
