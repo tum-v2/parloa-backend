@@ -6,22 +6,27 @@ import { getSimConfig } from '../agents/user.agent';
 import { BaseChatModel, BaseChatModelParams } from 'langchain/chat_models/base';
 import { ChatOpenAI, OpenAIChatInput } from 'langchain/chat_models/openai';
 import { AzureOpenAIInput } from 'langchain/chat_models/openai';
-import { flightBookingAgentConfig } from '../agents/service/service.agent.flight.booker';
-import { Callback, Types, model } from 'mongoose';
+import {
+  flightBookingAgentConfig,
+  fakeUserAgentResponses,
+  fakeServiceAgentResponses,
+} from '../agents/service/service.agent.flight.booker';
+import { Types } from 'mongoose';
 import { MsgHistoryItem } from '../agents/custom.agent';
 import { AgentDocument, AgentModel } from '../db/models/agent.model';
-import * as fs from 'fs';
-import * as path from 'path';
-import { HumanMessage } from 'langchain/schema';
+import { FakeListChatModel } from 'langchain/chat_models/fake';
+import { LLMModel } from '../db/enum/enums';
 import repositoryFactory from '../db/repositories/factory';
 import { MessageDocument } from '../db/models/message.model';
 import { MsgSender, MsgTypes, ConversationStatus } from '../db/enum/enums';
+import * as fs from 'fs';
+import * as path from 'path';
+
+const isDev = process.env.IS_DEVELOPER;
+if (isDev === undefined) throw new Error('IS_DEVELOPER Needs to be specified');
 
 const messageRepository = repositoryFactory.messageRepository;
 const conversationRepository = repositoryFactory.conversationRepository;
-import { LLM } from 'langchain/dist/llms/base';
-import { LLMModel } from '../db/enum/enums';
-import { CustomAgentConfig } from '../agents/custom.agent.config';
 
 let gpt35openApiKey: string | undefined;
 let gpt35azureApiInstanceName: string | undefined;
@@ -146,11 +151,16 @@ export async function configureServiceAgent(agentData: AgentDocument): Promise<C
     maxTokens = agentData.maxTokens;
   }
 
-  const azureOpenAIInput = setModelConfig(modelName, temperature, maxTokens);
-  const agent_llm = new ChatOpenAI(azureOpenAIInput);
+  let agentLLM: BaseChatModel;
+  if (agentData.llm === LLMModel.FAKE && isDev === 'true') {
+    agentLLM = new FakeListChatModel({ responses: fakeServiceAgentResponses, sleep: 100 });
+  } else {
+    const azureOpenAIInput = setModelConfig(modelName, temperature, maxTokens);
+    agentLLM = new ChatOpenAI(azureOpenAIInput);
+  }
 
   const serviceAgent: CustomAgent = new CustomAgent(
-    agent_llm,
+    agentLLM,
     flightBookingAgentConfig,
     SERVICE_PROMPT_LOG_FILE_PATH,
     SERVICE_CHAT_LOG_FILE_PATH,
@@ -161,6 +171,7 @@ export async function configureServiceAgent(agentData: AgentDocument): Promise<C
 
   return serviceAgent;
 }
+
 async function configureUserAgent(agentData: AgentDocument): Promise<CustomAgent> {
   let modelName: string;
   let temperature: number;
@@ -183,9 +194,13 @@ async function configureUserAgent(agentData: AgentDocument): Promise<CustomAgent
     maxTokens = agentData.maxTokens;
   }
 
-  const azureOpenAIInput = setModelConfig(modelName, temperature, maxTokens);
-
-  const userLLM = new ChatOpenAI(azureOpenAIInput);
+  let userLLM: BaseChatModel;
+  if (agentData.llm === LLMModel.FAKE && isDev === 'true') {
+    userLLM = new FakeListChatModel({ responses: fakeUserAgentResponses, sleep: 100 });
+  } else {
+    const azureOpenAIInput = setModelConfig(modelName, temperature, maxTokens);
+    userLLM = new ChatOpenAI(azureOpenAIInput);
+  }
 
   const userAgent: CustomAgent = new CustomAgent(
     userLLM,
@@ -266,7 +281,7 @@ export async function runConversation(serviceAgentData: AgentDocument, userAgent
 
   await userAgent.startAgent();
 
-  const maxTurnCount = 1;
+  const maxTurnCount = 15;
   let turnCount = 0;
 
   try {
@@ -283,9 +298,7 @@ export async function runConversation(serviceAgentData: AgentDocument, userAgent
 
       turnCount++;
     }
-    //const messages: MessageDocument[] = serviceAgent.messageHistory.map((msg: MsgHistoryItem) =>
-    //  createMessageDocument(msg, serviceAgent.config.welcomeMessage),
-    //);
+
     const endTime: Date = new Date();
 
     const usedEndpoints: string[] = [];

@@ -32,6 +32,7 @@ enum LLMModel {
   GPT35TURBO = 'GPT35TURBO',
   GPT4 = 'GPT4',
   LLAMA2 = 'LLAMA2',
+  FAKE = 'FAKE',
 }
 
 enum MsgTypes {

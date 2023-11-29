@@ -29,8 +29,9 @@ class simulationValidator {
         .isIn(Object.values(SimulationType))
         .withMessage(`Invalid simulation type. Must be one of: ${Object.values(SimulationType).join(', ')}`),
       body('numConversations').isInt().withMessage('Number of conversations must be a valid integer.'),
-      body('serviceAgentId').isString().withMessage('Service agent configuration must be an ID string.'),
-      body('userAgentId').isString().withMessage('User agent configuration must be an ID string.'),
+      //body('serviceAgentId').isString().withMessage('Service agent configuration must be an ID string.'),
+      //body('userAgentId').isString().withMessage('User agent configuration must be an ID string.'),
+      //TODO
 
       body().custom((value, { req }) => {
         const allowedFields = [
@@ -40,6 +41,8 @@ class simulationValidator {
           'numConversations',
           'serviceAgentId',
           'userAgentId',
+          'serviceAgentConfig',
+          'userAgentConfig',
         ];
 
         const extraFields = Object.keys(req.body).filter((field) => !allowedFields.includes(field));

@@ -21,9 +21,16 @@ async function initiate(request: RunSimulationRequest): Promise<SimulationDocume
   console.log('Simulation initiated...');
   console.log('Configuration:', request);
 
+  let userAgent: AgentDocument | null = null;
+  let serviceAgent: AgentDocument | null = null;
   console.log('Creating simulation object...');
-  const userAgent: AgentDocument | null = await agentRepository.getById(request.userAgentId);
-  const serviceAgent: AgentDocument | null = await agentRepository.getById(request.serviceAgentId);
+  if (request.serviceAgentConfig !== undefined && request.userAgentConfig !== undefined) {
+    userAgent = await agentRepository.create(request.userAgentConfig!);
+    serviceAgent = await agentRepository.create(request.serviceAgentConfig!);
+  } else if (request.serviceAgentId !== undefined && request.userAgentId !== undefined) {
+    userAgent = await agentRepository.getById(request.userAgentId!);
+    serviceAgent = await agentRepository.getById(request.serviceAgentId!);
+  }
 
   if (userAgent === null || serviceAgent === null) {
     throw new Error('User agent or service agent id not found');
@@ -43,6 +50,20 @@ async function initiate(request: RunSimulationRequest): Promise<SimulationDocume
   const simulation = await simulationRepository.create(simulationData);
   console.log(simulation);
 
+  run(simulation, request, serviceAgent, userAgent);
+
+  return simulation;
+}
+
+/**
+ * Run the simulation.
+ */
+async function run(
+  simulation: SimulationDocument,
+  request: RunSimulationRequest,
+  serviceAgent: AgentDocument,
+  userAgent: AgentDocument,
+) {
   const conversations: Types.ObjectId[] = [];
 
   const numConversations = request.numConversations;
@@ -61,7 +82,6 @@ async function initiate(request: RunSimulationRequest): Promise<SimulationDocume
   simulation.status = SimulationStatus.FINISHED;
   simulation.conversations = conversations;
   await simulationRepository.updateById(simulation._id, simulation);
-  return simulation;
 }
 
 //
