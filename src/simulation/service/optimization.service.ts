@@ -16,7 +16,7 @@ import { RunnableSequence } from 'langchain/dist/schema/runnable';
 const NUMBER_OF_PROMPTS: number = 4;
 
 const agentRepository = repositoryFactory.agentRepository;
-
+const optimizationRepository = repositoryFactory.optimizationRepository;
 
 /**
  * Generate a predetermined number of prompts using the original prompt.
@@ -44,7 +44,6 @@ async function generatePrompts(agent: AgentDocument) : Promise<string[]> {
     promptNumber: NUMBER_OF_PROMPTS.toString(),
     format_instructions: parser.getFormatInstructions(),
   });
-
 }
 
 /**
@@ -69,10 +68,9 @@ async function initiate(request: RunSimulationRequest): Promise<OptimizationDocu
   prompts = await generatePrompts(serviceAgent);
   prompts.push(originalPrompt);
 
-  //TODO Hold Simulation requests and Simulation documents for each prompt until we decide what to do in terms of database
-  const requests: RunSimulationRequest[] = [];
-  const simulations: SimulationDocument[] = [];
-
+  // Create a database entry for the current optimization
+  const optimizationDocument: OptimizationDocument = await optimizationRepository.create({simulationIds : []});
+  const optimizationId = optimizationDocument._id;
 
   for (const prompt of prompts) {
     //TODO Create a template for every prompt in the database until we figure out what to do.
@@ -86,10 +84,12 @@ async function initiate(request: RunSimulationRequest): Promise<OptimizationDocu
       userAgentConfig: request.userAgentConfig,
 
     }
+    // start the simulation for one of the prompts
     const simulation:SimulationDocument = await simulationService.initiate(newRequest);
 
-    requests.push(newRequest);
-    simulations.push(simulation);
+    // Add the ongoing simulationId to the database, under its related optimizationId
+    await optimizationRepository.addSimulationId(optimizationId, simulation._id);
+
   }
 
   return simulation;

@@ -16,6 +16,7 @@ import agentRouter from '../src/simulation/router/agent.router';
 import authRouter from './simulation/router/auth.router';
 import dashRouter from './simulation/router/dashboard.router';
 import llmRouter from './simulation/router/llms.router';
+import optimizationRouter from './simulation/router/optimization.router';
 
 import simulationValidator from './simulation/validator/simulation.validator';
 
@@ -27,6 +28,7 @@ const port = process.env.NODE_DOCKER_PORT || 3000;
 app.use(bodyParser.json());
 app.use('/api/v1/api-docs', swaggerUi.serve, swaggerUi.setup(apiSpec));
 app.use('/api/v1/simulation', simulationRouter);
+app.use('/api/v1/optimization', optimizationRouter);
 app.use('/api/v1/chat', chatRouter);
 app.use('/api/v1/agent', agentRouter);
 
