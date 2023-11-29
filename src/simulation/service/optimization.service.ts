@@ -12,7 +12,6 @@ import { PromptTemplate } from 'langchain/prompts';
 import { CommaSeparatedListOutputParser } from 'langchain/output_parsers';
 import { RunnableSequence } from 'langchain/dist/schema/runnable';
 
-
 const NUMBER_OF_PROMPTS: number = 4;
 
 const agentRepository = repositoryFactory.agentRepository;
@@ -23,16 +22,17 @@ const optimizationRepository = repositoryFactory.optimizationRepository;
  * @param agent - the template that we will use for speaking with the LLM.
  * @returns string[] Returns an array of strings, containing new prompts.
  */
-async function generatePrompts(agent: AgentDocument) : Promise<string[]> {
-  console.log("Prompt generation started.");
+async function generatePrompts(agent: AgentDocument): Promise<string[]> {
+  console.log('Prompt generation started.');
 
   // Set up the parser and the config, parser makes sure the result will be a comma seperated list.
   const parser = new CommaSeparatedListOutputParser();
   const azureOpenAIInput = conversationService.setModelConfig(agent.llm, agent.temperature, agent.maxTokens);
 
-
   const chain = RunnableSequence.from([
-    PromptTemplate.fromTemplate('From this prompt: {prompt}, generate {promptNumber} new prompts with same context and meaning but with different grammar and syntax.\n{format_instructions}'),
+    PromptTemplate.fromTemplate(
+      'From this prompt: {prompt}, generate {promptNumber} new prompts with same context and meaning but with different grammar and syntax.\n{format_instructions}',
+    ),
     new OpenAI(azureOpenAIInput),
     parser,
   ]);
@@ -64,38 +64,34 @@ async function initiate(request: RunSimulationRequest): Promise<OptimizationDocu
   const originalPrompt: string = serviceAgent.prompt;
 
   // Chat with the LLM and generate 4 different prompts, also include the original prompt
-  let prompts: string[] = [];
-  prompts = await generatePrompts(serviceAgent);
+  const prompts = await generatePrompts(serviceAgent);
   prompts.push(originalPrompt);
 
   // Create a database entry for the current optimization
-  const optimizationDocument: OptimizationDocument = await optimizationRepository.create({simulationIds : []});
+  const optimizationDocument: OptimizationDocument = await optimizationRepository.create({ simulationIds: [] });
   const optimizationId = optimizationDocument._id;
 
   for (const prompt of prompts) {
     //TODO Create a template for every prompt in the database until we figure out what to do.
     const agent: AgentDocument = await agentService.create({ prompt: prompt });
-    const newRequest : RunSimulationRequest = {
+    const newRequest: RunSimulationRequest = {
       scenario: SimulationScenario,
       type: ConversationType,
       name: request.name,
       numConversations: request.numConversations,
       serviceAgentConfig: agent._id,
       userAgentConfig: request.userAgentConfig,
-
-    }
+    };
     // start the simulation for one of the prompts
-    const simulation:SimulationDocument = await simulationService.initiate(newRequest);
+    const simulation: SimulationDocument = await simulationService.initiate(newRequest);
 
     // Add the ongoing simulationId to the database, under its related optimizationId
     await optimizationRepository.addSimulationId(optimizationId, simulation._id);
-
   }
 
-  return simulation;
+  return optimizationDocument;
 }
 
-
 export default {
-  initiate
+  initiate,
 };
