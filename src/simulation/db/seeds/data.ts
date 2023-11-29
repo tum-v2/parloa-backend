@@ -8,7 +8,7 @@ import { ConversationRepository } from '../repositories/conversation.repository'
 import { SimulationModel } from '../models/simulation.model';
 import { SimulationRepository } from '../repositories/simulation.repository';
 
-import { LLMModel, ConversationStatus, ConversationType, SimulationStatus, SimulationScenario } from '../enum/enums';
+import { LLMModel, ConversationStatus, SimulationType, SimulationStatus, SimulationScenario } from '../enum/enums';
 
 connectToDatabase();
 
@@ -74,7 +74,7 @@ const seedSimulation = async () => {
 
     await simulationRepository.create({
       scenario: SimulationScenario.SEQUENCE,
-      type: ConversationType.AUTOMATED,
+      type: SimulationType.AUTOMATED,
       agents: [llamaAgent[0]._id, gptAgent[0]._id],
       conversations: [conversation[0]._id],
       status: SimulationStatus.SCHEDULED,
