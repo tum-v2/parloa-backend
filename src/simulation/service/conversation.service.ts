@@ -285,12 +285,16 @@ export async function runConversation(serviceAgentData: AgentDocument, userAgent
   let turnCount = 0;
 
   try {
+    let conversationSuccess: boolean = false;
+    let hangupMsgTimestamp: Date;
     while (turnCount < maxTurnCount) {
       const userInput: string = await userAgent.processHumanInput(agentResponse);
 
       if (userInput.indexOf('/hangup') >= 0) {
         console.log(userInput);
         console.log(`\n👋👋👋 HANGUP by human_sim agent. Turn count: ${turnCount} 👋👋👋\n`);
+        conversationSuccess = true;
+        hangupMsgTimestamp = new Date();
         break;
       }
 
@@ -307,6 +311,18 @@ export async function runConversation(serviceAgentData: AgentDocument, userAgent
       messages.push(
         await createMessageDocument(serviceAgent.messageHistory[i], serviceAgent.config.welcomeMessage, usedEndpoints),
       );
+    }
+    if (conversationSuccess) {
+      const hangupMessage: MessageDocument = await messageRepository.create({
+        sender: MsgSender.USER,
+        text: '/hangup',
+        type: MsgTypes.HANGUP,
+        timestamp: hangupMsgTimestamp!,
+        intermediateMsg: undefined,
+        action: undefined,
+        toolInput: undefined,
+      });
+      messages.push(hangupMessage);
     }
 
     conversation.messages = messages.map((msg: MessageDocument) => msg._id);
