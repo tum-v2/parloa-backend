@@ -1,9 +1,8 @@
 // Controller that implements chat related endpoints
 import { Request, Response } from 'express';
-import { SimulationDocument } from '@simulation/db/models/simulation.model';
+import { SimulationDocument } from '../db/models/simulation.model';
 
 import chatService from '../service/chat.service';
-import { MessageDocument } from '@simulation/db/models/message.model';
 import { INTERNAL_SERVER_ERROR } from '../utils/errors';
 
 /**
@@ -34,13 +33,13 @@ async function sendMessage(req: Request, res: Response): Promise<void> {
   try {
     console.log('Message received from user...');
     const chatId: string = req.params.id;
-    const message: MessageDocument = req.body as MessageDocument;
+    const message: string = req.body.message;
     console.log(message);
 
     console.log('Sending message...');
     // TODO Forward message to agent
-    const simulationWithAgentResponse: SimulationDocument = await chatService.sendMessage(chatId, message);
-    res.status(200).send(simulationWithAgentResponse);
+    const simulationWithAgentResponse: string = await chatService.sendMessage(chatId, message);
+    res.status(200).send({ message: simulationWithAgentResponse });
   } catch (error) {
     res.status(500).json(INTERNAL_SERVER_ERROR(error));
   }

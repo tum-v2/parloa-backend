@@ -2,7 +2,7 @@ import { Model, Types } from 'mongoose';
 import { logger } from '../../service/logging.service';
 import { BaseRepository } from './base.repository';
 import { SimulationDocument } from '../models/simulation.model';
-import { ConversationDomain, ConversationType, SimulationStatus } from '../enum/enums';
+import { ConversationDomain, SimulationType, SimulationStatus } from '../enum/enums';
 import { ConversationDocument } from '../models/conversation.model';
 
 class SimulationRepository extends BaseRepository<SimulationDocument> {
@@ -76,17 +76,17 @@ class SimulationRepository extends BaseRepository<SimulationDocument> {
     }
   }
 
-  async findByConversationType(conversationType: ConversationType): Promise<SimulationDocument[]> {
+  async findBySimulationType(SimulationType: SimulationType): Promise<SimulationDocument[]> {
     try {
-      const result = await this.model.find({ conversationType }).exec();
+      const result = await this.model.find({ SimulationType }).exec();
       if (result.length > 0) {
         logger.info(`Simulations found by conversation type: ${result}`);
       } else {
-        logger.warn(`No simulations found by conversation type: ${conversationType}`);
+        logger.warn(`No simulations found by conversation type: ${SimulationType}`);
       }
       return result;
     } catch (error) {
-      logger.error(`Error finding simulations by conversation type: ${conversationType}`);
+      logger.error(`Error finding simulations by conversation type: ${SimulationType}`);
       throw error;
     }
   }

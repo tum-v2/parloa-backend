@@ -2,7 +2,7 @@ import { body, param, ValidationChain, ValidationError, validationResult } from 
 import { Request, Response, NextFunction } from 'express';
 import { logger } from '../service/logging.service';
 
-import { ConversationType, ConversationDomain, SimulationScenario } from '../db/enum/enums';
+import { SimulationType, SimulationScenario } from '../db/enum/enums';
 
 class CustomValidationError extends Error {
   errors: string[];
@@ -17,6 +17,7 @@ class CustomValidationError extends Error {
 class simulationValidator {
   /**
    * Validate the request body for the /run endpoint
+   * @returns Validation chain array that checks simulation run request
    */
   static runValidation(): ValidationChain[] {
     return [
@@ -25,32 +26,21 @@ class simulationValidator {
         .isIn(Object.values(SimulationScenario))
         .withMessage(`Invalid scenario type. Must be one of: ${Object.values(SimulationScenario).join(', ')}`),
       body('type')
-        .isIn(Object.values(ConversationType))
-        .withMessage(`Invalid simulation type. Must be one of: ${Object.values(ConversationType).join(', ')}`),
-      body('domain')
-        .isIn(Object.values(ConversationDomain))
-        .withMessage(`Invalid domain type. Must be one of: ${Object.values(ConversationDomain).join(', ')}`),
+        .isIn(Object.values(SimulationType))
+        .withMessage(`Invalid simulation type. Must be one of: ${Object.values(SimulationType).join(', ')}`),
       body('numConversations').isInt().withMessage('Number of conversations must be a valid integer.'),
-      body('serviceAgentConfig').isObject().withMessage('Service agent configuration must be an object.'),
-      body('serviceAgentConfig.llm').isString().withMessage('Service agent model must be a valid string.'),
-      body('serviceAgentConfig.temperature')
-        .isNumeric()
-        .withMessage('Service agent temperature must be a valid number.'),
-      body('serviceAgentConfig.maxTokens').isNumeric().withMessage('Service agent maxTokens must be a valid number.'),
-      body('serviceAgentConfig.prompt').isString().withMessage('Service agent prompt must be a valid string.'),
-      body('userAgentConfig').isObject().withMessage('User agent configuration must be an object.'),
-      body('userAgentConfig.llm').isString().withMessage('User agent model must be a valid string.'),
-      body('userAgentConfig.temperature').isNumeric().withMessage('User agent temperature must be a valid number.'),
-      body('userAgentConfig.maxTokens').isNumeric().withMessage('User agent maxTokens must be a valid number.'),
-      body('userAgentConfig.prompt').isString().withMessage('User agent prompt must be a valid string.'),
+      //body('serviceAgentId').isString().withMessage('Service agent configuration must be an ID string.'),
+      //body('userAgentId').isString().withMessage('User agent configuration must be an ID string.'),
+      //TODO
 
       body().custom((value, { req }) => {
         const allowedFields = [
           'name',
           'scenario',
           'type',
-          'domain',
           'numConversations',
+          'serviceAgentId',
+          'userAgentId',
           'serviceAgentConfig',
           'userAgentConfig',
         ];
@@ -67,8 +57,9 @@ class simulationValidator {
   }
 
   /**
-   * Validate the request parameters for the /{simulationId}/poll,
-   * /{simulationId}/details, and /{simulationId}/conversations endpoints
+   * Validate the request parameters for the /:id/poll,
+   * /:id/details, and /:id/conversations endpoints
+   * @returns Validation chain array that checks simulation run request
    */
   static idValidation(): ValidationChain[] {
     return [param('id').isMongoId().withMessage('Invalid simulation ID.')];
@@ -76,6 +67,9 @@ class simulationValidator {
 
   /**
    * Middleware to handle validation errors
+   * @param req - Request
+   * @param res - Response
+   * @param next - Next function
    */
   static handleValidationErrors(req: Request, res: Response, next: NextFunction): void {
     const errors = validationResult(req);
