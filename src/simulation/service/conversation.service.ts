@@ -314,3 +314,7 @@ export async function runConversation(simulationData: Partial<SimulationDocument
   }
   return new Types.ObjectId();
 }
+
+export default {
+  setModelConfig
+};

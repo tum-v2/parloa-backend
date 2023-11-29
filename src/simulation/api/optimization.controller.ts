@@ -10,7 +10,7 @@ import { INTERNAL_SERVER_ERROR } from '../utils/errors';
 import { OptimizationDocument } from '../db/models/optimization.model';
 
 /**
- * Runs the simulation.
+ * Handle requests coming from the UI, start the optimization process.
  * @param req - Request object (RunSimulationRequest)
  * @param res - Response object (returns the created simulation)
  * @throws Throws an internal server error if there is an issue with the operation.
@@ -33,6 +33,22 @@ async function run(req: Request, res: Response): Promise<void> {
   }
 }
 
+/**
+ * Handles POST request from Evaluation, receive the ID of the finished simulation.
+ * @param req
+ * @param res
+ */
+async function done(req: Request, res: Response): Promise<void> {
+  try {
+    //Implement the evaluation logic here
+
+  } catch(error) {
+    logger.error(`Problems when receiving the simulation ID! ${error}`);
+    res.status(500).json(INTERNAL_SERVER_ERROR(error));
+  }
+}
+
 export default {
-  run
+  run,
+  done
 };
