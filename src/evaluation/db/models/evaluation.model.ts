@@ -1,17 +1,12 @@
 import { Schema, Document, model, Types } from 'mongoose';
 import { SimulationDocument } from '../../../simulation/db/models/simulation.model';
 import { ConversationDocument } from '../../../simulation/db/models/conversation.model';
-
-enum MetricEnum {
-  SUCCESS = 'success',
-  RESPONSE_TIME = 'response_time',
-  MESSAGE_COUNT = 'message_count',
-}
+import { MetricDocument } from './metric.model';
 
 interface EvaluationDocument extends Document {
   simulation: Types.ObjectId | SimulationDocument;
   conversation: Types.ObjectId | ConversationDocument;
-  metrics: Map<MetricEnum, number>;
+  metrics: Types.ObjectId[] | MetricDocument[];
 }
 
 const EvaluationSchema: Schema = new Schema(
@@ -27,4 +22,4 @@ const EvaluationSchema: Schema = new Schema(
 
 const EvaluationModel = model<EvaluationDocument>('Evaluation', EvaluationSchema);
 
-export { EvaluationModel, EvaluationDocument, MetricEnum };
+export { EvaluationModel, EvaluationDocument };
