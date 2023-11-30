@@ -41,11 +41,11 @@ async function run(req: Request, res: Response): Promise<void> {
  */
 async function runABTesting(req: Request, res: Response): Promise<void> {
   try {
-    const errors = validationResult(req);
+    /* const errors = validationResult(req);
     if (!errors.isEmpty()) {
       res.status(400).send({ error: errors });
       return;
-    }
+    }*/
 
     const simulationConfig: RunABTestingRequest = req.body as RunABTestingRequest;
     const simulations: SimulationDocument[] = await simulationService.initiateAB(simulationConfig);
