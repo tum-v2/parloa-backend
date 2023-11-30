@@ -8,6 +8,9 @@ import { RunEvaluationRequest } from 'evaluation/model/request/run-evaluation.re
 import { Request, Response } from 'express';
 import { INTERNAL_SERVER_ERROR } from 'simulation/utils/errors';
 import { validationResult } from 'express-validator';
+import { ConversationRepository } from '@simulation/db/repositories/conversation.repository';
+
+const conversationRepository = new ConversationRepository(ConversationModel);
 
 /**
  * Triggers the evaluation of one conversation and - if specified - the optimization of the whole simulation
@@ -26,7 +29,7 @@ async function run(req: Request, res: Response): Promise<void> {
     const evaluationConfig: RunEvaluationRequest = req.body as RunEvaluationRequest;
     const { conversationID, simulationID } = evaluationConfig;
     // TODO: use dedicated endpoint for retrieving the conversation
-    const conversation: ConversationDocument | null = await ConversationModel.findById(conversationID).exec();
+    const conversation: ConversationDocument | null = await conversationRepository.getById(conversationID);
 
     if (!conversation) {
       res.status(404).send({ error: `Conversation ${conversationID} not found!` });
