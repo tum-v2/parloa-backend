@@ -5,6 +5,7 @@ import { MessageDocument } from './message.model';
 interface ConversationDocument extends Document {
   messages: Types.ObjectId[] | MessageDocument[];
   startTime: Date;
+  endTime: Date;
   status: ConversationStatus;
   usedEndpoints: string[];
 }
@@ -12,6 +13,7 @@ interface ConversationDocument extends Document {
 const conversationSchema: Schema = new Schema({
   messages: [{ type: Schema.Types.ObjectId, ref: 'Message' }],
   startTime: { type: Date, required: true, default: Date.now },
+  endTime: { type: Date, required: true, default: Date.now },
   status: { type: String, enum: Object.values(ConversationStatus), required: true },
   usedEndpoints: { type: [String], default: [] },
 });

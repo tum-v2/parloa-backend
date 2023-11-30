@@ -801,10 +801,12 @@ components:
         numConversations:
           type: number
           example: 100
-        serviceAgentConfig:
-          $ref: "#/components/schemas/ServiceAgent"
-        userAgentConfig:
-          $ref: "#/components/schemas/UserAgent"
+        serviceAgentId:
+          type: string
+          example: 6553a127fcad73273655d634
+        userAgentId:
+          type: string
+          example: 6553a127fcad73273655d634
     ServiceAgent:
       type: object
       properties:
