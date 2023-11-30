@@ -312,17 +312,22 @@ export class CustomAgent {
       const parsed = JSON.parse(input);
       return parsed;
     } catch (error) {
+      const firstBraceIndex = input.indexOf('{');
+
+      if (firstBraceIndex !== -1) {
+        input = input.substring(firstBraceIndex);
+      }
+
       let fixedText = input.trim().replace(/"/g, '').replace('{', '').replace('}', '');
+      fixedText = fixedText.replace(/(\d+):/g, '$1.');
+
       fixedText = '{' + fixedText;
       fixedText = fixedText + '"}';
 
-      fixedText = fixedText.replace(/(\w+):/g, '"$1":'); // Fix keys
-
+      fixedText = fixedText.replace(/(\w+):/g, '"$1":');
       fixedText = fixedText.replace(/: (?!")/g, ': "');
-
       fixedText = fixedText.replace(/(?<!{)\s*"(\w+)":/g, '","$1":');
       fixedText = fixedText.replace(/""/g, '"');
-
       console.log('fixed Text: \n' + fixedText);
       const parsed = JSON.parse(fixedText);
       return parsed;
