@@ -69,11 +69,19 @@ async function initiateAB(request: RunABTestingRequest): Promise<SimulationDocum
   let serviceAgent1: AgentDocument | null = null;
   let serviceAgent2: AgentDocument | null = null;
   console.log('Creating simulation object...');
-  if (request.serviceAgent1Config !== undefined && request.userAgentConfig !== undefined) {
+  if (
+    request.serviceAgent1Config !== undefined &&
+    request.serviceAgent2Config !== undefined &&
+    request.userAgentConfig !== undefined
+  ) {
     userAgent = await agentRepository.create(request.userAgentConfig!);
     serviceAgent1 = await agentRepository.create(request.serviceAgent1Config!);
     serviceAgent2 = await agentRepository.create(request.serviceAgent2Config!);
-  } else if (request.serviceAgent1Id !== undefined && request.userAgentId !== undefined) {
+  } else if (
+    request.serviceAgent1Id !== undefined &&
+    request.serviceAgent2Id !== undefined &&
+    request.userAgentId !== undefined
+  ) {
     userAgent = await agentRepository.getById(request.userAgentId!);
     serviceAgent1 = await agentRepository.getById(request.serviceAgent1Id!);
     serviceAgent2 = await agentRepository.getById(request.serviceAgent2Id!);
