@@ -3,25 +3,10 @@ import { logger } from '../../service/logging.service';
 import { BaseRepository } from './base.repository';
 import { ConversationDocument } from '../models/conversation.model';
 import { ConversationStatus } from '../enum/enums';
-import { MessageDocument } from '../models/message.model';
 
 class ConversationRepository extends BaseRepository<ConversationDocument> {
   constructor(model: Model<ConversationDocument>) {
     super(model);
-  }
-
-  async getMessagesById(id: string): Promise<MessageDocument[] | null> {
-    try {
-      const conversation: ConversationDocument | null = await this.model.findById(id).populate('messages');
-      if (conversation) {
-        return conversation.messages as MessageDocument[];
-      }
-      logger.warn(`No conversation found with id: ${id}`);
-      return null;
-    } catch (error) {
-      logger.error(`Error fetching messages by conversation id: ${id}`);
-      throw error;
-    }
   }
 
   async findByStartTime(startTime: Date): Promise<ConversationDocument[] | null> {
