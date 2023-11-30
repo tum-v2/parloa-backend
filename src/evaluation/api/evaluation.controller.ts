@@ -28,7 +28,6 @@ async function run(req: Request, res: Response): Promise<void> {
 
     const evaluationConfig: RunEvaluationRequest = req.body as RunEvaluationRequest;
     const { conversationID, simulationID } = evaluationConfig;
-    // TODO: use dedicated endpoint for retrieving the conversation
     const conversation: ConversationDocument | null = await conversationRepository.getById(conversationID);
 
     if (!conversation) {

@@ -12,10 +12,4 @@ const metricWeightMap: Map<MetricNameEnum, number> = new Map([
   [MetricNameEnum.MESSAGE_COUNT, 1 / 3],
 ]);
 
-const metricMaxMap: Map<MetricNameEnum, number> = new Map([
-  [MetricNameEnum.SUCCESS, 1],
-  [MetricNameEnum.RESPONSE_TIME, 60000],
-  [MetricNameEnum.MESSAGE_COUNT, 50],
-]);
-
-export { MetricNameEnum, metricWeightMap, metricMaxMap };
+export { MetricNameEnum, metricWeightMap };
