@@ -13,6 +13,7 @@ interface SimulationDocument extends Document {
   numConversations: number;
   conversations: Types.ObjectId[] | ConversationDocument[];
   status: SimulationStatus;
+  abPartner: Types.ObjectId | undefined;
 }
 
 const SimulationSchema: Schema = new Schema(
@@ -26,6 +27,7 @@ const SimulationSchema: Schema = new Schema(
     serviceAgent: { type: Schema.Types.ObjectId, ref: 'Agent' },
     conversations: [{ type: Schema.Types.ObjectId, ref: 'Conversation' }],
     status: { type: String, enum: Object.values(SimulationStatus), required: true },
+    abPartner: { type: Schema.Types.ObjectId, ref: 'Simulation' },
   },
   {
     timestamps: true,
