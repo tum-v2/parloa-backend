@@ -65,6 +65,7 @@ type ParamType = {
 type ToolDescription = {
   description: string;
   output?: string;
+  inputs?: Record<string, ParamType>;
 };
 
 export class CustomAgent {
@@ -107,7 +108,7 @@ export class CustomAgent {
     Logs if log files set and prints if isVerbose for the class instance"""*/
 
     const lcMsg: BaseMessage = await this.getSystemPrompt();
-
+    // console.log(lcMsg.content.toString());
     await this.addMessage(new MsgHistoryItem(lcMsg, MsgTypes.SYSTEMPROMPT));
 
     return this.config.welcomeMessage;
@@ -153,6 +154,8 @@ export class CustomAgent {
         throw new Error(`ERROR: Invalid action_input in response: ${JSON.stringify(response, null, 4)}`);
       }
       if (action && this.config.routingTools[action]) {
+        console.log('routingInput: ' + responseMessage.content.toString());
+
         await this.addMessage(
           new MsgHistoryItem(
             responseMessage,
@@ -190,7 +193,7 @@ export class CustomAgent {
           ),
         );
 
-        const toolOutput: string = apiToolConfig.executeTool(actionInput);
+        const toolOutput: string = await apiToolConfig.executeTool(actionInput);
 
         const lcMsg = await this.getToolOutputPrompt(action, toolOutput);
 
@@ -227,17 +230,18 @@ export class CustomAgent {
             description: param.description,
             type: param.type,
           };
-
-          let output: string | null = null;
-
-          if (tool instanceof RestAPITool) {
-            output = tool.response.outputDescription;
-          }
-
-          if (output) {
-            toolDescriptions[toolName].output = output;
-          }
         });
+        let output: string | null = null;
+
+        toolDescriptions[toolName].inputs = inputs;
+
+        if (tool instanceof RestAPITool) {
+          output = tool.response.outputDescription;
+        }
+
+        if (output) {
+          toolDescriptions[toolName].output = output;
+        }
       }
     }
     return SystemMessagePromptTemplate.fromTemplate(this.config.systemPromptTemplate).format({

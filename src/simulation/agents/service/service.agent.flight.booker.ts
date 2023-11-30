@@ -84,7 +84,7 @@ const restApiTools: Record<string, RestAPITool> = {
     'Get an answer from the FAQ.',
     new APIRequest([new APIParam('question', 'The question to ask from the FAQ', 'string')]),
     new APIResponse('Answer to the question or ANSWER_NOT_FOUND'),
-    (data) => JSON.stringify(getFaqAnswer(data.question)),
+    async (data) => await getFaqAnswer(data.question),
   ),
 };
 
@@ -96,7 +96,8 @@ const defaultRoutingParams: APIParam[] = [
 const routingTools: Record<string, RouteToCoreTool> = {
   escalateToAgent: new RouteToCoreTool(
     `Escalate to human agent if the user request is failing or the user is specifically asking for a human agent.
-Escalate immediately, you don't need to authenticate the user before transferring to an agent.
+  Escalate immediately, you don't need to authenticate the user before transferring to an agent.
+  Dont't forget to provide user_intent and data_collected as 
 `,
     new APIRequest(defaultRoutingParams),
     'EscalateToAgent',
@@ -186,7 +187,7 @@ export const flightBookingAgentConfig: CustomAgentConfig = new CustomAgentConfig
   "thought": <Take a deep breath and think step by step. First include your thoughts based on the last message from the user and consider the full conversation history. Use a very brief, bulletpoint style format>
   "action":  <a single action you decided to take next. The action should be either the name of a TOOL or message_to_user  >
   "action_input": <either all the inputs required for the tool and you gathered from the user previously or the message to the user.>
-  "intermediate_message": <when calling a tool you should generate a very short and concise intermediate message to the user and tell to wait. Keep this message short.>
+  "intermediate_message": <when calling a tool or route you should generate a very short and concise intermediate message to the user and tell to wait. Keep this message short.>
   }}
   
   Begin! Reminder to ALWAYS respond with a single valid json blob with a single action. Use available tools if necessary.
