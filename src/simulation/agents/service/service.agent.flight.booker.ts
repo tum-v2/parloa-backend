@@ -42,8 +42,8 @@ const restApiTools: Record<string, RestAPITool> = {
       bookingNumberParam,
       new APIParam(
         'new_date',
-        'New Date of flight to check availability. The new date must be provided in yyyy-mm-dd format but the format should not be mentioned to the user.',
-        'string',
+        'New Date of flight to check availability. You can either input one date as string, or an string[] The new date must be provided in yyyy-mm-dd format but the format should not be mentioned to the user.',
+        'string or string[]',
       ),
     ]),
     new APIResponse('List of available flights'),
