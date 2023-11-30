@@ -18,11 +18,7 @@ const EvaluationSchema: Schema = new Schema(
   {
     simulation: { type: Types.ObjectId, ref: 'Simulation', required: true },
     conversation: { type: Types.ObjectId, ref: 'Conversation', required: true },
-    metrics: {
-      type: Map,
-      of: Number,
-      required: true,
-    },
+    metrics: [{ type: Schema.Types.ObjectId, ref: 'Metric' }],
   },
   {
     timestamps: true,
