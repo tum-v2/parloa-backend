@@ -7,7 +7,7 @@ tags:
 paths:
   /api/v1/evaluation/run:
     post:
-      summary: Sart the evaluation of a conversation
+      summary: Start the evaluation of a conversation
       tags: [Evaluation]
       requestBody:
         required: true
@@ -22,6 +22,94 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/EvaluationDocument"
+        500:
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: string
+                    example: INTERNAL_SERVER_ERROR
+                  message:
+                    type: string
+                    example: Internal server error occurred
+                  details:
+                    type: string
+                    example: Error
+  /api/v1/evaluation/results-for-conversation/{conversationId}:
+    get:
+      summary: Retrieve evaluation results for conversation
+      tags: [Evaluation]
+      parameters:
+        - in: path
+          name: conversationId
+          required: true
+          schema:
+            type: string
+            example: 6553a127fcad73273655d634
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EvaluationResultForConversation"
+        404:
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Conversation 6553a127fcad73273655d634 not found!"
+        500:
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: string
+                    example: INTERNAL_SERVER_ERROR
+                  message:
+                    type: string
+                    example: Internal server error occurred
+                  details:
+                    type: string
+                    example: Error
+  /api/v1/evaluation/results-for-simulation/{simulationId}:
+    get:
+      summary: Retrieve evaluation results for simulation
+      tags: [Evaluation]
+      parameters:
+        - in: path
+          name: simulationId
+          required: true
+          schema:
+            type: string
+            example: 6553a127fcad73273655d634
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EvaluationResultForSimulation"
+        404:
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Simulation 6553a127fcad73273655d634 not found!"
         500:
           description: Internal Server Error
           content:
@@ -133,4 +221,59 @@ components:
           items:
             type: string
           example: []
- 
+    EvaluationResultForConversation:
+      type: object
+      properties:
+        status:
+          type: string
+          enum:
+            - evaluated
+            - in_progress
+            - not_evaluated
+        score:
+          type: number
+        metrics:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+                enum:
+                  - success
+                  - response_time
+                  - message_count
+              value:
+                type: number
+              weight:
+                type: number
+    EvaluationResultForSimulation:
+      type: object
+      properties:
+        averageScore:
+          type: number
+        conversations:
+          type: array
+          items:
+            type: object
+            properties:
+              conversation:
+                type: string
+                example: 656499ee83e3e06db0309f25
+              score:
+                type: number
+              metrics:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                      enum:
+                        - success
+                        - response_time
+                        - message_count
+                    value:
+                      type: number
+                    weight:
+                      type: number
