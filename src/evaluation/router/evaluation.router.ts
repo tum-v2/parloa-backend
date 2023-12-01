@@ -5,6 +5,15 @@ const router = express.Router();
 import evaluationController from 'evaluation/api/evaluation.controller';
 import evaluationValidator from 'evaluation/validator/evaluation.validator';
 
+// region GET //
+router.get(
+  '/results-for-conversation/:conversationId',
+  evaluationValidator.resultsForConversationValidation(),
+  evaluationValidator.handleValidationErrors,
+  evaluationController.resultsForConversation,
+);
+// endregion GET //
+
 // region POST //
 router.post(
   '/run',

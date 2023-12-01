@@ -61,7 +61,7 @@ async function run(req: Request, res: Response): Promise<void> {
  */
 async function resultsForConversation(req: Request, res: Response): Promise<void> {
   try {
-    const conversationID: string = req.params.id;
+    const conversationID: string = req.params.conversationId;
     const conversation: ConversationDocument | null = await conversationRepository.getById(conversationID);
 
     if (!conversation) {
