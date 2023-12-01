@@ -22,6 +22,12 @@ export function auth(bookingNumber: string, lastName: string) {
   if (lastName === undefined) {
     return { error: 'You forgot to input a last_name!' };
   }
+  if (bookingNumber === '') {
+    return { error: 'Your provided booking is empty.' };
+  }
+  if (lastName === '') {
+    return { error: 'Your provided lastName number is empty.' };
+  }
 
   if (bookingNumber.toUpperCase() === 'PARL0A' && validNames.includes(lastName.toUpperCase())) {
     return { authToken: validToken };
