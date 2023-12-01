@@ -21,6 +21,17 @@ class EvaluationRepository extends BaseRepository<EvaluationDocument> {
       throw error;
     }
   }
+
+  async findBySimulation(simulationID: string): Promise<EvaluationDocument[]> {
+    try {
+      const result: EvaluationDocument[] = await this.model.find({ simulation: simulationID });
+      const promises = result.map((evaluation) => evaluation.populate('metrics'));
+      return await Promise.all(promises);
+    } catch (error) {
+      logger.error(`Error fetching evaluations by simulation id ${simulationID}`);
+      throw error;
+    }
+  }
 }
 
 export { EvaluationRepository };

@@ -9,7 +9,10 @@ import { Request, Response } from 'express';
 import { INTERNAL_SERVER_ERROR } from 'simulation/utils/errors';
 import { validationResult } from 'express-validator';
 import { ConversationRepository } from '@simulation/db/repositories/conversation.repository';
-import { EvaluationResultResponse } from 'evaluation/model/request/evaluation-result.response';
+import {
+  EvaluationResultForConersation,
+  EvaluationResultForSimulation,
+} from 'evaluation/model/request/evaluation-result.response';
 
 const conversationRepository = new ConversationRepository(ConversationModel);
 
@@ -69,11 +72,34 @@ async function resultsForConversation(req: Request, res: Response): Promise<void
       return;
     }
 
-    const results: EvaluationResultResponse = await evaluationService.getResults(conversation);
+    const results: EvaluationResultForConersation = await evaluationService.getResultsForConversation(conversation);
     res.status(200).send(results);
   } catch (error) {
     res.status(500).json(INTERNAL_SERVER_ERROR(error));
   }
 }
 
-export default { run, resultsForConversation };
+/**
+ *
+ * @param req
+ * @param res
+ * @returns
+ */
+async function resultsForSimulation(req: Request, res: Response): Promise<void> {
+  try {
+    const simulationID: string = req.params.simulationId;
+    const simulation: SimulationDocument | null = null;
+
+    if (!simulation) {
+      res.status(404).send({ error: `Simulation ${simulationID} not found` });
+      return;
+    }
+
+    const results: EvaluationResultForSimulation = await evaluationService.getResultsForSimulation(simulation);
+    res.status(200).send(results);
+  } catch (error) {
+    res.status(500).json(INTERNAL_SERVER_ERROR(error));
+  }
+}
+
+export default { run, resultsForConversation, resultsForSimulation };

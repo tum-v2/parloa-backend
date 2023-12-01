@@ -1,6 +1,11 @@
 import { MetricDocument } from 'evaluation/db/models/metric.model';
 
-type EvaluationResultResponse = EvaluationExecuted | EvaluationInProgress | EvaluationNotExecuted;
+type EvaluationResultForConersation = EvaluationExecuted | EvaluationInProgress | EvaluationNotExecuted;
+
+interface EvaluationResultForSimulation {
+  averageScore: number;
+  conversations: EvaluationExecutedWithConversation[];
+}
 
 enum EvaluationStatus {
   EVALUATED = 'evaluated',
@@ -22,4 +27,8 @@ interface EvaluationExecuted {
   metrics: Pick<MetricDocument, 'name' | 'value' | 'weight'>[];
 }
 
-export { EvaluationStatus, EvaluationResultResponse };
+interface EvaluationExecutedWithConversation extends Omit<EvaluationExecuted, 'status'> {
+  conversation: string;
+}
+
+export { EvaluationStatus, EvaluationResultForConersation, EvaluationResultForSimulation };

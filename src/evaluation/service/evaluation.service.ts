@@ -8,7 +8,11 @@ import { RunEvaluationRequest } from 'evaluation/model/request/run-evaluation.re
 import { calculateAllMetrics } from './metric.service';
 import { MetricDocument } from 'evaluation/db/models/metric.model';
 import { Types } from 'mongoose';
-import { EvaluationResultResponse, EvaluationStatus } from 'evaluation/model/request/evaluation-result.response';
+import {
+  EvaluationResultForConersation,
+  EvaluationResultForSimulation,
+  EvaluationStatus,
+} from 'evaluation/model/request/evaluation-result.response';
 
 const evaluationRepository = new EvaluationRepository(EvaluationModel);
 
@@ -53,7 +57,7 @@ async function initiate(
  *
  * @param conversation
  */
-async function getResults(conversation: ConversationDocument): Promise<EvaluationResultResponse> {
+async function getResultsForConversation(conversation: ConversationDocument): Promise<EvaluationResultForConersation> {
   const evaluation: EvaluationDocument | null = await evaluationRepository.findByConversation(conversation.id);
   if (!evaluation) {
     return {
@@ -61,6 +65,45 @@ async function getResults(conversation: ConversationDocument): Promise<Evaluatio
     };
   }
 
+  return getEvaluationResults(evaluation);
+}
+
+/**
+ *
+ * @param simulation
+ */
+async function getResultsForSimulation(simulation: SimulationDocument): Promise<EvaluationResultForSimulation> {
+  const evaluations: EvaluationDocument[] = await evaluationRepository.findBySimulation(simulation.id);
+  const conversationScores = evaluations
+    .map((evaluation) => [evaluation.conversation.id, getEvaluationResults(evaluation)])
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    .filter(([_conversationId, evaluationResults]) => evaluationResults.status == EvaluationStatus.EVALUATED)
+    .map(([conversationId, evaluationResults]) => {
+      const { score, metrics } = evaluationResults;
+      return {
+        conversation: conversationId,
+        score,
+        metrics,
+      };
+    });
+
+  const sumOfScores = conversationScores.reduce<number>(
+    (accumulator: number, current) => accumulator + current.score,
+    0,
+  );
+
+  return {
+    averageScore: conversationScores.length > 0 ? sumOfScores / conversationScores.length : 0,
+    conversations: conversationScores,
+  };
+}
+
+/**
+ *
+ * @param evaluation
+ * @returns
+ */
+function getEvaluationResults(evaluation: EvaluationDocument): EvaluationResultForConersation {
   if (evaluation.metrics.length == 0) {
     return {
       status: EvaluationStatus.IN_PROGRESS,
@@ -85,4 +128,4 @@ async function getResults(conversation: ConversationDocument): Promise<Evaluatio
   };
 }
 
-export default { initiate, getResults };
+export default { initiate, getResultsForConversation, getResultsForSimulation };
