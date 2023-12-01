@@ -42,6 +42,10 @@ class EvaluationValidator {
     return [param('conversationId').isMongoId().withMessage('Invalid conversation ID.')];
   }
 
+  static resultsForSimulationValidation(): ValidationChain[] {
+    return [param('simulationId').isMongoId().withMessage('Invalid simulation ID')];
+  }
+
   /**
    * Middleware to handle validation errors
    * @param req - Request

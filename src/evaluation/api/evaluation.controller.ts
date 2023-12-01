@@ -1,6 +1,6 @@
 // Controller that implements evaluation related endpoints
 import { ConversationDocument, ConversationModel } from '@simulation/db/models/conversation.model';
-import { SimulationDocument } from '@simulation/db/models/simulation.model';
+import { SimulationDocument, SimulationModel } from '@simulation/db/models/simulation.model';
 import simulationService from '@simulation/service/simulation.service';
 import evaluationService from 'evaluation/service/evaluation.service';
 import { EvaluationDocument } from 'evaluation/db/models/evaluation.model';
@@ -13,8 +13,10 @@ import {
   EvaluationResultForConersation,
   EvaluationResultForSimulation,
 } from 'evaluation/model/request/evaluation-result.response';
+import { SimulationRepository } from '@simulation/db/repositories/simulation.repository';
 
 const conversationRepository = new ConversationRepository(ConversationModel);
+const simulationRepository = new SimulationRepository(SimulationModel);
 
 /**
  * Triggers the evaluation of one conversation and - if specified - the optimization of the whole simulation
@@ -88,7 +90,7 @@ async function resultsForConversation(req: Request, res: Response): Promise<void
 async function resultsForSimulation(req: Request, res: Response): Promise<void> {
   try {
     const simulationID: string = req.params.simulationId;
-    const simulation: SimulationDocument | null = null;
+    const simulation: SimulationDocument | null = await simulationRepository.getById(simulationID);
 
     if (!simulation) {
       res.status(404).send({ error: `Simulation ${simulationID} not found` });

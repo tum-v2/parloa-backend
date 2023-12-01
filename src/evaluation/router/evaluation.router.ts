@@ -12,6 +12,13 @@ router.get(
   evaluationValidator.handleValidationErrors,
   evaluationController.resultsForConversation,
 );
+
+router.get(
+  '/results-for-simulation/:simulationId',
+  evaluationValidator.resultsForSimulationValidation(),
+  evaluationValidator.handleValidationErrors,
+  evaluationController.resultsForSimulation,
+);
 // endregion GET //
 
 // region POST //

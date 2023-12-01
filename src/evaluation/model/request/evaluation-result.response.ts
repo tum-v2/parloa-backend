@@ -31,4 +31,4 @@ interface EvaluationExecutedWithConversation extends Omit<EvaluationExecuted, 's
   conversation: string;
 }
 
-export { EvaluationStatus, EvaluationResultForConersation, EvaluationResultForSimulation };
+export { EvaluationStatus, EvaluationResultForConersation, EvaluationResultForSimulation, EvaluationExecuted };

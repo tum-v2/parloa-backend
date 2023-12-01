@@ -9,6 +9,7 @@ import { calculateAllMetrics } from './metric.service';
 import { MetricDocument } from 'evaluation/db/models/metric.model';
 import { Types } from 'mongoose';
 import {
+  EvaluationExecuted,
   EvaluationResultForConersation,
   EvaluationResultForSimulation,
   EvaluationStatus,
@@ -75,10 +76,17 @@ async function getResultsForConversation(conversation: ConversationDocument): Pr
 async function getResultsForSimulation(simulation: SimulationDocument): Promise<EvaluationResultForSimulation> {
   const evaluations: EvaluationDocument[] = await evaluationRepository.findBySimulation(simulation.id);
   const conversationScores = evaluations
-    .map((evaluation) => [evaluation.conversation.id, getEvaluationResults(evaluation)])
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    .filter(([_conversationId, evaluationResults]) => evaluationResults.status == EvaluationStatus.EVALUATED)
-    .map(([conversationId, evaluationResults]) => {
+    .map((evaluation) => {
+      return {
+        conversationId: evaluation.conversation.toString(),
+        evaluationResults: getEvaluationResults(evaluation),
+      };
+    })
+    .filter(
+      (evaluations): evaluations is { conversationId: string; evaluationResults: EvaluationExecuted } =>
+        evaluations.evaluationResults.status == EvaluationStatus.EVALUATED,
+    )
+    .map(({ conversationId, evaluationResults }) => {
       const { score, metrics } = evaluationResults;
       return {
         conversation: conversationId,
