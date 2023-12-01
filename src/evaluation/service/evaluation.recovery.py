@@ -2,17 +2,12 @@ import json
 import dateutil.parser
 import sys
 
-
-def extract_messages(conversation):
-    messages = conversation['Conversation']['Messages']
-    return [m['Message']
-            for m in messages]
+# delta is the maximum waiting time for a response from the agent
 
 
-# delta is the maximum waiting time for a response
 def find_response(messages, delta, ts):
     for m in messages:
-        if m['user'] == 'Agent':
+        if m['sender'].lower() == 'AGENT'.lower():
             time = dateutil.parser.parse(ts).timestamp() * 1000
             response_time = dateutil.parser.parse(
                 m['timestamp']).timestamp() * 1000
@@ -28,7 +23,7 @@ def recovery_counter(texts, delta):
     recovering = False
     recoveries = 0
     for m in texts:
-        if m['user'] == 'User' and not find_response(texts, delta, m['timestamp']):
+        if m['user'].lower() == 'USER'.lower() and not find_response(texts, delta, m['timestamp']):
             timeouts += 1
             recovering = True
         else:
@@ -45,13 +40,10 @@ def recovery_rate(rec):
         return rec[1]/rec[0]
 
 
-def run_eval(path):
-    f = open(path)
-    data = json.load(f)
+def run_eval(data):
+    json_data = json.loads(data)
 
-    texts = extract_messages(data['Simulation']['Conversations'][0])
-
-    rec = recovery_counter(texts, 300000)
+    rec = recovery_counter(json_data, 30000)
     print(recovery_rate(rec))
 
 
