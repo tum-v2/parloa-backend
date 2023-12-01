@@ -59,10 +59,10 @@ async function run(req: Request, res: Response): Promise<void> {
 }
 
 /**
- *
- * @param req
- * @param res
- * @returns
+ * Retrieves the evaluation results for one conversation
+ * @param req - Request object
+ * @param res - Response object (of type EvaluationResultForConversation)
+ * @throws Throws an internal server error if there is an issue with the operation.
  */
 async function resultsForConversation(req: Request, res: Response): Promise<void> {
   try {
@@ -82,10 +82,10 @@ async function resultsForConversation(req: Request, res: Response): Promise<void
 }
 
 /**
- *
- * @param req
- * @param res
- * @returns
+ * Retrieves the evaluation results for one simulation
+ * @param req - Request object
+ * @param res - Response object (of type EvaluationResultForSimulation)
+ * @throws Throws an internal server error if there is an issue with the operation.
  */
 async function resultsForSimulation(req: Request, res: Response): Promise<void> {
   try {

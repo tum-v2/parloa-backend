@@ -55,8 +55,9 @@ async function initiate(
 }
 
 /**
- *
- * @param conversation
+ * Retrieves the evaluation result for the specified conversation
+ * @param conversation - conversation document
+ * @returns the evaluation results
  */
 async function getResultsForConversation(conversation: ConversationDocument): Promise<EvaluationResultForConersation> {
   const evaluation: EvaluationDocument | null = await evaluationRepository.findByConversation(conversation.id);
@@ -70,8 +71,9 @@ async function getResultsForConversation(conversation: ConversationDocument): Pr
 }
 
 /**
- *
- * @param simulation
+ * Retrieves the evaluation result for all conversations of the specified simulation
+ * @param simulation - simulation document
+ * @returns the evaluation results
  */
 async function getResultsForSimulation(simulation: SimulationDocument): Promise<EvaluationResultForSimulation> {
   const evaluations: EvaluationDocument[] = await evaluationRepository.findBySimulation(simulation.id);
@@ -107,9 +109,9 @@ async function getResultsForSimulation(simulation: SimulationDocument): Promise<
 }
 
 /**
- *
- * @param evaluation
- * @returns
+ * retrieves the evaluation results for the specified evaluation
+ * @param evaluation - evaluation document
+ * @returns the evaluation results
  */
 function getEvaluationResults(evaluation: EvaluationDocument): EvaluationResultForConersation {
   if (evaluation.metrics.length == 0) {

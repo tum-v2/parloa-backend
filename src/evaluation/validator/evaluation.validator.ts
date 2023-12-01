@@ -38,10 +38,18 @@ class EvaluationValidator {
     ];
   }
 
+  /**
+   * Validate the parmeter for the /results-for-conversation endpoint
+   * @returns Validation chain array that checks the request parameter
+   */
   static resultsForConversationValidation(): ValidationChain[] {
     return [param('conversationId').isMongoId().withMessage('Invalid conversation ID.')];
   }
 
+  /**
+   * Validate the parmeter for the /results-for-simulation endpoint
+   * @returns Validation chain array that checks the request parameter
+   */
   static resultsForSimulationValidation(): ValidationChain[] {
     return [param('simulationId').isMongoId().withMessage('Invalid simulation ID')];
   }
