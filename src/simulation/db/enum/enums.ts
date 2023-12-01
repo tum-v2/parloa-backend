@@ -42,6 +42,7 @@ enum MsgTypes {
   TOOLOUTPUT = 'TOOLOUTPUT',
   MSGTOUSER = 'MSGTOUSER',
   ROUTE = 'ROUTE',
+  HANGUP = 'HANGUP',
 }
 
 enum MsgSender {
