@@ -81,7 +81,7 @@ const restApiTools: Record<string, RestAPITool> = {
     (data) => JSON.stringify(changeFlightDate(data.booking_number, data.new_date, data.auth_token)),
   ),
   getAnswerFromFaq: new RestAPITool(
-    'Get an answer from the FAQ.',
+    'Get an answer from the FAQ for a question of the user.',
     new APIRequest([new APIParam('question', 'The question to ask from the FAQ', 'string')]),
     new APIResponse('Answer to the question or ANSWER_NOT_FOUND'),
     async (data) => await getFaqAnswer(data.question),
