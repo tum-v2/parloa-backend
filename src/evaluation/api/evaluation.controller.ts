@@ -9,6 +9,7 @@ import { Request, Response } from 'express';
 import { INTERNAL_SERVER_ERROR } from 'simulation/utils/errors';
 import { validationResult } from 'express-validator';
 import { ConversationRepository } from '@simulation/db/repositories/conversation.repository';
+import { EvaluationResultResponse } from 'evaluation/model/request/evaluation-result.response';
 
 const conversationRepository = new ConversationRepository(ConversationModel);
 
@@ -52,4 +53,27 @@ async function run(req: Request, res: Response): Promise<void> {
   }
 }
 
-export default { run };
+/**
+ *
+ * @param req
+ * @param res
+ * @returns
+ */
+async function resultsForConversation(req: Request, res: Response): Promise<void> {
+  try {
+    const conversationID: string = req.params.id;
+    const conversation: ConversationDocument | null = await conversationRepository.getById(conversationID);
+
+    if (!conversation) {
+      res.status(404).send({ error: `Conversation ${conversationID} not found` });
+      return;
+    }
+
+    const results: EvaluationResultResponse = await evaluationService.getResults(conversation);
+    res.status(200).send(results);
+  } catch (error) {
+    res.status(500).json(INTERNAL_SERVER_ERROR(error));
+  }
+}
+
+export default { run, resultsForConversation };

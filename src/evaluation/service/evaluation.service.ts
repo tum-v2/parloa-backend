@@ -6,6 +6,9 @@ import { EvaluationDocument, EvaluationModel } from 'evaluation/db/models/evalua
 import { EvaluationRepository } from 'evaluation/db/repositories/evaluation.repository';
 import { RunEvaluationRequest } from 'evaluation/model/request/run-evaluation.request';
 import { calculateAllMetrics } from './metric.service';
+import { MetricDocument } from 'evaluation/db/models/metric.model';
+import { Types } from 'mongoose';
+import { EvaluationResultResponse, EvaluationStatus } from 'evaluation/model/request/evaluation-result.response';
 
 const evaluationRepository = new EvaluationRepository(EvaluationModel);
 
@@ -26,15 +29,17 @@ async function initiate(
   console.log('Configuration:', request);
   console.log('Creating evaluation object');
 
-  const metrics = await calculateAllMetrics(conversation);
-
-  const evaluationData: Partial<EvaluationDocument> = {
+  let evaluation = await evaluationRepository.create({
     simulation: simulation,
     conversation: conversation,
-    metrics: metrics,
-  };
+    metrics: [],
+  });
 
-  const evaluation = await evaluationRepository.create(evaluationData);
+  const metrics = await calculateAllMetrics(conversation);
+
+  evaluation = (await evaluationRepository.updateById(evaluation.id, {
+    metrics: metrics,
+  })) as EvaluationDocument;
   console.log(evaluation);
 
   if (request.isLastConversation && request.shouldOptimize) {
@@ -44,4 +49,40 @@ async function initiate(
   return evaluation;
 }
 
-export default { initiate };
+/**
+ *
+ * @param conversation
+ */
+async function getResults(conversation: ConversationDocument): Promise<EvaluationResultResponse> {
+  const evaluation: EvaluationDocument | null = await evaluationRepository.findByConversation(conversation.id);
+  if (!evaluation) {
+    return {
+      status: EvaluationStatus.NOT_EVALUATED,
+    };
+  }
+
+  if (evaluation.metrics.length == 0) {
+    return {
+      status: EvaluationStatus.IN_PROGRESS,
+    };
+  }
+
+  const overallScore = evaluation.metrics.reduce<number>(
+    (accumulator: number, metric: MetricDocument | Types.ObjectId) => {
+      const metricDocument = metric as MetricDocument;
+      return accumulator + metricDocument.weight * metricDocument.value;
+    },
+    0,
+  );
+
+  return {
+    status: EvaluationStatus.EVALUATED,
+    score: overallScore,
+    metrics: evaluation.metrics.map((metric) => {
+      const { name, value, weight } = metric as MetricDocument;
+      return { name, value, weight };
+    }),
+  };
+}
+
+export default { initiate, getResults };
