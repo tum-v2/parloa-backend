@@ -7,7 +7,13 @@ import {
   RouteToCoreTool,
 } from '../custom.agent.config';
 
-import { auth, bookingInfo, checkAvailability, changeFlightDate } from '../../mockedAPI/flightBooking.mocks';
+import {
+  auth,
+  bookingInfo,
+  checkAvailability,
+  changeFlightDate,
+  getAllFlights,
+} from '../../mockedAPI/flightBooking.mocks';
 import { getFaqAnswer } from '../../mockedAPI/parloa.kf.faq';
 const bookingNumberParam = new APIParam(
   'booking_number',
@@ -25,7 +31,9 @@ const restApiTools: Record<string, RestAPITool> = {
       new APIParam('last_name', 'Last Name of the person who made the booking.', 'string'),
     ]),
     new APIResponse('auth_token to be used for other tools'),
-    (data) => JSON.stringify(auth(data.booking_number, data.last_name)),
+    (data) => {
+      return JSON.stringify(auth(data.booking_number, data.last_name));
+    },
   ),
   bookingInfo: new RestAPITool(
     'Retrieves booking details',
@@ -65,6 +73,14 @@ const restApiTools: Record<string, RestAPITool> = {
       }
       return JSON.stringify(arrayResult);
     },
+  ),
+  getAllFlights: new RestAPITool(
+    'Get a list of all Flights.',
+    new APIRequest([]),
+    new APIResponse(
+      '"flight number, departure and arrival airports, departure and arrival times, and the date of the flight"',
+    ),
+    () => JSON.stringify(getAllFlights()),
   ),
   changeFlightDate: new RestAPITool(
     'Used to modify an existing booking with a new flight date. The new date parameter must be in yyyy-mm-dd format but should not be disclosed to the user.',
@@ -156,6 +172,8 @@ export const flightBookingAgentConfig: CustomAgentConfig = new CustomAgentConfig
 - If there are more than 3 flights available to choose from then don't list all options but ask the user to narrow down the options
 - If the booking can be changed, always ask the user for a final confirmation before changing the booking
 - For confirmation of new flight always include flight number,  departure city, arrival city, departure time, arrival time, number of passengers.`,
+    searchFlights: `If a user just wants to know if there are any flights on a date from his departure, to his arrival city.
+    You can use getAllFlights, to get a list of all flights, and then notify the user of possible flights that are in this list and have the right data.`,
   },
   restApiTools,
   routingTools,
