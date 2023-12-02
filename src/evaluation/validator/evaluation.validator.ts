@@ -19,13 +19,13 @@ class EvaluationValidator {
    */
   static runValidation(): ValidationChain[] {
     return [
-      body('conversationID').isMongoId().withMessage('Invalid conversation ID.'),
-      body('simulationID').isMongoId().withMessage('Invalid simulation ID'),
-      body('isLastConversation').isBoolean().withMessage('isLastConversation must be a valid boolean'),
-      body('shouldOptimize').isBoolean().withMessage('shouldOptimize must be a valid boolean'),
+      body('conversation').isMongoId().withMessage('Invalid conversation ID'),
+      body('simulation').isMongoId().withMessage('Invalid simulation ID'),
+      body('isLast').isBoolean().withMessage('isLast must be a valid boolean'),
+      body('optimization').isMongoId().withMessage('Invalid optimization ID'),
 
       body().custom((value, { req }) => {
-        const allowedFields = ['conversationID', 'simulationID', 'isLastConversation', 'shouldOptimize'];
+        const allowedFields = ['conversation', 'simulation', 'isLast', 'optimization'];
 
         const extraFields = Object.keys(req.body).filter((field) => !allowedFields.includes(field));
 

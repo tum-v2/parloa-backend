@@ -47,10 +47,6 @@ async function initiate(
   })) as EvaluationDocument;
   console.log(evaluation);
 
-  if (request.isLastConversation && request.shouldOptimize) {
-    // TODO: trigger optimization
-  }
-
   return evaluation;
 }
 

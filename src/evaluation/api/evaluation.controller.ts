@@ -14,6 +14,7 @@ import {
   EvaluationResultForSimulation,
 } from 'evaluation/model/request/evaluation-result.response';
 import { SimulationRepository } from '@simulation/db/repositories/simulation.repository';
+import { RunEvaluationResponse } from 'evaluation/model/request/run-evaluation.response';
 
 const conversationRepository = new ConversationRepository(ConversationModel);
 const simulationRepository = new SimulationRepository(SimulationModel);
@@ -33,7 +34,8 @@ async function run(req: Request, res: Response): Promise<void> {
     }
 
     const evaluationConfig: RunEvaluationRequest = req.body as RunEvaluationRequest;
-    const { conversationID, simulationID } = evaluationConfig;
+    const conversationID = evaluationConfig.conversation;
+    const simulationID = evaluationConfig.simulation;
     const conversation: ConversationDocument | null = await conversationRepository.getById(conversationID);
 
     if (!conversation) {
@@ -52,7 +54,12 @@ async function run(req: Request, res: Response): Promise<void> {
     }
 
     const evaluation: EvaluationDocument = await evaluationService.initiate(evaluationConfig, conversation, simulation);
-    res.status(201).send(evaluation);
+    const responseObject: RunEvaluationResponse = {
+      optimization: evaluationConfig.optimization,
+      simulation: simulationID,
+      evaluation: evaluation.id,
+    };
+    res.status(200).send(responseObject);
   } catch (error) {
     res.status(500).json(INTERNAL_SERVER_ERROR(error));
   }
