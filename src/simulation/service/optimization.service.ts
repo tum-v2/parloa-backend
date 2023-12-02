@@ -6,7 +6,7 @@ import repositoryFactory from '../db/repositories/factory';
 import { AgentDocument } from '../db/models/agent.model';
 import agentService from './agent.service';
 import { OptimizationDocument } from '@simulation/db/models/optimization.model';
-import { SimulationScenario, SimulationType } from '@simulation/db/enum/enums';
+import { SimulationType } from '@simulation/db/enum/enums';
 import { OpenAI } from 'langchain/llms/openai';
 import { PromptTemplate } from 'langchain/prompts';
 import { CommaSeparatedListOutputParser } from 'langchain/output_parsers';
@@ -83,7 +83,7 @@ async function initiate(request: RunSimulationRequest): Promise<OptimizationDocu
     //TODO Create a template for every prompt in the database until we figure out what to do.
     const agent: AgentDocument = await agentService.create({ prompt: prompt });
     const newRequest: RunSimulationRequest = {
-      scenario: SimulationScenario,
+      scenario: request.scenario,
       type: SimulationType.OPTIMIZATION,
       name: request.name,
       description: request.description,
