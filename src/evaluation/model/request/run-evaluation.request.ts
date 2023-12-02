@@ -1,8 +1,8 @@
 interface RunEvaluationRequest {
-  conversationID: string;
-  simulationID: string;
-  isLastConversation: boolean;
-  shouldOptimize: boolean;
+  conversation: string;
+  simulation: string;
+  isLast: boolean;
+  optimization: string;
 }
 
 export { RunEvaluationRequest };
