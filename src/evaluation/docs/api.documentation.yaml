@@ -16,12 +16,22 @@ paths:
             schema:
               $ref: "#/components/schemas/RunEvaluationRequest"
       responses:
-        201:
-          description: Evaluation successfully created
+        200:
+          description: Evaluation successfully executed
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/EvaluationDocument"
+                $ref: "#/components/schemas/RunEvaluationResponse"
+        404:
+          description: Conversation or Simulation not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Conversation 6569177d47be6ae122cc8aa5 not found!"
         500:
           description: Internal Server Error
           content:
@@ -43,94 +53,26 @@ components:
     RunEvaluationRequest:
       type: object
       properties:
-        conversationID:
-          type: string
-          example: 656499ee83e3e06db0309f25
-        simulationID:
-          type: string
-          example: 656499ee83e3e06db0309f25
-        isLastConversation:
-          type: boolean
-        shouldOptimize:
-          type: boolean
-    EvaluationDocument:
-      type: object
-      properties:
-        _id:
+        conversation:
           type: string
           example: 656499ee83e3e06db0309f25
         simulation:
-          $ref: "#/components/schemas/SimulationDocument"
-        conversation:
-          $ref: "#/components/schemas/ConversationDocument"
-        metrics:
-          type: object
-          additionalProperties:
-            type: number
-        createdAt:
           type: string
-          example: "2023-11-14T16:32:39.419Z"
-        updatedAt:
+          example: 656499ee83e3e06db0309f25
+        isLast:
+          type: boolean
+        optimization:
           type: string
-          example: "2023-11-14T16:32:39.419Z"
-        __v:
-          type: integer
-          example: 0
-    SimulationDocument:
+          example: 656499ee83e3e06db0309f25
+    RunEvaluationResponse:
       type: object
       properties:
-        _id:
+        optimization:
           type: string
-          example: 6553a127fcad73273655d634
-        scenario:
+          example: 656499ee83e3e06db0309f25
+        simulation:
           type: string
-          example: SLOT_FILLING
-        type:
+          example: 656499ee83e3e06db0309f25
+        evaluation:
           type: string
-          example: AUTOMATED
-        domain:
-          type: string
-          example: INSURANCE
-        agents:
-          type: array
-          items:
-            oneOf:
-              - $ref: '#/components/schemas/ServiceAgent'
-              - $ref: '#/components/schemas/UserAgent'
-        conversations:
-          type: array
-          items:
-            $ref: '#/components/schemas/ConversationDocument'
-        status:
-          type: string
-          enum: [SCHEDULED, STARTED, FINISHED]
-        createdAt:
-          type: string
-          example: "2023-11-14T16:32:39.419Z"
-        updatedAt:
-          type: string
-          example: "2023-11-14T16:32:39.419Z"
-        __v:
-          type: integer
-          example: 0
-    ConversationDocument:
-      type: object
-      properties:
-        messages:
-          type: array
-          items:
-            type: string
-          example: []
-        start:
-          type: string
-          format: date
-          example: 2023-12-12
-        status:
-          type: string
-          enum: [STARTED, FINISHED]
-        usedEndpoints:
-          type: array
-          items:
-            type: string
-          example: []
- 
+          example: 656499ee83e3e06db0309f25
