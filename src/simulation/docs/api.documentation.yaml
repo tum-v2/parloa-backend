@@ -791,7 +791,7 @@ components:
         type:
           type: string
           enum:
-            - MANUAL
+            - CHAT
             - AUTOMATED
         domain:
           type: string

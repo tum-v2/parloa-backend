@@ -28,6 +28,7 @@ router.get(
   simulationController.getConversations,
 );
 router.get('/all', simulationController.getAll);
+router.get('/conversation/:id', simulationController.getConversation);
 // region GET //
 
 // region PATCH //

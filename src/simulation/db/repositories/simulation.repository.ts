@@ -82,7 +82,7 @@ class SimulationRepository extends BaseRepository<SimulationDocument> {
             createdAt: {
               $gte: new Date(new Date().getTime() - days * 24 * 60 * 60 * 1000),
             },
-            type: { $ne: SimulationType.MANUAL },
+            type: { $ne: SimulationType.CHAT },
             status: { $eq: SimulationStatus.FINISHED },
           },
         },
@@ -135,7 +135,7 @@ class SimulationRepository extends BaseRepository<SimulationDocument> {
             createdAt: {
               $gte: new Date(new Date().getTime() - days * 24 * 60 * 60 * 1000),
             },
-            type: { $ne: SimulationType.MANUAL },
+            type: { $ne: SimulationType.CHAT },
             status: { $eq: SimulationStatus.FINISHED },
           },
         },
@@ -166,7 +166,7 @@ class SimulationRepository extends BaseRepository<SimulationDocument> {
             createdAt: {
               $gte: new Date(new Date().getTime() - days * 24 * 60 * 60 * 1000),
             },
-            type: { $ne: SimulationType.MANUAL },
+            type: { $ne: SimulationType.CHAT },
             status: { $eq: SimulationStatus.FINISHED },
           },
         },
@@ -213,7 +213,7 @@ class SimulationRepository extends BaseRepository<SimulationDocument> {
             createdAt: {
               $gte: new Date(new Date().getTime() - days * 24 * 60 * 60 * 1000),
             },
-            type: { $ne: SimulationType.MANUAL },
+            type: { $ne: SimulationType.CHAT },
             status: { $eq: SimulationStatus.FINISHED },
           },
         },
@@ -265,7 +265,7 @@ class SimulationRepository extends BaseRepository<SimulationDocument> {
             createdAt: {
               $gte: new Date(new Date().getTime() - days * 24 * 60 * 60 * 1000),
             },
-            type: { $ne: SimulationType.MANUAL },
+            type: { $ne: SimulationType.CHAT },
             status: { $eq: SimulationStatus.FINISHED },
           },
         },

@@ -11,6 +11,7 @@ import DashboardData from '@simulation/model/response/dashboard.response';
 
 const agentRepository = repositoryFactory.agentRepository;
 const simulationRepository = repositoryFactory.simulationRepository;
+const conversationRepository = repositoryFactory.conversationRepository;
 
 /**
  * Creates a simulation object and initiates the simulation.
@@ -118,6 +119,17 @@ async function getAll(): Promise<SimulationDocument[]> {
 }
 
 /**
+ * Fetches a conversation with messages.
+ * @param id - The ID of the conversation to retrieve.
+ * @returns A promise that resolves to the conversation object.
+ * @throws Throws an error if there is an issue with the MongoDB query.
+ */
+export async function getConversation(id: string): Promise<ConversationDocument | null> {
+  const conversation: ConversationDocument | null = await conversationRepository.getMessages(id);
+  return conversation;
+}
+
+/**
  * Updates the simulation object.
  * @param id - The ID of the simulation object to update.
  * @param updates - The updates to apply to the simulation object.
@@ -215,6 +227,7 @@ export default {
   poll,
   getConversations,
   getAll,
+  getConversation,
   update,
   del,
   getDashboardData,
