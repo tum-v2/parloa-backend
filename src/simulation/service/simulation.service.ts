@@ -112,8 +112,7 @@ async function getConversations(id: string): Promise<ConversationDocument[] | nu
  * @throws Throws an error if there is an issue with the MongoDB query.
  */
 async function getAll(): Promise<SimulationDocument[]> {
-  const simulations: SimulationDocument[] = await simulationRepository.findAll();
-  return simulations;
+  return await simulationRepository.findAll();
 }
 
 /**
