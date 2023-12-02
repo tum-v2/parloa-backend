@@ -112,39 +112,6 @@ paths:
                   details:
                     type: string
                     example: Error
-  /api/v1/optimization/run:
-    post:
-      summary: Start a new optimization
-      tags: [ Simulation ]
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/RunSimulationRequest"
-      responses:
-        201:
-          description: Optimization successfully initiated.
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/OptimizationDocument"
-        500:
-          description: Internal Server Error
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  code:
-                    type: string
-                    example: INTERNAL_SERVER_ERROR
-                  message:
-                    type: string
-                    example: Internal server error occurred
-                  details:
-                    type: string
-                    example: Error
   /api/v1/simulation/{simulationId}/poll:
     get:
       summary: Retrieve simulation
@@ -791,6 +758,39 @@ paths:
               example:
                 - GPT4
                 - LLAMA2
+        500:
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: string
+                    example: INTERNAL_SERVER_ERROR
+                  message:
+                    type: string
+                    example: Internal server error occurred
+                  details:
+                    type: string
+                    example: Error
+  /api/v1/optimization/run:
+    post:
+      summary: Start a new optimization
+      tags: [ Simulation ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RunSimulationRequest"
+      responses:
+        201:
+          description: Optimization successfully initiated.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OptimizationDocument"
         500:
           description: Internal Server Error
           content:

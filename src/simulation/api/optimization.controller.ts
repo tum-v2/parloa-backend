@@ -33,21 +33,6 @@ async function run(req: Request, res: Response): Promise<void> {
   }
 }
 
-/**
- * Handles POST request from Evaluation, receive the ID of the finished simulation.
- * @param req - Request from evaluation team
- * @param res - Response
- */
-async function done(req: Request, res: Response): Promise<void> {
-  try {
-    //Implement the evaluation logic here
-  } catch (error) {
-    logger.error(`Problems when receiving the simulation ID! ${error}`);
-    res.status(500).json(INTERNAL_SERVER_ERROR(error));
-  }
-}
-
 export default {
   run,
-  done,
 };

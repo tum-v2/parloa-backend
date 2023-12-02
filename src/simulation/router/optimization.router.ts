@@ -12,9 +12,5 @@ router.post(
   simulationValidator.handleValidationErrors,
   optimizationController.run,
 );
-router.post(
-  '/done',
-  optimizationController.done,
-);
 // endregion POST //
 export default router;
