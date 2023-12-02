@@ -3,12 +3,12 @@ import { SimulationDocument } from '@simulation/db/models/simulation.model';
 
 interface OptimizationDocument extends Document {
   baseSimulation: ObjectId;
-  simulationIds: ObjectId[] | SimulationDocument[];
+  simulations: ObjectId[] | SimulationDocument[];
 }
 
 const optimizationSchema = new Schema({
-  baseSimulation: { type: Schema.Types.ObjectId, ref: 'Simulation' },
-  simulationIds: [
+  baseSimulation: { type: Schema.Types.ObjectId, ref: 'Simulation', default: null },
+  simulations: [
     {
       type: Schema.Types.ObjectId,
       ref: 'Simulation',

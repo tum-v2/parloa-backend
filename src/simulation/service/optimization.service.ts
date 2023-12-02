@@ -6,7 +6,7 @@ import repositoryFactory from '../db/repositories/factory';
 import { AgentDocument } from '../db/models/agent.model';
 import agentService from './agent.service';
 import { OptimizationDocument } from '@simulation/db/models/optimization.model';
-import { ConversationType, SimulationScenario } from '@simulation/db/enum/enums';
+import { SimulationScenario, SimulationType } from '@simulation/db/enum/enums';
 import { OpenAI } from 'langchain/llms/openai';
 import { PromptTemplate } from 'langchain/prompts';
 import { CommaSeparatedListOutputParser } from 'langchain/output_parsers';
@@ -55,35 +55,38 @@ async function generatePrompts(agent: AgentDocument): Promise<string[]> {
 async function initiate(request: RunSimulationRequest): Promise<OptimizationDocument> {
   console.log('Optimization initiated...');
 
-  const serviceAgent: AgentDocument | null = await agentRepository.getById(request.serviceAgentConfig);
+  const serviceAgent: AgentDocument | null = await agentRepository.getById(<string>request.serviceAgentId);
 
   if (serviceAgent === null) {
     throw new Error('Service agent id not found');
   }
 
-  const originalPrompt: string = serviceAgent.prompt;
-
   // Chat with the LLM and generate 4 different prompts, also include the original prompt
   const prompts = await generatePrompts(serviceAgent);
-  prompts.push(originalPrompt);
 
   // Create a database entry for the current optimization
-  const optimizationDocument: OptimizationDocument = await optimizationRepository.create({ simulationIds: [] });
+  const optimizationDocument: OptimizationDocument = await optimizationRepository.create({ simulations: [] });
   const optimizationId = optimizationDocument._id;
+
+  // Call initiate for the base simulation and save it to the db
+  const simulation: SimulationDocument = await simulationService.initiate(request, optimizationId, false);
+  optimizationDocument.baseSimulation = simulation._id;
+  await optimizationDocument.save();
 
   for (const prompt of prompts) {
     //TODO Create a template for every prompt in the database until we figure out what to do.
     const agent: AgentDocument = await agentService.create({ prompt: prompt });
     const newRequest: RunSimulationRequest = {
       scenario: SimulationScenario,
-      type: ConversationType,
+      type: SimulationType.OPTIMIZATION,
       name: request.name,
+      description: request.description,
       numConversations: request.numConversations,
-      serviceAgentConfig: agent._id,
-      userAgentConfig: request.userAgentConfig,
+      serviceAgentId: agent._id,
+      userAgentId: request.userAgentId,
     };
     // start the simulation for one of the prompts
-    const simulation: SimulationDocument = await simulationService.initiate(newRequest);
+    const simulation: SimulationDocument = await simulationService.initiate(newRequest, optimizationId, true);
 
     // Add the ongoing simulationId to the database, under its related optimizationId
     await optimizationRepository.addSimulationId(optimizationId, simulation._id);

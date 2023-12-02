@@ -10,11 +10,9 @@ class OptimizationRepository extends BaseRepository<OptimizationDocument> {
 
   async addSimulationId(optimizationId: string, simulationId: string): Promise<OptimizationDocument | null> {
     try {
-      const updatedDocument = await this.model.findByIdAndUpdate(
-        optimizationId,
-        { $addToSet: { simulationIds: simulationId } },
-        { new: true }
-      ).exec();
+      const updatedDocument = await this.model
+        .findByIdAndUpdate(optimizationId, { $addToSet: { simulations: simulationId } }, { new: true })
+        .exec();
 
       return updatedDocument as OptimizationDocument | null; // Explicitly casting the result
     } catch (error) {
