@@ -11,6 +11,7 @@ import { OpenAI } from 'langchain/llms/openai';
 import { PromptTemplate } from 'langchain/prompts';
 import { CommaSeparatedListOutputParser } from 'langchain/output_parsers';
 import { RunnableSequence } from 'langchain/dist/schema/runnable';
+import { optimizationDictionary } from '../utils/globals';
 
 const NUMBER_OF_PROMPTS: number = 4;
 
@@ -68,6 +69,11 @@ async function initiate(request: RunSimulationRequest): Promise<OptimizationDocu
   const optimizationDocument: OptimizationDocument = await optimizationRepository.create({ simulations: [] });
   const optimizationId = optimizationDocument._id;
 
+  // Also create an entry in the dictionary, so we can keep track of when an optimization ends
+  if (!(optimizationId in optimizationDictionary)) {
+    optimizationDictionary[optimizationId] = NUMBER_OF_PROMPTS + 1;
+  }
+
   // Call initiate for the base simulation and save it to the db
   const simulation: SimulationDocument = await simulationService.initiate(request, optimizationId, false);
   optimizationDocument.baseSimulation = simulation._id;
@@ -95,6 +101,25 @@ async function initiate(request: RunSimulationRequest): Promise<OptimizationDocu
   return optimizationDocument;
 }
 
+/**
+ * This function gets called by the Simulation team whenever a simulation is completed.
+ * @param optimization - The ID of the optimization session that the simulation belongs to.
+ */
+async function handleSimulationOver(optimization: string) {
+  // check if optimizationId exists in the optimization dictionary
+  if (!(optimization in optimizationDictionary)) {
+    throw new Error('Optimization ID does not exist! ');
+  }
+
+  // Decrease the counter that corresponds to the optimization ID by 1, if it becomes 0, it means the optimization ended.
+  optimizationDictionary[optimization] = -1;
+
+  if (optimizationDictionary[optimization] == 0) {
+    //TODO optimization ended, call anything here - for further implementation!
+  }
+}
+
 export default {
   initiate,
+  handleSimulationOver,
 };
