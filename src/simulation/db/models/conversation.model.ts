@@ -1,10 +1,10 @@
 import { Schema, Document, model, Types } from 'mongoose';
-import { MessageModel } from './message.model';
+import { MessageDocument } from './message.model';
 import { ConversationStatus } from '../enum/enums';
 import { EvaluationDocument } from 'evaluation/db/models/evaluation.model';
 
 interface ConversationDocument extends Document {
-  messages: Types.ObjectId[] | (typeof MessageModel)[];
+  messages: Types.ObjectId[] | MessageDocument[];
   startTime: Date;
   endTime: Date;
   status: ConversationStatus;
