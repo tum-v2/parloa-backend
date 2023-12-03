@@ -1,7 +1,7 @@
 // Evaluation-specific functionality called by controllers or other services
 
-import { ConversationDocument } from '@simulation/db/models/conversation.model';
-import { SimulationDocument } from '@simulation/db/models/simulation.model';
+import { ConversationDocument, ConversationModel } from '@simulation/db/models/conversation.model';
+import { SimulationDocument, SimulationModel } from '@simulation/db/models/simulation.model';
 import {
   EvaluationDocument,
   EvaluationDocumentWithConversation,
@@ -17,8 +17,12 @@ import {
   EvaluationResultForSimulation,
   EvaluationStatus,
 } from 'evaluation/model/request/evaluation-result.response';
+import { ConversationRepository } from '@simulation/db/repositories/conversation.repository';
+import { SimulationRepository } from '@simulation/db/repositories/simulation.repository';
 
 const evaluationRepository = new EvaluationRepository(EvaluationModel);
+const conversationRepository = new ConversationRepository(ConversationModel);
+const simulationRepository = new SimulationRepository(SimulationModel);
 
 /**
  * Creates an evaluation object and initiates the evaluation of the conversation and - if request.optimization is true and this is the last conversation of the simulation - also the optimization
@@ -51,10 +55,12 @@ async function initiate(
     successRate: calculateAverageScore(metrics),
   })) as EvaluationDocument;
   console.log(evaluation);
+  await conversationRepository.saveEvaluation(conversation.id, evaluation.id);
 
   if (request.isLast) {
     const evaluationOfSimulation = await runEvaluationForSimulation(simulation);
     console.log(evaluationOfSimulation);
+    await simulationRepository.saveEvaluation(simulation.id, evaluationOfSimulation.id);
   }
 
   return evaluation;
