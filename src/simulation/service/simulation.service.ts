@@ -52,7 +52,7 @@ async function initiate(
   };
 
   if (!child && optimization !== null) {
-    simulationData.optimization = optimization;
+    simulationData.optimization = new Types.ObjectId(optimization);
   }
 
   const simulation = await simulationRepository.create(simulationData);
