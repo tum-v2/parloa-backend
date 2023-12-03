@@ -169,7 +169,8 @@ async function getResultsForSimulation(simulation: SimulationDocument): Promise<
       };
     });
 
-  const averageScore = getExecuteEvaluationResults(simulation.evaluation as EvaluationDocument);
+  const evaluationOfSimulation = await (simulation.evaluation as EvaluationDocument).populate('metrics');
+  const averageScore = getExecuteEvaluationResults(evaluationOfSimulation);
 
   return {
     averageScore: averageScore,
