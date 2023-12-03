@@ -65,6 +65,7 @@ type ParamType = {
 type ToolDescription = {
   description: string;
   output?: string;
+  inputs?: Record<string, ParamType>;
 };
 
 export class CustomAgent {
@@ -107,7 +108,7 @@ export class CustomAgent {
     Logs if log files set and prints if isVerbose for the class instance"""*/
 
     const lcMsg: BaseMessage = await this.getSystemPrompt();
-
+    // console.log(lcMsg.content.toString());
     await this.addMessage(new MsgHistoryItem(lcMsg, MsgTypes.SYSTEMPROMPT));
 
     return this.config.welcomeMessage;
@@ -128,11 +129,16 @@ export class CustomAgent {
 
       const responseMessage = await this.chatModel.call(messages);
 
-      response = this.getFixedJson(responseMessage.content.toString());
+      response = await this.getFixedJson(responseMessage);
       action = response.action;
       actionInput = response.action_input ?? {};
 
-      if (action === MsgTypes.MSGTOUSER || action == 'message_to_user' || action == 'None') {
+      if (
+        action === MsgTypes.MSGTOUSER ||
+        action == 'message_to_user' ||
+        action == 'None' ||
+        action == 'message_to_agent'
+      ) {
         await this.addMessage(
           new MsgHistoryItem(
             responseMessage,
@@ -153,6 +159,8 @@ export class CustomAgent {
         throw new Error(`ERROR: Invalid action_input in response: ${JSON.stringify(response, null, 4)}`);
       }
       if (action && this.config.routingTools[action]) {
+        console.log('routingInput: ' + responseMessage.content.toString());
+
         await this.addMessage(
           new MsgHistoryItem(
             responseMessage,
@@ -190,7 +198,7 @@ export class CustomAgent {
           ),
         );
 
-        const toolOutput: string = apiToolConfig.executeTool(actionInput);
+        const toolOutput: string = await apiToolConfig.executeTool(actionInput);
 
         const lcMsg = await this.getToolOutputPrompt(action, toolOutput);
 
@@ -227,17 +235,18 @@ export class CustomAgent {
             description: param.description,
             type: param.type,
           };
-
-          let output: string | null = null;
-
-          if (tool instanceof RestAPITool) {
-            output = tool.response.outputDescription;
-          }
-
-          if (output) {
-            toolDescriptions[toolName].output = output;
-          }
         });
+        let output: string | null = null;
+
+        toolDescriptions[toolName].inputs = inputs;
+
+        if (tool instanceof RestAPITool) {
+          output = tool.response.outputDescription;
+        }
+
+        if (output) {
+          toolDescriptions[toolName].output = output;
+        }
       }
     }
     return SystemMessagePromptTemplate.fromTemplate(this.config.systemPromptTemplate).format({
@@ -303,25 +312,73 @@ export class CustomAgent {
     }
   }
 
-  getFixedJson(input: string) {
-    try {
-      const parsed = JSON.parse(input);
-      return parsed;
-    } catch (error) {
-      let fixedText = input.trim().replace(/"/g, '').replace('{', '').replace('}', '');
-      fixedText = '{' + fixedText;
-      fixedText = fixedText + '"}';
+  async getFixedJson(inputBaseMessage: BaseMessage, id: string | null = null) {
+    let count = 0;
+    const maxCount = 5;
+    let baseMesage = inputBaseMessage;
+    let input = inputBaseMessage.content.toString();
+    while (count++ < maxCount) {
+      try {
+        const parsed = JSON.parse(input);
+        return parsed;
+      } catch (error) {
+        const firstBraceIndex = input.indexOf('{');
 
-      fixedText = fixedText.replace(/(\w+):/g, '"$1":'); // Fix keys
+        if (firstBraceIndex !== -1) {
+          input = input.substring(firstBraceIndex);
+        }
 
-      fixedText = fixedText.replace(/: (?!")/g, ': "');
+        let fixedText = input.trim().replace(/"/g, '').replace('{', '').replace('}', '');
+        fixedText = '{' + fixedText;
+        fixedText = fixedText + '"}';
 
-      fixedText = fixedText.replace(/(?<!{)\s*"(\w+)":/g, '","$1":');
-      fixedText = fixedText.replace(/""/g, '"');
+        fixedText = fixedText.replace(/(\w+):/g, '"$1":');
+        fixedText = fixedText.replace(/: (?!")/g, ': "');
+        fixedText = fixedText.replace(/(?<!{)\s*"(\w+)":/g, '","$1":');
+        fixedText = fixedText.replace(/""/g, '"');
 
-      console.log('fixed Text: \n' + fixedText);
-      const parsed = JSON.parse(fixedText);
-      return parsed;
+        try {
+          const parsed = JSON.parse(fixedText);
+          console.log('fixed Text: \n' + fixedText);
+          return parsed;
+        } catch (exc) {
+          //console.log('failed fix asking ai: \n' + fixedText + ' count: ' + count);
+          console.log(`${Colors.GREY} JSONFIXER Reprompt input: ` + input + `${Colors.END}`);
+
+          await this.addMessage(
+            new MsgHistoryItem(
+              inputBaseMessage,
+              MsgTypes.TOOLCALL,
+              undefined,
+              inputBaseMessage.content.toString(),
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              id!,
+            ),
+          );
+
+          const msg = `JSON: Couldn't read your output. Remember to print only proper json! The format looks like this.  {"thought":"fill your thoughts here", "action":"your action e.g. message_to_user, auth ..","action_input": "either text" or input for tools: {}}. Only send the json blib in the brackets, nothing before or after!`;
+          await this.addMessage(
+            new MsgHistoryItem(
+              await this.getHumanPrompt(msg),
+              MsgTypes.TOOLOUTPUT,
+              undefined,
+              undefined,
+              undefined,
+              'error',
+              undefined,
+              msg,
+              id!,
+            ),
+          );
+          const messages: BaseMessage[] = this.messageHistory.map((msg) => msg.lcMsg);
+          baseMesage = await this.chatModel.call(messages);
+
+          input = baseMesage.content.toString();
+        }
+      }
     }
   }
 }
