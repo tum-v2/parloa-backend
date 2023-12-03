@@ -120,4 +120,4 @@ function calculateAverageResponseTime(messages: MessageDocument[], _usedEndpoint
   return averageResponseTime;
 }
 
-export { initialize, calculateAllMetrics, calculateAverageScore };
+export default { initialize, calculateAllMetrics, calculateAverageScore };

@@ -9,7 +9,7 @@ import {
 } from 'evaluation/db/models/evaluation.model';
 import { EvaluationRepository } from 'evaluation/db/repositories/evaluation.repository';
 import { RunEvaluationRequest } from 'evaluation/model/request/run-evaluation.request';
-import { calculateAllMetrics, calculateAverageScore, initialize } from './metric.service';
+import metricService from './metric.service';
 import { MetricDocument, MetricNameEnum } from 'evaluation/db/models/metric.model';
 import {
   EvaluationExecuted,
@@ -80,11 +80,11 @@ async function initiate(
     successRate: 0,
   });
 
-  const metrics = await calculateAllMetrics(conversation);
+  const metrics = await metricService.calculateAllMetrics(conversation);
 
   evaluation = (await evaluationRepository.updateById(evaluation.id, {
     metrics: metrics,
-    successRate: calculateAverageScore(metrics),
+    successRate: metricService.calculateAverageScore(metrics),
   })) as EvaluationDocument;
   console.log(evaluation);
   await conversationRepository.saveEvaluation(conversation.id, evaluation.id);
@@ -108,9 +108,9 @@ async function runEvaluationForSimulation(simulation: SimulationDocument): Promi
   const allMetrics: MetricDocument[] = conversationEvaluations.map((c) => c.metrics).flat() as MetricDocument[];
 
   const promises: Promise<MetricDocument>[] = Object.values(MetricNameEnum).map((metricName) => {
-    const value = calculateAverageScore(allMetrics.filter((metric) => metric.name === metricName));
+    const value = metricService.calculateAverageScore(allMetrics.filter((metric) => metric.name === metricName));
 
-    return initialize(metricName, value);
+    return metricService.initialize(metricName, value);
   });
 
   const sumOfScores = conversationEvaluations.reduce<number>((acc, evaluation) => acc + evaluation.successRate, 0);
