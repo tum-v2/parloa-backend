@@ -19,13 +19,45 @@ import {
 } from 'evaluation/model/request/evaluation-result.response';
 import { ConversationRepository } from '@simulation/db/repositories/conversation.repository';
 import { SimulationRepository } from '@simulation/db/repositories/simulation.repository';
+import simulationService from '@simulation/service/simulation.service';
+import { RunEvaluationResponse } from 'evaluation/model/request/run-evaluation.response';
 
 const evaluationRepository = new EvaluationRepository(EvaluationModel);
 const conversationRepository = new ConversationRepository(ConversationModel);
 const simulationRepository = new SimulationRepository(SimulationModel);
 
 /**
- * Creates an evaluation object and initiates the evaluation of the conversation and - if request.optimization is true and this is the last conversation of the simulation - also the optimization
+ * Triggers the evaluation of one conversation
+ * @param request - configuration object (type RunEvaluationRequest)
+ * @returns an RunEvaluationResponse object including the created evaluation object
+ */
+async function runEvaluation(request: RunEvaluationRequest): Promise<RunEvaluationResponse> {
+  const conversationID = request.conversation;
+  const simulationID = request.simulation;
+  const conversation: ConversationDocument | null = await conversationRepository.getById(conversationID);
+  if (!conversation) {
+    throw new Error(`Conversation ${conversationID} not found!`);
+  }
+
+  const simulation: SimulationDocument | null = await simulationService.poll(simulationID);
+
+  if (!simulation) {
+    throw new Error(`Simulation ${simulationID} not found!`);
+  } else if (!simulation.conversations.find((c) => c.toString() === conversationID)) {
+    throw new Error(`Conversation ${conversationID} does not belong to Simulation ${simulationID}`);
+  }
+
+  const evaluation: EvaluationDocument = await initiate(request, conversation, simulation);
+  const responseObject: RunEvaluationResponse = {
+    optimization: request.optimization,
+    simulation: simulationID,
+    evaluation: evaluation.id,
+  };
+  return responseObject;
+}
+
+/**
+ * Creates an evaluation object and initiates the evaluation of the conversation
  * @param request - The evaluation configuration
  * @param conversation - The conversation which will be evaluated
  * @param simulation - The simulation which the conversation belongs to.
@@ -176,4 +208,4 @@ function getExecuteEvaluationResults(evaluation: EvaluationDocument): Omit<Evalu
   };
 }
 
-export default { initiate, getResultsForConversation, getResultsForSimulation };
+export default { initiate, getResultsForConversation, getResultsForSimulation, runEvaluation };
