@@ -1,16 +1,19 @@
-import { Schema, Document, model } from 'mongoose';
+import { Schema, Document, model, Types } from 'mongoose';
+import { SimulationDocument } from '@simulation/db/models/simulation.model';
 
 interface OptimizationDocument extends Document {
-  prompt: string;
+  optimizationId: string,
+  simulationIds: Types.ObjectId[] | SimulationDocument[];
 }
 
-const optimizationSchema: Schema = new Schema(
-  {
-    prompt: { type: String, required: true },
-  },
-  { timestamps: true },
-);
+const optimizationSchema = new Schema({
+  simulationIds: [{
+    type: Schema.Types.ObjectId,
+    ref: 'Simulation'
+  }]
+});
+
 
 const OptimizationModel = model<OptimizationDocument>('Optimization', optimizationSchema);
 
-export { OptimizationModel, OptimizationDocument };
+export {OptimizationModel, OptimizationDocument};

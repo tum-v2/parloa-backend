@@ -3,6 +3,7 @@ import { AgentDocument } from './agent.model';
 import { ConversationDocument } from './conversation.model';
 import { SimulationType, SimulationStatus, SimulationScenario } from '../enum/enums';
 import { EvaluationDocument } from 'evaluation/db/models/evaluation.model';
+import { OptimizationDocument } from './optimization.model';
 
 interface SimulationDocument extends Document {
   scenario: SimulationScenario;
@@ -15,6 +16,7 @@ interface SimulationDocument extends Document {
   conversations: Types.ObjectId[] | ConversationDocument[];
   status: SimulationStatus;
   evaluation: EvaluationDocument | Types.ObjectId;
+  optimization: Types.ObjectId | OptimizationDocument | null;
 }
 
 const SimulationSchema: Schema = new Schema(
@@ -29,6 +31,7 @@ const SimulationSchema: Schema = new Schema(
     conversations: [{ type: Schema.Types.ObjectId, ref: 'Conversation' }],
     status: { type: String, enum: Object.values(SimulationStatus), required: true },
     evaluation: { type: Schema.Types.ObjectId, ref: 'Evaluation' },
+    optimization: { type: Schema.Types.ObjectId, ref: 'Optimization', default: null },
   },
   {
     timestamps: true,

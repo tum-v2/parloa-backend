@@ -19,7 +19,11 @@ const conversationRepository = repositoryFactory.conversationRepository;
  * @returns A promise that resolves to the simulation object.
  * @throws Throws an error if there is an issue with the MongoDB query.
  */
-async function initiate(request: RunSimulationRequest): Promise<SimulationDocument> {
+async function initiate(
+  request: RunSimulationRequest,
+  optimization: string | null = null,
+  child: boolean = false,
+): Promise<SimulationDocument> {
   console.log('Simulation initiated...');
   console.log('Configuration:', request);
 
@@ -49,10 +53,14 @@ async function initiate(request: RunSimulationRequest): Promise<SimulationDocume
     status: SimulationStatus.SCHEDULED,
   };
 
+  if (!child && optimization !== null) {
+    simulationData.optimization = new Types.ObjectId(optimization);
+  }
+
   const simulation = await simulationRepository.create(simulationData);
   console.log(simulation);
 
-  run(simulation, request, serviceAgent, userAgent);
+  run(simulation, request, serviceAgent, userAgent, optimization);
 
   return simulation;
 }
@@ -65,6 +73,7 @@ async function run(
   request: RunSimulationRequest,
   serviceAgent: AgentDocument,
   userAgent: AgentDocument,
+  optimization: string | null,
 ) {
   const conversations: Types.ObjectId[] = [];
 
@@ -74,15 +83,24 @@ async function run(
       'Number of conversations must be between 1 and 2 (just for now so nobody miss clicks and runs 100 conversations which would cost a lot of money))',
     );
   }
-
+  simulation.status = SimulationStatus.RUNNING;
+  await simulationRepository.updateById(simulation._id, simulation);
   for (let i = 0; i < numConversations; i++) {
-    simulation.status = SimulationStatus.RUNNING;
+    const conversation: any = await runConversation(serviceAgent, userAgent);
+    conversations.push(conversation);
+    simulation.conversations = conversations;
     await simulationRepository.updateById(simulation._id, simulation);
-    conversations.push(await runConversation(serviceAgent, userAgent));
+    if (i === numConversations - 1) {
+      // wait for evaluation function
+    } else {
+      // trigger evaluation function
+      if (optimization !== null) {
+        // call optimization function
+      }
+    }
   }
 
   simulation.status = SimulationStatus.FINISHED;
-  simulation.conversations = conversations;
   await simulationRepository.updateById(simulation._id, simulation);
 }
 
@@ -114,7 +132,7 @@ async function getConversations(id: string): Promise<ConversationDocument[] | nu
  * @throws Throws an error if there is an issue with the MongoDB query.
  */
 async function getAll(): Promise<SimulationDocument[]> {
-  const simulations: SimulationDocument[] = await simulationRepository.findAll();
+  const simulations: SimulationDocument[] = await simulationRepository.findAllParentSimulations();
   return simulations;
 }
 
