@@ -130,7 +130,10 @@ function setModelConfig(
   return azureOpenAIInput;
 }
 
-export async function configureServiceAgent(agentData: AgentDocument): Promise<CustomAgent> {
+export async function configureServiceAgent(
+  agentData: AgentDocument,
+  messageHistory?: MsgHistoryItem[],
+): Promise<CustomAgent> {
   let modelName: string;
   let temperature: number;
   let maxTokens: number;
@@ -167,6 +170,7 @@ export async function configureServiceAgent(agentData: AgentDocument): Promise<C
     true,
     true,
     async (agent: CustomAgent, historyItem: MsgHistoryItem): Promise<void> => {},
+    messageHistory || [],
   );
 
   return serviceAgent;
@@ -259,6 +263,11 @@ export async function createMessageDocument(
     intermediateMsg: msg.intermediateMsg,
     action: msg.action,
     toolInput: msg.toolInput,
+    lcMsg: msg.lcMsg,
+    userInput: msg.userInput,
+    msgToUser: msg.msgToUser,
+    toolOutput: msg.toolOutput,
+    parentId: msg.parentId,
   });
   return message;
 }

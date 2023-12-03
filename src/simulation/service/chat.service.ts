@@ -1,7 +1,7 @@
 /* eslint-disable require-jsdoc */
 import { SimulationDocument } from '../db/models/simulation.model';
 import repositoryFactory from '../db/repositories/factory';
-import { SimulationType, SimulationStatus } from '../db/enum/enums';
+import { SimulationType, SimulationStatus, MsgTypes, MsgSender } from '../db/enum/enums';
 
 import { CustomAgent } from '../agents/custom.agent';
 import { configureServiceAgent, createMessageDocument, setupPath } from '../service/conversation.service';
@@ -101,6 +101,52 @@ async function forwardMessageToAgentAndWaitResponse(message: string): Promise<st
 }
 
 /**
+ * Load an old chat with a given id
+ * @param id - Simulation id
+ * @returns A promise that resolves to the chat simulation object.
+ */
+async function load(chatId: string): Promise<{ sender: string; text: string }[]> {
+  setupPath();
+
+  const messages: { sender: string; text: string }[] = [];
+
+  const [agentId, msgHistory] = await chatRepository.loadChat(chatId);
+
+  let serviceAgentModel: AgentDocument | null = null;
+  if (agentId) {
+    serviceAgentModel = await agentRepository.getById(agentId.toString());
+  }
+
+  if (serviceAgentModel) {
+    serviceAgent = await configureServiceAgent(serviceAgentModel, msgHistory);
+    console.log('Agent configs: ', serviceAgent);
+
+    for (let i = 0; i < serviceAgent.messageHistory.length; i++) {
+      if (serviceAgent.messageHistory[i].type === MsgTypes.HUMANINPUT) {
+        const userInput = serviceAgent.messageHistory[i].userInput;
+        if (userInput !== null) {
+          messages.push({ sender: MsgSender.USER, text: userInput });
+        }
+      }
+
+      const intermediateMsg = serviceAgent.messageHistory[i].intermediateMsg;
+      if (intermediateMsg !== null) {
+        messages.push({ sender: MsgSender.AGENT, text: intermediateMsg });
+      }
+
+      const msgToUser = serviceAgent.messageHistory[i].msgToUser;
+      if (msgToUser !== null) {
+        messages.push({ sender: MsgSender.AGENT, text: msgToUser });
+      }
+    }
+
+    count = serviceAgent.messageHistory.length;
+  }
+
+  return messages;
+}
+
+/**
  * Fetch all chats
  * @returns A promise that resolves to all chat simulation objects.
  */
@@ -139,6 +185,7 @@ async function del(id: string): Promise<boolean> {
 export default {
   start,
   getById,
+  load,
   update,
   del,
   getAll,

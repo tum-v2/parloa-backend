@@ -25,6 +25,25 @@ async function start(req: Request, res: Response): Promise<void> {
 }
 
 /**
+ * Starts the chat (manual simulation)
+ * @param req - Request object - TBD
+ * @param res - Response object - TBD
+ */
+async function load(req: Request, res: Response): Promise<void> {
+  try {
+    const chatId: string = req.params.id;
+    console.log(chatId);
+
+    console.log('Loading chat...');
+    const chat: { sender: string; text: string }[] = await chatService.load(chatId);
+
+    res.status(200).send(chat);
+  } catch (error) {
+    res.status(500).json(INTERNAL_SERVER_ERROR(error));
+  }
+}
+
+/**
  * Sends a message from client to the agent
  * @param req - Request object - TBD
  * @param res - Response object - TBD
@@ -37,7 +56,6 @@ async function sendMessage(req: Request, res: Response): Promise<void> {
     console.log(message);
 
     console.log('Sending message...');
-    // TODO Forward message to agent
     const simulationWithAgentResponse: string = await chatService.sendMessage(chatId, message);
     res.status(200).send({ message: simulationWithAgentResponse });
   } catch (error) {
@@ -147,6 +165,7 @@ async function del(req: Request, res: Response): Promise<void> {
 
 export default {
   start,
+  load,
   sendMessage,
   get,
   end,
