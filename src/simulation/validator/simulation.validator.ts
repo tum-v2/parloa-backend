@@ -36,6 +36,7 @@ class simulationValidator {
       body().custom((value, { req }) => {
         const allowedFields = [
           'name',
+          'description',
           'scenario',
           'type',
           'numConversations',
