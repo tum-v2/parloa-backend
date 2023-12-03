@@ -7,7 +7,13 @@ import {
   RouteToCoreTool,
 } from '../custom.agent.config';
 
-import { auth, bookingInfo, checkAvailability, changeFlightDate } from '../../mockedAPI/flightBooking.mocks';
+import {
+  auth,
+  bookingInfo,
+  checkAvailability,
+  changeFlightDate,
+  getAllFlights,
+} from '../../mockedAPI/flightBooking.mocks';
 import { getFaqAnswer } from '../../mockedAPI/parloa.kf.faq';
 const bookingNumberParam = new APIParam(
   'booking_number',
@@ -25,7 +31,9 @@ const restApiTools: Record<string, RestAPITool> = {
       new APIParam('last_name', 'Last Name of the person who made the booking.', 'string'),
     ]),
     new APIResponse('auth_token to be used for other tools'),
-    (data) => JSON.stringify(auth(data.booking_number, data.last_name)),
+    (data) => {
+      return JSON.stringify(auth(data.booking_number, data.last_name));
+    },
   ),
   bookingInfo: new RestAPITool(
     'Retrieves booking details',
@@ -42,8 +50,8 @@ const restApiTools: Record<string, RestAPITool> = {
       bookingNumberParam,
       new APIParam(
         'new_date',
-        'New Date of flight to check availability. The new date must be provided in yyyy-mm-dd format but the format should not be mentioned to the user.',
-        'string',
+        'New Date of flight to check availability. You can either input one date as string, or an string[] The new date must be provided in yyyy-mm-dd format but the format should not be mentioned to the user.',
+        'string or string[]',
       ),
     ]),
     new APIResponse('List of available flights'),
@@ -66,6 +74,14 @@ const restApiTools: Record<string, RestAPITool> = {
       return JSON.stringify(arrayResult);
     },
   ),
+  getAllFlights: new RestAPITool(
+    'Get a list of all Flights.',
+    new APIRequest([]),
+    new APIResponse(
+      '"flight number, departure and arrival airports, departure and arrival times, and the date of the flight"',
+    ),
+    () => JSON.stringify(getAllFlights()),
+  ),
   changeFlightDate: new RestAPITool(
     'Used to modify an existing booking with a new flight date. The new date parameter must be in yyyy-mm-dd format but should not be disclosed to the user.',
     new APIRequest([
@@ -81,10 +97,10 @@ const restApiTools: Record<string, RestAPITool> = {
     (data) => JSON.stringify(changeFlightDate(data.booking_number, data.new_date, data.auth_token)),
   ),
   getAnswerFromFaq: new RestAPITool(
-    'Get an answer from the FAQ.',
+    'Get an answer from the FAQ for a question of the user.',
     new APIRequest([new APIParam('question', 'The question to ask from the FAQ', 'string')]),
     new APIResponse('Answer to the question or ANSWER_NOT_FOUND'),
-    (data) => JSON.stringify(getFaqAnswer(data.question)),
+    async (data) => await getFaqAnswer(data.question),
   ),
 };
 
@@ -96,7 +112,8 @@ const defaultRoutingParams: APIParam[] = [
 const routingTools: Record<string, RouteToCoreTool> = {
   escalateToAgent: new RouteToCoreTool(
     `Escalate to human agent if the user request is failing or the user is specifically asking for a human agent.
-Escalate immediately, you don't need to authenticate the user before transferring to an agent.
+  Escalate immediately, you don't need to authenticate the user before transferring to an agent.
+  Dont't forget to provide user_intent and data_collected as 
 `,
     new APIRequest(defaultRoutingParams),
     'EscalateToAgent',
@@ -156,6 +173,8 @@ export const flightBookingAgentConfig: CustomAgentConfig = new CustomAgentConfig
 - If there are more than 3 flights available to choose from then don't list all options but ask the user to narrow down the options
 - If the booking can be changed, always ask the user for a final confirmation before changing the booking
 - For confirmation of new flight always include flight number,  departure city, arrival city, departure time, arrival time, number of passengers.`,
+    searchFlights: `If a user just wants to know if there are any flights on a date from his departure, to his arrival city.
+    You can use getAllFlights, to get a list of all flights, and then notify the user of possible flights that are in this list and have the right data.`,
   },
   restApiTools,
   routingTools,
@@ -186,7 +205,7 @@ export const flightBookingAgentConfig: CustomAgentConfig = new CustomAgentConfig
   "thought": <Take a deep breath and think step by step. First include your thoughts based on the last message from the user and consider the full conversation history. Use a very brief, bulletpoint style format>
   "action":  <a single action you decided to take next. The action should be either the name of a TOOL or message_to_user  >
   "action_input": <either all the inputs required for the tool and you gathered from the user previously or the message to the user.>
-  "intermediate_message": <when calling a tool you should generate a very short and concise intermediate message to the user and tell to wait. Keep this message short.>
+  "intermediate_message": <when calling a tool or route you should generate a very short and concise intermediate message to the user and tell to wait. Keep this message short.>
   }}
   
   Begin! Reminder to ALWAYS respond with a single valid json blob with a single action. Use available tools if necessary.
@@ -203,3 +222,22 @@ export const flightBookingAgentConfig: CustomAgentConfig = new CustomAgentConfig
   # YOUR RESPONSE
   `,
 );
+export const fakeServiceAgentResponses: string[] = [
+  `{"thought":"The user wants to change their flight and has provided their booking number. I need to authenticate the user first.","action":"auth","action_input":{"last_name":"Diniz","booking_number":"PALO0A"},"intermediate_message":"Sure, let me verify your details. Please wait a moment."}`,
+  `{"thought":"The authentication failed. I need to ask the user to confirm their last name and booking number again.","action":"message_to_user","action_input":"I'm sorry, but I wasn't able to verify your details. Could you please confirm your last name and booking number again?"}`,
+  `{"thought":"The user has provided the correct last name and booking number. I need to authenticate the user again.","action":"auth","action_input":{"last_name":"Diniz","booking_number":"PARL0A"},"intermediate_message":"Thank you for the correction. Let me verify your details again. Please wait a moment."}`,
+  `{"thought":"I have retrieved the booking details. Now I need to confirm these details with the user.","action":"message_to_user","action_input":"I have retrieved your booking details. Your flight number is PA123, departing from New York to Boston on 2023-11-12 at 11:00am with 3 passengers. Is this the booking you want to change?"}`,
+  `{"thought":"The user has confirmed the booking details and provided the new dates. Now I need to check the availability of flights on these dates.","action":"checkAvailability","action_input":{"auth_token":"FFsecret00token","booking_number":"PARL0A","new_date":["2023-11-17","2023-11-18","2023-11-19"]},"intermediate_message":"Alright, let me check the availability of flights on November 17, 18, and 19. Please wait a moment."}`,
+  `{"thought":"There are two available flights on November 19. I need to ask the user which flight they prefer.","action":"message_to_user","action_input":"I found two available flights on November 19. One departs at 8:00am and the other at 5:30pm. Which one would you prefer?"}`,
+  `{"thought":"The user has chosen the 5:30pm flight. Now I need to confirm the change with the user before proceeding.","action":"message_to_user","action_input":"You have chosen the flight PA321 departing from New York to Boston on 2023-11-19 at 5:30pm, arriving at 7:00pm with 3 passengers. Can I confirm this change?"}`,
+  `{"thought":"The user has confirmed the change. Now I need to change the flight date.","action":"changeFlightDate","action_input":{"auth_token":"FFsecret00token","booking_number":"PARL0A","new_flight_number":"PA321","new_date":"2023-11-19"},"intermediate_message":"Thank you for confirming. I'm now processing the change. Please wait a moment."}`,
+  `{"thought":"The flight date has been successfully changed. I need to inform the user about this.","action":"message_to_user","action_input":"Your flight has been successfully changed to flight PA321, departing from New York to Boston on 2023-11-19 at 5:30pm, arriving at 7:00pm with 3 passengers. Thank you for choosing KronosJet. If you have any other questions or need further assistance, feel free to ask."}`,
+];
+export const fakeUserAgentResponses: string[] = [
+  `{"thought":"I should clearly state my problem to the agent. My flight needs to be rescheduled to a later date.","action":"message_to_user","action_input":"Hello agent, am me Claudio Diniz. I change my flight. Booking number is PALO0A is it correct, yea?"}`,
+  `{"thought":"Looks like there's a bit of confusion. I should repeat my information but a bit more clearly this time.","action":"message_to_user","action_input":"Apologies for the confusion. Surname it is Diniz, booking number PARL0A, Not PALO0A."}`,
+  `{"thought":"This is the correct booking. Now, I should ask the agent to change the booking to my desired date and time.","action":"message_to_user","action_input":"Yes yes, Correct booking. I need to change it to novermber 17 or 18 or 19. Any time is fine but 2pm interesting for me."}`,
+  `{"thought":"The available options are not during the time I prefer but it is still within the range of dates I provided. I should probably take the later flight as it is closer to my preferred time.","action":"message_to_user","action_input":"hmm, ok. 5.30 pm is close to my prefer time so, I take that one."}`,
+  `{"thought":"The flight details provided are correct. Let's confirm the change.","action":"message_to_user","action_input":"Yes, correct details. I confirm this change. Thank you."}`,
+  `{"thought":"The agent has successfully changed my flight booking. Now, I should end the call as I have no more inquiries.","action":"message_to_user","action_input":"/hangup"}`,
+];

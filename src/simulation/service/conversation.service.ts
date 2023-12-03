@@ -6,16 +6,27 @@ import { getSimConfig } from '../agents/user.agent';
 import { BaseChatModel, BaseChatModelParams } from 'langchain/chat_models/base';
 import { ChatOpenAI, OpenAIChatInput } from 'langchain/chat_models/openai';
 import { AzureOpenAIInput } from 'langchain/chat_models/openai';
-import { flightBookingAgentConfig } from '../agents/service/service.agent.flight.booker';
-import { Callback, model } from 'mongoose';
+import {
+  flightBookingAgentConfig,
+  fakeUserAgentResponses,
+  fakeServiceAgentResponses,
+} from '../agents/service/service.agent.flight.booker';
+import { Types } from 'mongoose';
 import { MsgHistoryItem } from '../agents/custom.agent';
 import { AgentDocument, AgentModel } from '../db/models/agent.model';
+import { FakeListChatModel } from 'langchain/chat_models/fake';
+import { LLMModel } from '../db/enum/enums';
+import repositoryFactory from '../db/repositories/factory';
+import { MessageDocument } from '../db/models/message.model';
+import { MsgSender, MsgTypes, ConversationStatus } from '../db/enum/enums';
 import * as fs from 'fs';
 import * as path from 'path';
-import { HumanMessage } from 'langchain/schema';
-import { LLM } from 'langchain/dist/llms/base';
-import { LLMModel } from '../db/enum/enums';
-import { CustomAgentConfig } from '../agents/custom.agent.config';
+
+const isDev = process.env.IS_DEVELOPER;
+if (isDev === undefined) throw new Error('IS_DEVELOPER Needs to be specified');
+
+const messageRepository = repositoryFactory.messageRepository;
+const conversationRepository = repositoryFactory.conversationRepository;
 
 let gpt35openApiKey: string | undefined;
 let gpt35azureApiInstanceName: string | undefined;
@@ -56,7 +67,7 @@ const SERVICE_CHAT_LOG_FILE_PATH = path.join(logsDirectory, timeStamp + '-SIM-AG
 const USER_PROMPT_LOG_FILE_PATH = path.join(logsDirectory, timeStamp + '-SIM-HUMAN-PROMPTS.txt');
 const USER_CHAT_LOG_FILE_PATH = path.join(logsDirectory, timeStamp + '-SIM-HUMAN-CHAT.txt');
 
-function setupPath() {
+export function setupPath() {
   createFile(SERVICE_PROMPT_LOG_FILE_PATH);
   createFile(SERVICE_CHAT_LOG_FILE_PATH);
   createFile(USER_PROMPT_LOG_FILE_PATH);
@@ -119,12 +130,11 @@ function setModelConfig(
   return azureOpenAIInput;
 }
 
-async function configureServiceAgent(simulationData: Partial<SimulationDocument>): Promise<CustomAgent> {
+export async function configureServiceAgent(agentData: AgentDocument): Promise<CustomAgent> {
   let modelName: string;
   let temperature: number;
   let maxTokens: number;
 
-  const agentData = simulationData.serviceAgent as AgentDocument;
   if (agentData.llm === undefined) {
     modelName = flightBookingAgentConfig.modelName;
   } else {
@@ -141,11 +151,16 @@ async function configureServiceAgent(simulationData: Partial<SimulationDocument>
     maxTokens = agentData.maxTokens;
   }
 
-  const azureOpenAIInput = setModelConfig(modelName, temperature, maxTokens);
-  const agent_llm = new ChatOpenAI(azureOpenAIInput);
+  let agentLLM: BaseChatModel;
+  if (agentData.llm === LLMModel.FAKE && isDev === 'true') {
+    agentLLM = new FakeListChatModel({ responses: fakeServiceAgentResponses, sleep: 100 });
+  } else {
+    const azureOpenAIInput = setModelConfig(modelName, temperature, maxTokens);
+    agentLLM = new ChatOpenAI(azureOpenAIInput);
+  }
 
   const serviceAgent: CustomAgent = new CustomAgent(
-    agent_llm,
+    agentLLM,
     flightBookingAgentConfig,
     SERVICE_PROMPT_LOG_FILE_PATH,
     SERVICE_CHAT_LOG_FILE_PATH,
@@ -156,12 +171,12 @@ async function configureServiceAgent(simulationData: Partial<SimulationDocument>
 
   return serviceAgent;
 }
-async function configureUserAgent(simulationData: Partial<SimulationDocument>): Promise<CustomAgent> {
+
+async function configureUserAgent(agentData: AgentDocument): Promise<CustomAgent> {
   let modelName: string;
   let temperature: number;
   let maxTokens: number;
 
-  const agentData = simulationData.userAgent as AgentDocument;
   const userSimConfig = getSimConfig(agentData.prompt);
   if (agentData.llm === undefined) {
     modelName = userSimConfig.modelName;
@@ -179,9 +194,13 @@ async function configureUserAgent(simulationData: Partial<SimulationDocument>): 
     maxTokens = agentData.maxTokens;
   }
 
-  const azureOpenAIInput = setModelConfig(modelName, temperature, maxTokens);
-
-  const userLLM = new ChatOpenAI(azureOpenAIInput);
+  let userLLM: BaseChatModel;
+  if (agentData.llm === LLMModel.FAKE && isDev === 'true') {
+    userLLM = new FakeListChatModel({ responses: fakeUserAgentResponses, sleep: 100 });
+  } else {
+    const azureOpenAIInput = setModelConfig(modelName, temperature, maxTokens);
+    userLLM = new ChatOpenAI(azureOpenAIInput);
+  }
 
   const userAgent: CustomAgent = new CustomAgent(
     userLLM,
@@ -196,11 +215,67 @@ async function configureUserAgent(simulationData: Partial<SimulationDocument>): 
   return userAgent;
 }
 
-export async function runConversation(simulationData: Partial<SimulationDocument>) {
+export async function createMessageDocument(
+  msg: MsgHistoryItem,
+  welcomeMessage: string,
+  usedEndpoints: string[],
+): Promise<MessageDocument> {
+  let sender: MsgSender;
+  let text: string;
+
+  if (msg.type === MsgTypes.SYSTEMPROMPT) {
+    sender = MsgSender.AGENT;
+    text = `AGENT: ${welcomeMessage}`;
+  } else if (msg.type === MsgTypes.HUMANINPUT) {
+    sender = MsgSender.USER;
+    text = `USER: ${msg.userInput}`;
+  } else if (msg.type === MsgTypes.TOOLCALL) {
+    sender = MsgSender.TOOL;
+    text = `TOOL: [${msg.action}] call input: ${JSON.stringify(msg.toolInput)}`;
+    if (msg.action !== null) {
+      usedEndpoints.push(msg.action);
+    }
+  } else if (msg.type === MsgTypes.TOOLOUTPUT) {
+    sender = MsgSender.TOOL;
+    text = `TOOL: [${msg.action}] result: ${msg.toolOutput}`;
+  } else if (msg.type === MsgTypes.MSGTOUSER) {
+    sender = MsgSender.AGENT;
+    text = `AGENT: ${msg.msgToUser}`;
+  } else if (msg.type === MsgTypes.ROUTE) {
+    sender = MsgSender.AGENT;
+    text = `TOOL: ${msg.action} ${msg.toolInput}`;
+    if (msg.action !== null) {
+      usedEndpoints.push(msg.action);
+    }
+  } else {
+    throw new Error(`Unknown message type: ${msg.type}`);
+  }
+
+  const message: MessageDocument = await messageRepository.create({
+    sender: sender,
+    text: text,
+    type: msg.type,
+    timestamp: msg.timestamp,
+    intermediateMsg: msg.intermediateMsg,
+    action: msg.action,
+    toolInput: msg.toolInput,
+  });
+  return message;
+}
+
+export async function runConversation(serviceAgentData: AgentDocument, userAgentData: AgentDocument) {
+  const startTime: Date = new Date();
+  const conversation = await conversationRepository.create({
+    messages: undefined,
+    startTime: startTime,
+    endTime: undefined,
+    status: ConversationStatus.ONGOING,
+    usedEndpoints: undefined,
+  });
   setupPath();
 
-  const serviceAgent: CustomAgent = await configureServiceAgent(simulationData);
-  const userAgent: CustomAgent = await configureUserAgent(simulationData);
+  const serviceAgent: CustomAgent = await configureServiceAgent(serviceAgentData);
+  const userAgent: CustomAgent = await configureUserAgent(userAgentData);
 
   let agentResponse: string = await serviceAgent.startAgent();
 
@@ -210,25 +285,63 @@ export async function runConversation(simulationData: Partial<SimulationDocument
   let turnCount = 0;
 
   try {
+    let conversationSuccess: boolean = false;
+    let hangupMsgTimestamp: Date;
     while (turnCount < maxTurnCount) {
       const userInput: string = await userAgent.processHumanInput(agentResponse);
 
       if (userInput.indexOf('/hangup') >= 0) {
         console.log(userInput);
         console.log(`\n👋👋👋 HANGUP by human_sim agent. Turn count: ${turnCount} 👋👋👋\n`);
-        return;
+        conversationSuccess = true;
+        hangupMsgTimestamp = new Date();
+        break;
       }
 
       agentResponse = await serviceAgent.processHumanInput(userInput);
 
       turnCount++;
     }
+
+    const endTime: Date = new Date();
+
+    const usedEndpoints: string[] = [];
+    const messages: MessageDocument[] = [];
+    for (let i = 0; i < serviceAgent.messageHistory.length; i++) {
+      messages.push(
+        await createMessageDocument(serviceAgent.messageHistory[i], serviceAgent.config.welcomeMessage, usedEndpoints),
+      );
+    }
+    if (conversationSuccess) {
+      const hangupMessage: MessageDocument = await messageRepository.create({
+        sender: MsgSender.USER,
+        text: '/hangup',
+        type: MsgTypes.HANGUP,
+        timestamp: hangupMsgTimestamp!,
+        intermediateMsg: undefined,
+        action: undefined,
+        toolInput: undefined,
+      });
+      messages.push(hangupMessage);
+    }
+
+    conversation.messages = messages.map((msg: MessageDocument) => msg._id);
+    conversation.endTime = endTime;
+    conversation.status = ConversationStatus.FINISHED;
+    conversation.usedEndpoints = usedEndpoints;
+    await conversationRepository.updateById(conversation._id, conversation);
+    return conversation._id;
   } catch (error) {
     if (error instanceof Error) {
       const er = error as Error;
       console.log('Errors / this : ' + er.message + ' ' + er.stack);
       console.log(`\n👋👋👋 STOPPED by user. Turn count: ${turnCount} 👋👋👋\n`);
-      return;
+      return new Types.ObjectId();
     }
   }
+  return new Types.ObjectId();
 }
+
+export default {
+  setModelConfig
+};

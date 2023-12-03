@@ -1,3 +1,10 @@
+enum SimulationType {
+  CHAT = 'CHAT',
+  AUTOMATED = 'AUTOMATED',
+  OPTIMIZATION = 'OPTIMIZATION',
+  AB_TESTING = 'A/B TESTING',
+}
+
 enum SimulationScenario {
   SEQUENCE = 'SEQUENCE',
   SLOT_FILLING = 'SLOT_FILLING',
@@ -15,11 +22,6 @@ enum ConversationStatus {
   FINISHED = 'FINISHED',
 }
 
-enum ConversationType {
-  MANUAL = 'MANUAL',
-  AUTOMATED = 'AUTOMATED',
-}
-
 enum ConversationDomain {
   FLIGHT = 'FLIGHT',
   INSURANCE = 'INSURANCE',
@@ -30,6 +32,7 @@ enum LLMModel {
   GPT35TURBO = 'GPT35TURBO',
   GPT4 = 'GPT4',
   LLAMA2 = 'LLAMA2',
+  FAKE = 'FAKE',
 }
 
 enum MsgTypes {
@@ -39,18 +42,20 @@ enum MsgTypes {
   TOOLOUTPUT = 'TOOLOUTPUT',
   MSGTOUSER = 'MSGTOUSER',
   ROUTE = 'ROUTE',
+  HANGUP = 'HANGUP',
 }
 
 enum MsgSender {
   USER = 'USER',
   AGENT = 'AGENT',
+  TOOL = 'TOOL',
 }
 
 export {
   SimulationScenario,
   SimulationStatus,
   ConversationStatus,
-  ConversationType,
+  SimulationType,
   ConversationDomain,
   LLMModel,
   MsgTypes,
