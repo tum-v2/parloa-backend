@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { body, ValidationChain, ValidationError, validationResult } from 'express-validator';
+import { body, param, ValidationChain, ValidationError, validationResult } from 'express-validator';
 import { logger } from '@simulation/service/logging.service';
 
 class CustomValidationError extends Error {
@@ -36,6 +36,22 @@ class EvaluationValidator {
         return true;
       }),
     ];
+  }
+
+  /**
+   * Validate the parmeter for the /results-for-conversation endpoint
+   * @returns Validation chain array that checks the request parameter
+   */
+  static resultsForConversationValidation(): ValidationChain[] {
+    return [param('conversationId').isMongoId().withMessage('Invalid conversation ID.')];
+  }
+
+  /**
+   * Validate the parmeter for the /results-for-simulation endpoint
+   * @returns Validation chain array that checks the request parameter
+   */
+  static resultsForSimulationValidation(): ValidationChain[] {
+    return [param('simulationId').isMongoId().withMessage('Invalid simulation ID')];
   }
 
   /**
