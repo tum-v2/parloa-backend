@@ -22,7 +22,6 @@ class simulationValidator {
   static runValidation(): ValidationChain[] {
     return [
       body('name').isString().withMessage('Simulation name must be a valid string.'),
-      body('description').isString().withMessage('Simulation description must be a valid string.'),
       body('scenario')
         .isIn(Object.values(SimulationScenario))
         .withMessage(`Invalid scenario type. Must be one of: ${Object.values(SimulationScenario).join(', ')}`),
