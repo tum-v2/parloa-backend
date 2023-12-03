@@ -3,7 +3,7 @@ import { MetricDocument } from 'evaluation/db/models/metric.model';
 type EvaluationResultForConversation = EvaluationExecuted | EvaluationInProgress | EvaluationNotExecuted;
 
 interface EvaluationResultForSimulation {
-  averageScore: number;
+  averageScore: Omit<EvaluationExecuted, 'status'>;
   conversations: EvaluationExecutedWithConversation[];
 }
 
