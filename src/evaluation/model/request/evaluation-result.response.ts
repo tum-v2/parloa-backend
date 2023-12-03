@@ -24,7 +24,7 @@ interface EvaluationNotExecuted {
 interface EvaluationExecuted {
   status: EvaluationStatus.EVALUATED;
   score: number;
-  metrics: Pick<MetricDocument, 'name' | 'value' | 'weight'>[];
+  metrics: Pick<MetricDocument, 'name' | 'value' | 'rawValue' | 'weight'>[];
 }
 
 interface EvaluationExecutedWithConversation extends Omit<EvaluationExecuted, 'status'> {

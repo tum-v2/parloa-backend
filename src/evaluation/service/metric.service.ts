@@ -27,8 +27,9 @@ async function calculateAllMetrics(conversation: ConversationDocument): Promise<
         `ERROR: metric: missing entry for ${metricName} in metricCalculationFunctions or metricNormalizationFunctions`,
       );
     }
-    const score = normalizeFunction(calculationFunction(messages, conversation.usedEndpoints));
-    return initialize(metricName, score);
+    const unnormalizedScore = calculationFunction(messages, conversation.usedEndpoints);
+    const score = normalizeFunction(unnormalizedScore);
+    return initialize(metricName, score, unnormalizedScore);
   });
 
   return await Promise.all(promises);
@@ -37,26 +38,28 @@ async function calculateAllMetrics(conversation: ConversationDocument): Promise<
 /**
  * Calculates the weighted average score
  * @param metrics - metric documents
+ * @param useRawValue - whether to calculate average over rawValue or over normalized value
  * @returns weighted average over the scores of all metrics
  */
-function calculateWeightedAverage(metrics: MetricDocument[]): number {
+function calculateWeightedAverage(metrics: MetricDocument[], useRawValue: boolean = false): number {
   return metrics.reduce<number>((accumulator: number, metric: MetricDocument | Types.ObjectId) => {
     const metricDocument = metric as MetricDocument;
-    return accumulator + metricDocument.weight * metricDocument.value;
+    return accumulator + metricDocument.weight * (useRawValue ? metricDocument.rawValue : metricDocument.value);
   }, 0);
 }
 
 /**
  * Calculates the equal (classical) average score
  * @param metrics - metric documents
+ * @param useRawValue - whether to calculate average over rawValue or over normalized value
  * @returns equal overage over the scores of all metrics
  */
-function calculateEqualAverage(metrics: MetricDocument[]): number {
+function calculateEqualAverage(metrics: MetricDocument[], useRawValue: boolean = false): number {
   if (metrics.length == 0) return 0;
 
   const sumOfScores = metrics.reduce<number>((accumulator: number, metric: MetricDocument | Types.ObjectId) => {
     const metricDocument = metric as MetricDocument;
-    return accumulator + metricDocument.value;
+    return accumulator + (useRawValue ? metricDocument.rawValue : metricDocument.value);
   }, 0);
   return sumOfScores / metrics.length;
 }
@@ -65,10 +68,11 @@ function calculateEqualAverage(metrics: MetricDocument[]): number {
  * Initializes a new metric document in the database
  * @param metricName - name of the metric which is initialized
  * @param score - score (between 0 and 1) that was achieved in the specified metric
+ * @param rawValue - not normalized score that was achieved
  * @throws if a value is missing in metricWeightMap
  * @returns the created metric document
  */
-async function initialize(metricName: MetricNameEnum, score: number) {
+async function initialize(metricName: MetricNameEnum, score: number, rawValue: number) {
   const weight = metricWeightMap.get(metricName);
   if (!weight) {
     throw new Error(`ERROR: metric: missing entry for ${metricName} in metricWeightMap`);
@@ -76,6 +80,7 @@ async function initialize(metricName: MetricNameEnum, score: number) {
   return await metricRepository.create({
     name: metricName,
     value: score,
+    rawValue: rawValue,
     weight: weight,
   });
 }

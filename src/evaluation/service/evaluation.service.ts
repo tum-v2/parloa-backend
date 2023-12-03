@@ -108,9 +108,11 @@ async function runEvaluationForSimulation(simulation: SimulationDocument): Promi
   const allMetrics: MetricDocument[] = conversationEvaluations.map((c) => c.metrics).flat() as MetricDocument[];
 
   const promises: Promise<MetricDocument>[] = Object.values(MetricNameEnum).map((metricName) => {
-    const value = metricService.calculateEqualAverage(allMetrics.filter((metric) => metric.name === metricName));
+    const filteredMetrics = allMetrics.filter((metric) => metric.name === metricName);
+    const value = metricService.calculateEqualAverage(filteredMetrics);
+    const rawValue = metricService.calculateEqualAverage(filteredMetrics, true);
 
-    return metricService.initialize(metricName, value);
+    return metricService.initialize(metricName, value, rawValue);
   });
 
   const sumOfScores = conversationEvaluations.reduce<number>((acc, evaluation) => acc + evaluation.successRate, 0);
@@ -205,8 +207,8 @@ function getExecuteEvaluationResults(evaluation: EvaluationDocument): Omit<Evalu
   return {
     score: evaluation.successRate,
     metrics: evaluation.metrics.map((metric) => {
-      const { name, value, weight } = metric as MetricDocument;
-      return { name, value, weight };
+      const { name, value, rawValue, weight } = metric as MetricDocument;
+      return { name, value, rawValue, weight };
     }),
   };
 }
