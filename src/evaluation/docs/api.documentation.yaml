@@ -197,6 +197,11 @@ components:
     EvaluationResultForSimulation:
       type: object
       properties:
+        status:
+          type: string
+          enum:
+            - evaluated
+            - not_evaluated
         averageScore:
           type: object
           properties:
