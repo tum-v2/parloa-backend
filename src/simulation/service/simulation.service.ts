@@ -1,15 +1,17 @@
 import { SimulationDocument } from '../db/models/simulation.model';
 import { ConversationDocument } from '../db/models/conversation.model';
-import { RunSimulationRequest } from '../model/request/run-simulation.request';
+import { RunSimulationRequest } from '../model/request/simulation.request';
 import { SimulationStatus } from '../db/enum/enums';
 import { Types } from 'mongoose';
 
 import repositoryFactory from '../db/repositories/factory';
 import { AgentDocument } from '../db/models/agent.model';
 import { runConversation } from './conversation.service';
+import DashboardData from '@simulation/model/response/dashboard.response';
 
 const agentRepository = repositoryFactory.agentRepository;
 const simulationRepository = repositoryFactory.simulationRepository;
+const conversationRepository = repositoryFactory.conversationRepository;
 
 /**
  * Creates a simulation object and initiates the simulation.
@@ -135,6 +137,17 @@ async function getAll(): Promise<SimulationDocument[]> {
 }
 
 /**
+ * Fetches a conversation with messages.
+ * @param id - The ID of the conversation to retrieve.
+ * @returns A promise that resolves to the conversation object.
+ * @throws Throws an error if there is an issue with the MongoDB query.
+ */
+export async function getConversation(id: string): Promise<ConversationDocument | null> {
+  const conversation: ConversationDocument | null = await conversationRepository.getMessages(id);
+  return conversation;
+}
+
+/**
  * Updates the simulation object.
  * @param id - The ID of the simulation object to update.
  * @param updates - The updates to apply to the simulation object.
@@ -155,11 +168,85 @@ async function del(id: string): Promise<boolean> {
   return await simulationRepository.deleteById(id);
 }
 
+/**
+ * Returns dashboard data.
+ * @param days - The number of days to look back.
+ * @returns A promise that resolves to dashboard data.
+ * @throws Throws an error if there is an issue with the MongoDB query.
+ */
+async function getDashboardData(days: number): Promise<DashboardData> {
+  const totalInteractions: number = await _getTotalInteractions(days);
+  const simulationRuns: number = await _getSimulationRuns(days);
+  const avgSuccessRate: number = await _getAverageSuccessRate(days);
+  const simulationSuccessGraph: Partial<SimulationDocument>[] = await _getSimulationSuccessGraph(days);
+  const top10Simulations: Partial<SimulationDocument>[] = await _getTop10Simulations(days);
+  const data: DashboardData = {
+    interactions: totalInteractions,
+    simulationRuns: simulationRuns,
+    successRate: avgSuccessRate,
+    simulationSuccessGraph: simulationSuccessGraph,
+    top10Simulations: top10Simulations,
+  };
+  return data;
+}
+
+/**
+ * Returns the total number of interactions in all simulations.
+ * @param days - The number of days to look back.
+ * @returns A promise that resolves to the number of interactions.
+ * @throws Throws an error if there is an issue with the MongoDB query.
+ */
+async function _getTotalInteractions(days: number): Promise<number> {
+  return await simulationRepository.getTotalInteractions(days);
+}
+
+/**
+ * Returns the total number of simulations run.
+ * @param days - The number of days to look back.
+ * @returns A promise that resolves to the number of simulations run.
+ * @throws Throws an error if there is an issue with the MongoDB query.
+ */
+async function _getSimulationRuns(days: number): Promise<number> {
+  return await simulationRepository.getSimulationRuns(days);
+}
+
+/**
+ * Returns the average success rate of all simulations.
+ * @param days - The number of days to look back.
+ * @returns A promise that resolves to the average success rate.
+ * @throws Throws an error if there is an issue with the MongoDB query.
+ */
+async function _getAverageSuccessRate(days: number): Promise<number> {
+  return await simulationRepository.getAverageSuccessRate(days);
+}
+
+/**
+ * Returns the success rate of all simulations.
+ * @param days - The number of days to look back.
+ * @returns A promise that resolves to the success rate.
+ * @throws Throws an error if there is an issue with the MongoDB query.
+ */
+async function _getSimulationSuccessGraph(days: number): Promise<Partial<SimulationDocument>[]> {
+  return await simulationRepository.getSimulationSuccessGraph(days);
+}
+
+/**
+ * Returns the top 10 simulations.
+ * @param days - The number of days to look back.
+ * @returns A promise that resolves to the top 10 simulations.
+ * @throws Throws an error if there is an issue with the MongoDB query.
+ */
+async function _getTop10Simulations(days: number): Promise<Partial<SimulationDocument>[]> {
+  return await simulationRepository.getTop10Simulations(days);
+}
+
 export default {
   initiate,
   poll,
   getConversations,
   getAll,
+  getConversation,
   update,
   del,
+  getDashboardData,
 };

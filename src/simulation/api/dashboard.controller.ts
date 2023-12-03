@@ -1,6 +1,8 @@
 /* eslint-disable require-jsdoc */
-import DashboardData from '../db/models/dashboardData.model';
+import DashboardData from '../model/response/dashboard.response';
 import { Request, Response } from 'express';
+import simulationService from '../service/simulation.service';
+import { BAD_REQUEST, INTERNAL_SERVER_ERROR } from 'simulation/utils/errors';
 
 /**
  * Get dashboard data
@@ -8,19 +10,19 @@ import { Request, Response } from 'express';
  * @param res - Response
  */
 async function getDashboardData(req: Request, res: Response): Promise<void> {
-  const days = req.query.days;
-  if (!days) {
-    res.status(500).send('Please provide a number of days: e.g. ?days=10 ');
-    return;
+  try {
+    const daysQuery = req.query.days as string;
+    if (!daysQuery) {
+      res.status(400).send(BAD_REQUEST('Please provide a number of days: e.g. ?days=10'));
+      return;
+    }
+
+    const days: number = parseInt(daysQuery, 10);
+    const data: DashboardData = await simulationService.getDashboardData(days);
+    res.status(200).send(data);
+  } catch (error) {
+    res.status(500).send(INTERNAL_SERVER_ERROR(error));
   }
-  const data: DashboardData = {
-    interactions: 10,
-    simulationRuns: 20,
-    successRate: 0.1,
-    simulationSuccessGraph: {},
-    top10Simulations: [],
-  };
-  res.status(200).send(data);
 }
 
 export default {
