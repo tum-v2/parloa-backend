@@ -9,7 +9,7 @@ interface ConversationDocument extends Document {
   endTime: Date;
   status: ConversationStatus;
   usedEndpoints: string[];
-  evaluation: Types.ObjectId | EvaluationDocument | null;
+  evaluation: Types.ObjectId | EvaluationDocument;
 }
 
 const conversationSchema: Schema = new Schema({
