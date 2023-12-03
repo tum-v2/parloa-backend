@@ -64,19 +64,21 @@ const metricCalculationFunctions = new Map<
 ]);
 
 /**
- * Counts the number of messages in a conversation.
- * @param conversation - The conversation to count the messages of.
- * @returns Number of messages in the conversation.
+ * Calculates the number of steps per used endpoint.
+ * @param messages
+ * @param _usedEndpoints
+ * @returns Number of steps per used endpoint.
  */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars, require-jsdoc
 function countSteps(messages: MessageDocument[], _usedEndpoints: string[]) {
-  return messages.length;
+  return messages.length / _usedEndpoints.length;
 }
 
 /**
- * Calculates the average response time of the agent in a conversation.
- * @param conversation - The conversation to calculate the average response time of.
- * @returns Average response time of the agent in the conversation.
+ *
+ * @param messages
+ * @param _usedEndpoints
+ * @returns
  */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars, require-jsdoc
 function calculateAverageResponseTime(messages: MessageDocument[], _usedEndpoints: string[]) {
