@@ -151,6 +151,23 @@ class SimulationRepository extends BaseRepository<SimulationDocument> {
     }
   }
 
+  async findAllParentSimulations(): Promise<SimulationDocument[]> {
+    try {
+      const result = await this.model
+        .find({ $nor: [{ type: SimulationType.OPTIMIZATION, optimization: null }] })
+        .exec();
+      if (result.length > 0) {
+        logger.info(`Simulations not of type 'optimization' and with optimization found: ${result}`);
+      } else {
+        logger.warn(`No simulations found`);
+      }
+      return result;
+    } catch (error) {
+      logger.error(`Error finding simulations: ${error}`);
+      throw error;
+    }
+  }
+
   // endregion FIND_BY_ATTRIBUTE //
 
   async _populate(result: SimulationDocument): Promise<SimulationDocument> {
