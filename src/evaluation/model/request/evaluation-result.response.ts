@@ -2,15 +2,22 @@ import { MetricDocument } from 'evaluation/db/models/metric.model';
 
 type EvaluationResultForConversation = EvaluationExecuted | EvaluationInProgress | EvaluationNotExecuted;
 
-interface EvaluationResultForSimulation {
-  averageScore: Omit<EvaluationExecuted, 'status'>;
-  conversations: EvaluationExecutedWithConversation[];
-}
+type EvaluationResultForSimulation = SimulationEvaluationExecuted | SimulationEvaluationNotExecuted;
 
 enum EvaluationStatus {
   EVALUATED = 'evaluated',
   IN_PROGRESS = 'in_progress',
   NOT_EVALUATED = 'not_evaluated',
+}
+
+interface SimulationEvaluationNotExecuted {
+  status: EvaluationStatus.NOT_EVALUATED;
+}
+
+interface SimulationEvaluationExecuted {
+  status: EvaluationStatus.EVALUATED;
+  averageScore: Omit<EvaluationExecuted, 'status'>;
+  conversations: EvaluationExecutedWithConversation[];
 }
 
 interface EvaluationInProgress {

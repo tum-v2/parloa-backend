@@ -10,6 +10,7 @@ import { ConversationRepository } from '@simulation/db/repositories/conversation
 import {
   EvaluationResultForConversation,
   EvaluationResultForSimulation,
+  EvaluationStatus,
 } from 'evaluation/model/request/evaluation-result.response';
 import { SimulationRepository } from '@simulation/db/repositories/simulation.repository';
 import { RunEvaluationResponse } from 'evaluation/model/request/run-evaluation.response';
@@ -79,6 +80,12 @@ async function resultsForSimulation(req: Request, res: Response): Promise<void> 
     }
 
     simulation = await simulation.populate('evaluation');
+
+    if (!simulation.evaluation) {
+      res.status(200).send({ status: EvaluationStatus.NOT_EVALUATED });
+      return;
+    }
+
     const results: EvaluationResultForSimulation = await evaluationService.getResultsForSimulation(simulation);
     res.status(200).send(results);
   } catch (error) {

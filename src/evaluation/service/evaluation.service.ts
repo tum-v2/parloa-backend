@@ -175,6 +175,7 @@ async function getResultsForSimulation(simulation: SimulationDocument): Promise<
   const averageScore = getExecuteEvaluationResults(evaluationOfSimulation);
 
   return {
+    status: EvaluationStatus.EVALUATED,
     averageScore: averageScore,
     conversations: conversationScores,
   };
