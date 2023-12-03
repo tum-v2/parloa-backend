@@ -23,7 +23,7 @@ async function start(config: Partial<SimulationDocument>): Promise<SimulationDoc
   setupPath();
 
   config.status = SimulationStatus.RUNNING;
-  config.type = SimulationType.MANUAL;
+  config.type = SimulationType.CHAT;
 
   let serviceAgentModel: AgentDocument | null = null;
   if (config.serviceAgent) {
