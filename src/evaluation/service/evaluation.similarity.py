@@ -20,26 +20,23 @@ def avg_jaccard(texts, n):
     # number of comparisons -> Gaussian sum formula
     return cumulative_similarity / number_of_comparisons
 
-
-def messages_from_user(user, conversation):
-    messages = conversation['Conversation']['Messages']
-    return [m['Message']['text']
-            for m in messages if (m['Message']['user'] == user)]
-
-# arguments: path to JSON file of conversation and ngram number
+# extract all messages from a specific user
 
 
-def run_eval(path, n):
-    f = open(path)
-    data = json.load(f)
+def messages_from_user(user, messages):
+    return [m['message']['text']
+            for m in messages if (m['message']['sender'].lower() == user.lower())]
 
-    texts = messages_from_user('Agent', data['Simulation']['Conversations'][0])
+# arguments: path to JSON data of conversation and ngram number
+
+
+def run_eval(data, n):
+    json_data = json.loads(data)
+
+    texts = messages_from_user('AGENT', json_data)
     # final result is being read from stdout
     print(avg_jaccard(texts, n))
     sys.stdout.flush()
-
-    # Closing file
-    f.close()
 
 
 run_eval(sys.argv[1], int(sys.argv[2]))
