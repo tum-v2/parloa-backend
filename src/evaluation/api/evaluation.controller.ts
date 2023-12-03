@@ -20,7 +20,7 @@ const conversationRepository = new ConversationRepository(ConversationModel);
 const simulationRepository = new SimulationRepository(SimulationModel);
 
 /**
- * Triggers the evaluation of one conversation and - if specified - the optimization of the whole simulation
+ * Triggers the evaluation of one conversation
  * @param req - Request object (RunEvaluationRequest)
  * @param res - Response object (returns the created evaluation object)
  * @throws Throws an internal server error if there is an issue with the operation.
