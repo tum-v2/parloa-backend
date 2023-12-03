@@ -39,12 +39,24 @@ async function calculateAllMetrics(conversation: ConversationDocument): Promise<
  * @param metrics - metric documents
  * @returns weighted average over the scores of all metrics
  */
-function calculateAverageScore(metrics: MetricDocument[]): number {
+function calculateWeightedAverage(metrics: MetricDocument[]): number {
+  return metrics.reduce<number>((accumulator: number, metric: MetricDocument | Types.ObjectId) => {
+    const metricDocument = metric as MetricDocument;
+    return accumulator + metricDocument.weight * metricDocument.value;
+  }, 0);
+}
+
+/**
+ * Calculates the equal (classical) average score
+ * @param metrics - metric documents
+ * @returns equal overage over the scores of all metrics
+ */
+function calculateEqualAverage(metrics: MetricDocument[]): number {
   if (metrics.length == 0) return 0;
 
   const sumOfScores = metrics.reduce<number>((accumulator: number, metric: MetricDocument | Types.ObjectId) => {
     const metricDocument = metric as MetricDocument;
-    return accumulator + metricDocument.weight * metricDocument.value;
+    return accumulator + metricDocument.value;
   }, 0);
   return sumOfScores / metrics.length;
 }
@@ -120,4 +132,4 @@ function calculateAverageResponseTime(messages: MessageDocument[], _usedEndpoint
   return averageResponseTime;
 }
 
-export default { initialize, calculateAllMetrics, calculateAverageScore };
+export default { initialize, calculateAllMetrics, calculateWeightedAverage, calculateEqualAverage };

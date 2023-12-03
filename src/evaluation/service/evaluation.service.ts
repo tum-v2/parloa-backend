@@ -84,12 +84,12 @@ async function initiate(
 
   evaluation = (await evaluationRepository.updateById(evaluation.id, {
     metrics: metrics,
-    successRate: metricService.calculateAverageScore(metrics),
+    successRate: metricService.calculateWeightedAverage(metrics),
   })) as EvaluationDocument;
   console.log(evaluation);
   await conversationRepository.saveEvaluation(conversation.id, evaluation.id);
 
-  if (request.isLast) {
+  if (request.isLast === true) {
     const evaluationOfSimulation = await runEvaluationForSimulation(simulation);
     console.log(evaluationOfSimulation);
     await simulationRepository.saveEvaluation(simulation.id, evaluationOfSimulation.id);
@@ -108,7 +108,7 @@ async function runEvaluationForSimulation(simulation: SimulationDocument): Promi
   const allMetrics: MetricDocument[] = conversationEvaluations.map((c) => c.metrics).flat() as MetricDocument[];
 
   const promises: Promise<MetricDocument>[] = Object.values(MetricNameEnum).map((metricName) => {
-    const value = metricService.calculateAverageScore(allMetrics.filter((metric) => metric.name === metricName));
+    const value = metricService.calculateEqualAverage(allMetrics.filter((metric) => metric.name === metricName));
 
     return metricService.initialize(metricName, value);
   });
@@ -129,7 +129,7 @@ async function runEvaluationForSimulation(simulation: SimulationDocument): Promi
  * @returns the evaluation results
  */
 async function getResultsForConversation(conversation: ConversationDocument): Promise<EvaluationResultForConversation> {
-  const evaluation: EvaluationDocument | null = (await conversation.populate('evaluation'))
+  let evaluation: EvaluationDocument | null = (await conversation.populate('evaluation'))
     .evaluation as EvaluationDocument | null;
   if (!evaluation) {
     return {
@@ -137,6 +137,7 @@ async function getResultsForConversation(conversation: ConversationDocument): Pr
     };
   }
 
+  evaluation = await evaluation.populate('metrics');
   return getEvaluationResults(evaluation);
 }
 
