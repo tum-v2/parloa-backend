@@ -5,7 +5,7 @@ import { SimulationDocument } from '@simulation/db/models/simulation.model';
 import { EvaluationDocument, EvaluationModel } from 'evaluation/db/models/evaluation.model';
 import { EvaluationRepository } from 'evaluation/db/repositories/evaluation.repository';
 import { RunEvaluationRequest } from 'evaluation/model/request/run-evaluation.request';
-import { calculateAllMetrics } from './metric.service';
+import { calculateAllMetrics, calculateAverageScore } from './metric.service';
 import { MetricDocument } from 'evaluation/db/models/metric.model';
 import { Types } from 'mongoose';
 import {
@@ -38,12 +38,14 @@ async function initiate(
     simulation: simulation,
     conversation: conversation,
     metrics: [],
+    successRate: 0,
   });
 
   const metrics = await calculateAllMetrics(conversation);
 
   evaluation = (await evaluationRepository.updateById(evaluation.id, {
     metrics: metrics,
+    successRate: calculateAverageScore(metrics),
   })) as EvaluationDocument;
   console.log(evaluation);
 

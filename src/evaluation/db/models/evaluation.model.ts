@@ -7,6 +7,7 @@ interface EvaluationDocument extends Document {
   simulation: Types.ObjectId | SimulationDocument;
   conversation: Types.ObjectId | ConversationDocument;
   metrics: Types.ObjectId[] | MetricDocument[];
+  successRate: number; // average score
 }
 
 const EvaluationSchema: Schema = new Schema(
@@ -14,6 +15,7 @@ const EvaluationSchema: Schema = new Schema(
     simulation: { type: Types.ObjectId, ref: 'Simulation', required: true },
     conversation: { type: Types.ObjectId, ref: 'Conversation', required: true },
     metrics: [{ type: Schema.Types.ObjectId, ref: 'Metric' }],
+    successRate: { type: Number, required: true },
   },
   {
     timestamps: true,

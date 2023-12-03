@@ -3,7 +3,7 @@ import { MessageDocument } from '@simulation/db/models/message.model';
 import { MetricRepository } from 'evaluation/db/repositories/metric.repository';
 import { MetricDocument, MetricModel } from 'evaluation/db/models/metric.model';
 import { MetricNameEnum, metricWeightMap } from 'evaluation/utils/metric.config';
-import mongoose from 'mongoose';
+import mongoose, { Types } from 'mongoose';
 import { ConversationDocument } from '@simulation/db/models/conversation.model';
 import { metricNormalizationFunctions } from 'evaluation/utils/data.normalization';
 
@@ -35,7 +35,22 @@ async function calculateAllMetrics(conversation: ConversationDocument): Promise<
 }
 
 /**
- *
+ * Calculates the weighted average score
+ * @param metrics - metric documents
+ * @returns weighted average over the scores of all metrics
+ */
+function calculateAverageScore(metrics: MetricDocument[]): number {
+  if (metrics.length == 0) return 0;
+
+  const sumOfScores = metrics.reduce<number>((accumulator: number, metric: MetricDocument | Types.ObjectId) => {
+    const metricDocument = metric as MetricDocument;
+    return accumulator + metricDocument.weight * metricDocument.value;
+  }, 0);
+  return sumOfScores / metrics.length;
+}
+
+/**
+ * Initializes a new metric document in the database
  * @param metricName - name of the metric which is initialized
  * @param score - score (between 0 and 1) that was achieved in the specified metric
  * @throws if a value is missing in metricWeightMap
@@ -105,4 +120,4 @@ function calculateAverageResponseTime(messages: MessageDocument[], _usedEndpoint
   return averageResponseTime;
 }
 
-export { calculateAllMetrics };
+export { calculateAllMetrics, calculateAverageScore };
