@@ -1,6 +1,6 @@
 import { MetricDocument } from 'evaluation/db/models/metric.model';
 
-type EvaluationResultForConersation = EvaluationExecuted | EvaluationInProgress | EvaluationNotExecuted;
+type EvaluationResultForConversation = EvaluationExecuted | EvaluationInProgress | EvaluationNotExecuted;
 
 interface EvaluationResultForSimulation {
   averageScore: number;
@@ -31,4 +31,4 @@ interface EvaluationExecutedWithConversation extends Omit<EvaluationExecuted, 's
   conversation: string;
 }
 
-export { EvaluationStatus, EvaluationResultForConersation, EvaluationResultForSimulation, EvaluationExecuted };
+export { EvaluationStatus, EvaluationResultForConversation, EvaluationResultForSimulation, EvaluationExecuted };

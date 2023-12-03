@@ -10,7 +10,7 @@ import { MetricDocument } from 'evaluation/db/models/metric.model';
 import { Types } from 'mongoose';
 import {
   EvaluationExecuted,
-  EvaluationResultForConersation,
+  EvaluationResultForConversation,
   EvaluationResultForSimulation,
   EvaluationStatus,
 } from 'evaluation/model/request/evaluation-result.response';
@@ -55,7 +55,7 @@ async function initiate(
  * @param conversation - conversation document
  * @returns the evaluation results
  */
-async function getResultsForConversation(conversation: ConversationDocument): Promise<EvaluationResultForConersation> {
+async function getResultsForConversation(conversation: ConversationDocument): Promise<EvaluationResultForConversation> {
   const evaluation: EvaluationDocument | null = await evaluationRepository.findByConversation(conversation.id);
   if (!evaluation) {
     return {
@@ -109,7 +109,7 @@ async function getResultsForSimulation(simulation: SimulationDocument): Promise<
  * @param evaluation - evaluation document
  * @returns the evaluation results
  */
-function getEvaluationResults(evaluation: EvaluationDocument): EvaluationResultForConersation {
+function getEvaluationResults(evaluation: EvaluationDocument): EvaluationResultForConversation {
   if (evaluation.metrics.length == 0) {
     return {
       status: EvaluationStatus.IN_PROGRESS,

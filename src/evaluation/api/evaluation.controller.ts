@@ -10,7 +10,7 @@ import { INTERNAL_SERVER_ERROR } from 'simulation/utils/errors';
 import { validationResult } from 'express-validator';
 import { ConversationRepository } from '@simulation/db/repositories/conversation.repository';
 import {
-  EvaluationResultForConersation,
+  EvaluationResultForConversation,
   EvaluationResultForSimulation,
 } from 'evaluation/model/request/evaluation-result.response';
 import { SimulationRepository } from '@simulation/db/repositories/simulation.repository';
@@ -81,7 +81,7 @@ async function resultsForConversation(req: Request, res: Response): Promise<void
       return;
     }
 
-    const results: EvaluationResultForConersation = await evaluationService.getResultsForConversation(conversation);
+    const results: EvaluationResultForConversation = await evaluationService.getResultsForConversation(conversation);
     res.status(200).send(results);
   } catch (error) {
     res.status(500).json(INTERNAL_SERVER_ERROR(error));
