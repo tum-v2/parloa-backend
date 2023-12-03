@@ -129,7 +129,8 @@ async function runEvaluationForSimulation(simulation: SimulationDocument): Promi
  * @returns the evaluation results
  */
 async function getResultsForConversation(conversation: ConversationDocument): Promise<EvaluationResultForConversation> {
-  const evaluation: EvaluationDocument | null = await evaluationRepository.findByConversation(conversation.id);
+  const evaluation: EvaluationDocument | null = (await conversation.populate('evaluation'))
+    .evaluation as EvaluationDocument | null;
   if (!evaluation) {
     return {
       status: EvaluationStatus.NOT_EVALUATED,
