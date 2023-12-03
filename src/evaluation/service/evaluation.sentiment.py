@@ -9,7 +9,7 @@ def sentimentAnalysis(text):
     nlp = spacy.load('en_core_web_sm')
     nlp.add_pipe('spacytextblob')
     doc = nlp(text)
-    doc._.blob.polarity
+    return doc._.blob.polarity
 
 # normalize the result to [0,1]
 
