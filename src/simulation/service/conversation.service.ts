@@ -341,3 +341,7 @@ export async function runConversation(serviceAgentData: AgentDocument, userAgent
   }
   return new Types.ObjectId();
 }
+
+export default {
+  setModelConfig
+};
