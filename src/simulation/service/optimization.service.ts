@@ -1,16 +1,16 @@
 import { SimulationDocument } from '../db/models/simulation.model';
-import { RunSimulationRequest } from '../model/request/run-simulation.request';
+import { RunSimulationRequest } from '../model/request/simulation.request';
 import simulationService from './simulation.service';
 import conversationService from './conversation.service';
 import repositoryFactory from '../db/repositories/factory';
 import { AgentDocument } from '../db/models/agent.model';
 import agentService from './agent.service';
 import { OptimizationDocument } from '@simulation/db/models/optimization.model';
-import { ConversationType, SimulationScenario } from '@simulation/db/enum/enums';
+import { SimulationType } from '@simulation/db/enum/enums';
 import { OpenAI } from 'langchain/llms/openai';
 import { PromptTemplate } from 'langchain/prompts';
 import { CommaSeparatedListOutputParser } from 'langchain/output_parsers';
-import { RunnableSequence } from 'langchain/dist/schema/runnable';
+import { RunnableSequence } from 'langchain/schema/runnable';
 
 const NUMBER_OF_PROMPTS: number = 4;
 
@@ -55,7 +55,7 @@ async function generatePrompts(agent: AgentDocument): Promise<string[]> {
 async function initiate(request: RunSimulationRequest): Promise<OptimizationDocument> {
   console.log('Optimization initiated...');
 
-  const serviceAgent: AgentDocument | null = await agentRepository.getById(request.serviceAgentConfig);
+  const serviceAgent: AgentDocument | null = await agentRepository.getById(request.serviceAgentId!);
 
   if (serviceAgent === null) {
     throw new Error('Service agent id not found');
@@ -75,12 +75,13 @@ async function initiate(request: RunSimulationRequest): Promise<OptimizationDocu
     //TODO Create a template for every prompt in the database until we figure out what to do.
     const agent: AgentDocument = await agentService.create({ prompt: prompt });
     const newRequest: RunSimulationRequest = {
-      scenario: SimulationScenario,
-      type: ConversationType,
+      description: request.description,
+      serviceAgentId: agent._id,
+      userAgentId: request.userAgentId,
+      scenario: request.scenario,
+      type: SimulationType.OPTIMIZATION,
       name: request.name,
       numConversations: request.numConversations,
-      serviceAgentConfig: agent._id,
-      userAgentConfig: request.userAgentConfig,
     };
     // start the simulation for one of the prompts
     const simulation: SimulationDocument = await simulationService.initiate(newRequest);
