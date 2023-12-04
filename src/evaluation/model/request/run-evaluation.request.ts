@@ -2,7 +2,7 @@ interface RunEvaluationRequest {
   conversation: string;
   simulation: string;
   isLast: boolean;
-  optimization: string;
+  optimization: string | null;
 }
 
 export { RunEvaluationRequest };
