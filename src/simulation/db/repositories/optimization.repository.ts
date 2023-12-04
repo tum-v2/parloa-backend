@@ -8,17 +8,15 @@ class OptimizationRepository extends BaseRepository<OptimizationDocument> {
     super(model);
   }
 
-  async findByPrompt(prompt: string): Promise<OptimizationDocument[]> {
+  async addSimulationId(optimizationId: string, simulationId: string): Promise<OptimizationDocument | null> {
     try {
-      const result = await this.model.find({ prompt }).exec();
-      if (result.length > 0) {
-        logger.info(`Optimizations found by prompt: ${result}`);
-      } else {
-        logger.warn(`No optimizations found by prompt: ${prompt}`);
-      }
-      return result;
+      const updatedDocument = await this.model
+        .findByIdAndUpdate(optimizationId, { $addToSet: { simulationIds: simulationId } }, { new: true })
+        .exec();
+
+      return updatedDocument as OptimizationDocument | null; // Explicitly casting the result
     } catch (error) {
-      logger.error(`Error finding optimizations by prompt: ${prompt}`);
+      logger.error(`Error adding simulation ID to optimization: ${error}`);
       throw error;
     }
   }

@@ -1,57 +1,26 @@
 import { Model } from 'mongoose';
-import { logger } from '../../service/logging.service';
 import { BaseRepository } from './base.repository';
 import { ConversationDocument } from '../models/conversation.model';
-import { ConversationStatus } from '../enum/enums';
+import { Types } from 'mongoose';
+import { logger } from '@simulation/service/logging.service';
 
 class ConversationRepository extends BaseRepository<ConversationDocument> {
   constructor(model: Model<ConversationDocument>) {
     super(model);
   }
 
-  async findByStartTime(startTime: Date): Promise<ConversationDocument[] | null> {
+  async getMessages(conversationId: string): Promise<ConversationDocument | null> {
     try {
-      const result = await this.model.find({ startTime }).exec();
-      if (result.length > 0) {
-        logger.info(`Conversations found by start time: ${result}`);
-      } else {
-        logger.warn(`No conversations found by start time: ${startTime}`);
-      }
-      return result;
+      const conversation: ConversationDocument | null = await this.model.findById(conversationId).populate('messages');
+      return conversation;
     } catch (error) {
-      logger.error(`Error finding conversation by start time: ${startTime}`);
+      logger.error(`Error getting messages from conversation ${conversationId}!`);
       throw error;
     }
   }
 
-  async findByConversationStatus(conversationStatus: ConversationStatus): Promise<ConversationDocument[] | null> {
-    try {
-      const result = await this.model.find({ conversationStatus }).exec();
-      if (result.length > 0) {
-        logger.info(`Conversations found by conversation status: ${result}`);
-      } else {
-        logger.warn(`No conversations found by conversation status: ${conversationStatus}`);
-      }
-      return result;
-    } catch (error) {
-      logger.error(`Error finding conversation by conversation status: ${conversationStatus}`);
-      throw error;
-    }
-  }
-
-  async findByUsedEndpoints(usedEndpoints: string[]): Promise<ConversationDocument[] | null> {
-    try {
-      const result = await this.model.find({ usedEndpoints }).exec();
-      if (result.length > 0) {
-        logger.info(`Conversations found by used endpoints: ${result}`);
-      } else {
-        logger.warn(`No conversations found by used endpoints: ${usedEndpoints}`);
-      }
-      return result;
-    } catch (error) {
-      logger.error(`Error finding conversation by used endpoints: ${usedEndpoints}`);
-      throw error;
-    }
+  async saveEvaluation(conversationId: string, evaluationId: string): Promise<ConversationDocument | null> {
+    return await super.updateById(conversationId, { evaluation: new Types.ObjectId(evaluationId) });
   }
 }
 

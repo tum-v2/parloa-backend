@@ -22,6 +22,12 @@ export function auth(bookingNumber: string, lastName: string) {
   if (lastName === undefined) {
     return { error: 'You forgot to input a last_name!' };
   }
+  if (bookingNumber === '') {
+    return { error: 'Your provided booking is empty.' };
+  }
+  if (lastName === '') {
+    return { error: 'Your provided lastName number is empty.' };
+  }
 
   if (bookingNumber.toUpperCase() === 'PARL0A' && validNames.includes(lastName.toUpperCase())) {
     return { authToken: validToken };
@@ -156,4 +162,57 @@ export function sendBookingChangeEmail(
   } else {
     return { error: 'Invalid email address' };
   }
+}
+
+export function getAllFlights() {
+  return [
+    {
+      flightNumber: 'PA222',
+      scheduledDeparture: '2023-11-19 8:00am',
+      scheduledArrival: '2023-11-19 9:30am',
+      departureCity: 'New York',
+      arrivalCity: 'Boston',
+      passangers: 3,
+    },
+    {
+      flightNumber: 'PA321',
+      scheduledDeparture: '2023-11-19 5:30pm',
+      scheduledArrival: '2023-11-19 7:00pm',
+      departureCity: 'New York',
+      arrivalCity: 'Boston',
+      passangers: 3,
+    },
+    {
+      flightNumber: 'PA222',
+      scheduledDeparture: '2024-04-01 8:00am',
+      scheduledArrival: '2024-04-01 9:30am',
+      departureCity: 'New York',
+      arrivalCity: 'Boston',
+      passangers: 3,
+    },
+    {
+      flightNumber: 'PA333',
+      scheduledDeparture: '2024-04-01 9:00am',
+      scheduledArrival: '2024-04-01 10:35am',
+      departureCity: 'New York',
+      arrivalCity: 'Boston',
+      passangers: 3,
+    },
+    {
+      flightNumber: 'PA444',
+      scheduledDeparture: '2024-04-01 4:00pm',
+      scheduledArrival: '2024-04-01 5:35pm',
+      departureCity: 'New York',
+      arrivalCity: 'Boston',
+      passangers: 3,
+    },
+    {
+      flightNumber: 'PA321',
+      scheduledDeparture: '2024-04-01 5:30pm',
+      scheduledArrival: '2024-04-01 7:00pm',
+      departureCity: 'New York',
+      arrivalCity: 'Boston',
+      passangers: 3,
+    },
+  ];
 }

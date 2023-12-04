@@ -2,8 +2,9 @@
 import { Request, Response } from 'express';
 import { validationResult } from 'express-validator';
 
-import { RunSimulationRequest } from '../model/request/run-simulation.request';
 import { RunABTestingRequest } from '../model/request/run-ab-testing.request';
+import { RunSimulationRequest } from '../model/request/simulation.request';
+
 import { SimulationDocument } from '../db/models/simulation.model';
 import simulationService from '../service/simulation.service';
 import { logger } from '../service/logging.service';
@@ -134,6 +135,25 @@ async function getAll(req: Request, res: Response): Promise<void> {
 }
 
 /**
+ * Gets the conversation of the simulation.
+ * @param req - Request object
+ * @param res - Response object (returns the conversation of the simulation)
+ */
+async function getConversation(req: Request, res: Response): Promise<void> {
+  try {
+    const id: string = req.params.id;
+    const conversation: ConversationDocument | null = await simulationService.getConversation(id);
+    if (conversation) {
+      res.status(200).send(conversation);
+    } else {
+      res.status(404).send({ error: `Conversation ${id} not found!` });
+    }
+  } catch (error) {
+    res.status(500).json(INTERNAL_SERVER_ERROR(error));
+  }
+}
+
+/**
  * Updates the simulation attributes.
  * @param req - Request object (includes changed attributes)
  * @param res - Response object
@@ -192,6 +212,7 @@ export default {
   poll,
   getConversations,
   getAll,
+  getConversation,
   update,
   del,
 };
