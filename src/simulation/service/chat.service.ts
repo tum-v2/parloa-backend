@@ -7,6 +7,7 @@ import { CustomAgent } from '../agents/custom.agent';
 import { configureServiceAgent, createMessageDocument, setupPath } from '../service/conversation.service';
 import { AgentDocument } from '../db/models/agent.model';
 import { MessageDocument } from '../db/models/message.model';
+import ChatMessage from '../model/response/chat.response';
 
 const agentRepository = repositoryFactory.agentRepository;
 const chatRepository = repositoryFactory.chatRepository;
@@ -105,10 +106,10 @@ async function forwardMessageToAgentAndWaitResponse(message: string): Promise<st
  * @param id - Simulation id
  * @returns A promise that resolves to the chat simulation object.
  */
-async function load(chatId: string): Promise<{ sender: string; text: string }[]> {
+async function load(chatId: string): Promise<ChatMessage[]> {
   setupPath();
 
-  const messages: { sender: string; text: string }[] = [];
+  const messages: ChatMessage[] = [];
 
   const [agentId, msgHistory] = await chatRepository.loadChat(chatId);
 
