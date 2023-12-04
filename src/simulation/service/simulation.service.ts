@@ -1,7 +1,7 @@
 import { SimulationDocument } from '../db/models/simulation.model';
 import { ConversationDocument } from '../db/models/conversation.model';
 import { RunSimulationRequest } from '../model/request/run-simulation.request';
-import { SimulationStatus } from '../db/enum/enums';
+import { SimulationType, SimulationStatus } from '../db/enum/enums';
 import { Types } from 'mongoose';
 
 import repositoryFactory from '../db/repositories/factory';
@@ -25,12 +25,15 @@ async function initiate(request: RunSimulationRequest): Promise<SimulationDocume
   let userAgent: AgentDocument | null = null;
   let serviceAgent: AgentDocument | null = null;
   console.log('Creating simulation object...');
-  if (request.serviceAgentConfig !== undefined && request.userAgentConfig !== undefined) {
-    userAgent = await agentRepository.create(request.userAgentConfig!);
+  if (request.serviceAgentConfig !== undefined) {
     serviceAgent = await agentRepository.create(request.serviceAgentConfig!);
-  } else if (request.serviceAgentId !== undefined && request.userAgentId !== undefined) {
-    userAgent = await agentRepository.getById(request.userAgentId!);
+  } else if (request.serviceAgentId !== undefined) {
     serviceAgent = await agentRepository.getById(request.serviceAgentId!);
+  }
+  if (request.userAgentConfig !== undefined) {
+    userAgent = await agentRepository.create(request.userAgentConfig!);
+  } else if (request.userAgentId !== undefined) {
+    userAgent = await agentRepository.getById(request.userAgentId!);
   }
 
   if (userAgent === null || serviceAgent === null) {
@@ -69,22 +72,21 @@ async function initiateAB(request: RunABTestingRequest): Promise<SimulationDocum
   let serviceAgent1: AgentDocument | null = null;
   let serviceAgent2: AgentDocument | null = null;
   console.log('Creating simulation object...');
-  if (
-    request.serviceAgent1Config !== undefined &&
-    request.serviceAgent2Config !== undefined &&
-    request.userAgentConfig !== undefined
-  ) {
-    userAgent = await agentRepository.create(request.userAgentConfig!);
+
+  if (request.serviceAgent1Config !== undefined) {
     serviceAgent1 = await agentRepository.create(request.serviceAgent1Config!);
-    serviceAgent2 = await agentRepository.create(request.serviceAgent2Config!);
-  } else if (
-    request.serviceAgent1Id !== undefined &&
-    request.serviceAgent2Id !== undefined &&
-    request.userAgentId !== undefined
-  ) {
-    userAgent = await agentRepository.getById(request.userAgentId!);
+  } else if (request.serviceAgent1Id !== undefined) {
     serviceAgent1 = await agentRepository.getById(request.serviceAgent1Id!);
+  }
+  if (request.serviceAgent2Config !== undefined) {
+    serviceAgent2 = await agentRepository.create(request.serviceAgent2Config!);
+  } else if (request.serviceAgent2Id !== undefined) {
     serviceAgent2 = await agentRepository.getById(request.serviceAgent2Id!);
+  }
+  if (request.userAgentConfig !== undefined) {
+    userAgent = await agentRepository.create(request.userAgentConfig!);
+  } else if (request.userAgentId !== undefined) {
+    userAgent = await agentRepository.getById(request.userAgentId!);
   }
 
   if (userAgent === null || serviceAgent1 === null || serviceAgent2 === null) {
@@ -93,7 +95,7 @@ async function initiateAB(request: RunABTestingRequest): Promise<SimulationDocum
 
   const simulationData1: Partial<SimulationDocument> = {
     scenario: request.scenario,
-    type: request.type,
+    type: SimulationType.AB_TESTING,
     name: request.name,
     userAgent: userAgent,
     serviceAgent: serviceAgent1,
@@ -105,7 +107,7 @@ async function initiateAB(request: RunABTestingRequest): Promise<SimulationDocum
 
   const simulationData2: Partial<SimulationDocument> = {
     scenario: request.scenario,
-    type: request.type,
+    type: SimulationType.AB_TESTING,
     name: request.name,
     userAgent: userAgent,
     serviceAgent: serviceAgent2,
