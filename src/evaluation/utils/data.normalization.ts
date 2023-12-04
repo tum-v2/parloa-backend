@@ -41,7 +41,7 @@ function normalizeResponseTime(responseTime: number) {
  * @returns normalized message count score (between 0 and 1; the higher, the better)
  */
 function normalizeMessageCount(numberOfMessages: number) {
-  return minMaxNormalize(numberOfMessages, 50, 0);
+  return minMaxNormalize(numberOfMessages, 10, 0);
 }
 
 export { metricNormalizationFunctions };
