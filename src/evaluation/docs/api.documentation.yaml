@@ -188,13 +188,44 @@ components:
                   - message_count
               value:
                 type: number
+                example: 0.72
+              rawValue:
+                type: number
+                example: 20
               weight:
                 type: number
     EvaluationResultForSimulation:
       type: object
       properties:
+        status:
+          type: string
+          enum:
+            - evaluated
+            - not_evaluated
         averageScore:
-          type: number
+          type: object
+          properties:
+            score:
+              type: number
+            metrics:
+              type: array
+              items:
+                type: object
+                properties:
+                  name:
+                    type: string
+                    enum:
+                      - success
+                      - response_time
+                      - message_count
+                  value:
+                    type: number
+                    example: 0.72
+                  rawValue:
+                    type: number
+                    example: 20
+                  weight:
+                    type: number
         conversations:
           type: array
           items:
@@ -218,5 +249,9 @@ components:
                         - message_count
                     value:
                       type: number
+                      example: 0.72
+                    rawValue:
+                      type: number
+                      example: 20
                     weight:
                       type: number
