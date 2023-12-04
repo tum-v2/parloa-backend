@@ -777,7 +777,7 @@ paths:
   /api/v1/optimization/run:
     post:
       summary: Start a new optimization
-      tags: [ Simulation ]
+      tags: [ Optimization ]
       requestBody:
         required: true
         content:
@@ -811,7 +811,7 @@ paths:
   /api/v1/optimization/{optimizationId}:
     get:
       summary: Get child simulations that belong to an optimized simulation
-      tags: [ Simulation ]
+      tags: [ Optimization ]
       parameters:
         - in: path
           name: optimizationId
