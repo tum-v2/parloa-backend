@@ -18,12 +18,12 @@ function minMaxNormalize(score: number, minScore: number, maxScore: number) {
 }
 
 /**
- * Normalizes the success metric
+ * Normalizes the success metric (which means: do nothing, score is already normalized :-))
  * @param success - C-style boolean whether conversation was successfull
- * @returns 1 if conversation was successfull, 0 if not
+ * @returns success
  */
 function normalizeSuccessScore(success: number) {
-  return Number(success != 0);
+  return success;
 }
 
 /**

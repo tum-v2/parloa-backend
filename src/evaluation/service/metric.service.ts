@@ -1,4 +1,4 @@
-import { MsgSender } from '@simulation/db/enum/enums';
+import { MsgSender, MsgTypes } from '@simulation/db/enum/enums';
 import { MessageDocument } from '@simulation/db/models/message.model';
 import { MetricRepository } from 'evaluation/db/repositories/metric.repository';
 import { MetricDocument, MetricModel } from 'evaluation/db/models/metric.model';
@@ -89,29 +89,48 @@ const metricCalculationFunctions = new Map<
   MetricNameEnum,
   (messages: MessageDocument[], usedEndpoints: string[]) => number
 >([
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  [MetricNameEnum.SUCCESS, (_messages: MessageDocument[], _usedEndpoints: string[]) => 1],
+  [MetricNameEnum.SUCCESS, goalFulfilled],
   [MetricNameEnum.RESPONSE_TIME, calculateAverageResponseTime],
   [MetricNameEnum.MESSAGE_COUNT, countSteps],
 ]);
 
 /**
+ * Evaluates whether the user's concern was fulfilled or not
+ * @param messages - The messages of the conversation
+ * @param _usedEndpoints - (unused) The endpoints that were called during the conversation
+ * @returns 1 if the user's concern was fulfilled and 0 if not
+ */
+function goalFulfilled(
+  messages: MessageDocument[],
+  _usedEndpoints: string[] /* eslint-disable-line @typescript-eslint/no-unused-vars*/,
+) {
+  const result: boolean = messages.length > 0 && messages[messages.length - 1].type == MsgTypes.HANGUP;
+  return Number(result);
+}
+
+/**
  * Counts the number of messages in a conversation.
- * @param conversation - The conversation to count the messages of.
+ * @param messages - The messages of the conversation
+ * @param _usedEndpoints - (unused) The endpoints that were called during the conversation
  * @returns Number of messages in the conversation.
  */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars, require-jsdoc
-function countSteps(messages: MessageDocument[], _usedEndpoints: string[]) {
+function countSteps(
+  messages: MessageDocument[],
+  _usedEndpoints: string[] /* eslint-disable-line @typescript-eslint/no-unused-vars*/,
+) {
   return messages.length;
 }
 
 /**
  * Calculates the average response time of the agent in a conversation.
- * @param conversation - The conversation to calculate the average response time of.
+ * @param messages - The messages of the conversation
+ * @param _usedEndpoints - (unused) The endpoints that were called during the conversation
  * @returns Average response time of the agent in the conversation.
  */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars, require-jsdoc
-function calculateAverageResponseTime(messages: MessageDocument[], _usedEndpoints: string[]) {
+function calculateAverageResponseTime(
+  messages: MessageDocument[],
+  _usedEndpoints: string[] /* eslint-disable-line @typescript-eslint/no-unused-vars*/,
+) {
   if (messages.length < 2) {
     return 0;
   }
