@@ -114,8 +114,8 @@ function goalFulfilled(
 
 /**
  * Calculates the number of steps per used endpoint.
- * @param messages
- * @param usedEndpoints
+ * @param messages - The messages of the conversation
+ * @param usedEndpoints - The endpoints that were called during the conversation
  * @returns Number of steps per used endpoint.
  */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars, require-jsdoc
