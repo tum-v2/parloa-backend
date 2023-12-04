@@ -13,8 +13,7 @@ def avg_jaccard(texts, n):
     # calculate Jaccard coefficient
     for (message1, message2) in itertools.combinations(texts, r=2):
         grams = set([element[0] for element in ngrams(message1.split(), n)])
-        comparison = [element[0]
-                      for element in set(ngrams(message2.split(), n))]
+        comparison = [element[0] for element in set(ngrams(message2.split(), n))]
         cumulative_similarity += 1 - jaccard_distance(grams, comparison)
         number_of_comparisons += 1
     # number of comparisons -> Gaussian sum formula
@@ -24,8 +23,7 @@ def avg_jaccard(texts, n):
 
 
 def messages_from_user(user, messages):
-    return [m['message']['text']
-            for m in messages if (m['message']['sender'].lower() == user.lower())]
+    return [m['message']['text'] for m in messages if (m['message']['sender'].lower() == user.lower())]
 
 # arguments: path to JSON data of conversation and ngram number
 
