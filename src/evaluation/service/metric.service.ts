@@ -66,12 +66,12 @@ const metricCalculationFunctions = new Map<
 /**
  * Calculates the number of steps per used endpoint.
  * @param messages
- * @param _usedEndpoints
+ * @param usedEndpoints
  * @returns Number of steps per used endpoint.
  */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars, require-jsdoc
-function countSteps(messages: MessageDocument[], _usedEndpoints: string[]) {
-  return messages.length / _usedEndpoints.length;
+function countSteps(messages: MessageDocument[], usedEndpoints: string[]) {
+  return messages.length / usedEndpoints.length;
 }
 
 /**
