@@ -10,6 +10,7 @@ import { ConversationRepository } from '@simulation/db/repositories/conversation
 import {
   EvaluationResultForConversation,
   EvaluationResultForSimulation,
+  EvaluationStatus,
 } from 'evaluation/model/request/evaluation-result.response';
 import { SimulationRepository } from '@simulation/db/repositories/simulation.repository';
 import { RunEvaluationResponse } from 'evaluation/model/request/run-evaluation.response';
@@ -71,10 +72,17 @@ async function resultsForConversation(req: Request, res: Response): Promise<void
 async function resultsForSimulation(req: Request, res: Response): Promise<void> {
   try {
     const simulationID: string = req.params.simulationId;
-    const simulation: SimulationDocument | null = await simulationRepository.getById(simulationID);
+    let simulation: SimulationDocument | null = await simulationRepository.getById(simulationID);
 
     if (!simulation) {
       res.status(404).send({ error: `Simulation ${simulationID} not found` });
+      return;
+    }
+
+    simulation = await simulation.populate('evaluation');
+
+    if (!simulation.evaluation) {
+      res.status(200).send({ status: EvaluationStatus.NOT_EVALUATED });
       return;
     }
 
