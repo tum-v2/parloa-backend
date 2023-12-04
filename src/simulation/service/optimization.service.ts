@@ -11,7 +11,6 @@ import { OpenAI } from 'langchain/llms/openai';
 import { PromptTemplate } from 'langchain/prompts';
 import { CommaSeparatedListOutputParser } from 'langchain/output_parsers';
 import { RunnableSequence } from 'langchain/dist/schema/runnable';
-import { optimizationDictionary } from '../utils/globals';
 
 const NUMBER_OF_PROMPTS: number = 4;
 
@@ -75,7 +74,7 @@ async function initiate(request: RunSimulationRequest): Promise<OptimizationDocu
   }
 
   // Call initiate for the base simulation and save it to the db
-  const simulation: SimulationDocument = await simulationService.initiate(request, optimizationId, false);
+  const simulation: SimulationDocument = await simulationService.initiate(request);
   optimizationDocument.baseSimulation = simulation._id;
   await optimizationDocument.save();
 
@@ -92,7 +91,7 @@ async function initiate(request: RunSimulationRequest): Promise<OptimizationDocu
       userAgentId: request.userAgentId,
     };
     // start the simulation for one of the prompts
-    const simulation: SimulationDocument = await simulationService.initiate(newRequest, optimizationId, true);
+    const simulation: SimulationDocument = await simulationService.initiate(newRequest);
 
     // Add the ongoing simulationId to the database, under its related optimizationId
     await optimizationRepository.addSimulationId(optimizationId, simulation._id);
@@ -119,7 +118,17 @@ async function handleSimulationOver(optimization: string) {
   }
 }
 
+/**
+ * Retrieves children simulations for a given optimization.
+ * @param optimization - The optimization to retrieve children simulations for.
+ * @returns A promise that resolves to an array of SimulationDocument objects.
+ */
+function getSimulations(optimization: string): Promise<SimulationDocument[] | null> {
+  return optimizationRepository.getSimulationsFromOptimization(optimization);
+}
+
 export default {
   initiate,
   handleSimulationOver,
+  getSimulations,
 };

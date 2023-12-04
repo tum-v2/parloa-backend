@@ -13,4 +13,7 @@ router.post(
   optimizationController.run,
 );
 // endregion POST //
+
+router.get('/:id', optimizationController.get);
+
 export default router;
