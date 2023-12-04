@@ -7,7 +7,7 @@ import { MessageDocument } from '@simulation/db/models/message.model';
  * @returns Similarity score of all agent messages.
  */
 function similarityHandler(messages: MessageDocument[]) {
-  var jsonMessages = JSON.stringify(messages);
+  let jsonMessages: string = JSON.stringify(messages);
   return parseFloat(execSync(`python3 evaluation.similarity.py ${jsonMessages} 1`).toString());
 }
 
@@ -17,7 +17,7 @@ function similarityHandler(messages: MessageDocument[]) {
  * @returns Recovery rate of the agent.
  */
 function recoveryHandler(messages: MessageDocument[]) {
-  var jsonMessages = JSON.stringify(messages);
+  let jsonMessages: string = JSON.stringify(messages);
   return parseFloat(execSync(`python3 evaluation.recovery.py ${jsonMessages}`).toString());
 }
 
@@ -27,7 +27,7 @@ function recoveryHandler(messages: MessageDocument[]) {
  * @returns Non-normalized sentiment polarity of the agent.
  */
 function sentimentHandler(messages: MessageDocument[]) {
-  var jsonMessages = JSON.stringify(messages);
+  let jsonMessages: string = JSON.stringify(messages);
   return parseFloat(execSync(`python3 evaluation.sentiment.py ${jsonMessages}`).toString());
 }
 

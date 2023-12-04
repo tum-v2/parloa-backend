@@ -115,6 +115,7 @@ function calculateAverageResponseTime(messages: MessageDocument[], _usedEndpoint
  * @param _usedEndpoints - The used endpoints from the conversation.
  * @returns Similarity score of all agent messages.
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars, require-jsdoc
 function calculateSimilarity(messages: MessageDocument[], _usedEndpoints: string[]) {
   return similarityHandler(messages);
 }
@@ -125,6 +126,7 @@ function calculateSimilarity(messages: MessageDocument[], _usedEndpoints: string
  * @param _usedEndpoints - The used endpoints from the conversation.
  * @returns Recovery rate of the agent.
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars, require-jsdoc
 function calculateRecoveryRate(messages: MessageDocument[], _usedEndpoints: string[]) {
   return recoveryHandler(messages);
 }
@@ -135,6 +137,7 @@ function calculateRecoveryRate(messages: MessageDocument[], _usedEndpoints: stri
  * @param _usedEndpoints - The used endpoints from the conversation.
  * @returns Sentiment polarity of the agent.
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars, require-jsdoc
 function calculateSentimentAnalysis(messages: MessageDocument[], _usedEndpoints: string[]) {
   return sentimentHandler(messages);
 }
