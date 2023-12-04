@@ -2,7 +2,6 @@ import sys
 import json
 import spacy
 from spacytextblob.spacytextblob import SpacyTextBlob
-import math
 
 
 def sentimentAnalysis(text):
@@ -10,12 +9,6 @@ def sentimentAnalysis(text):
     nlp.add_pipe('spacytextblob')
     doc = nlp(text)
     return doc._.blob.polarity
-
-# normalize the result to [0,1]
-
-
-def simgoid_normalization(result):
-    return 1 / ((1+math.exp(-result)))
 
 
 def messages_from_user(user, messages):
@@ -27,7 +20,7 @@ def run_eval(data):
     json_data = json.loads(data)
 
     text = ' '.join(messages_from_user('AGENT', json_data))
-    result = simgoid_normalization(sentimentAnalysis(text))
+    result = sentimentAnalysis(text)
     # final result is being read from stdout
     print(result)
     sys.stdout.flush()
