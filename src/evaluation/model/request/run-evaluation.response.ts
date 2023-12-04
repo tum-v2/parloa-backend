@@ -1,5 +1,5 @@
 interface RunEvaluationResponse {
-  optimization: string;
+  optimization: string | null;
   simulation: string;
   evaluation: string;
 }

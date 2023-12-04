@@ -4,6 +4,7 @@ import { MetricNameEnum } from '../../utils/metric.config';
 interface MetricDocument extends Document {
   name: MetricNameEnum;
   value: number;
+  rawValue: number; // not normalized value
   weight: number;
 }
 
@@ -11,6 +12,7 @@ const MetricSchema: Schema = new Schema<MetricDocument>(
   {
     name: { type: String, enum: Object.values(MetricNameEnum), required: true },
     value: { type: Number, required: true },
+    rawValue: { type: Number, required: true },
     weight: { type: Number, required: true },
   },
   {

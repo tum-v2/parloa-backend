@@ -3,28 +3,31 @@ import express from 'express';
 const router = express.Router();
 
 import simulationController from '../api/simulation.controller';
-import simulationValidator from '../validator/simulation.validator';
+import SimulationValidator from '../validator/simulation.validator';
+import CustomValidationError from '../validator/error.validator';
 
 // region POST //
 router.post(
   '/run',
-  simulationValidator.runValidation(),
-  simulationValidator.handleValidationErrors,
+  SimulationValidator.runValidation(),
+  CustomValidationError.handleValidationErrors,
   simulationController.run,
 );
+
+router.post('/abtesting/run', simulationController.runABTesting);
 // endregion POST //
 
 // region GET //
 router.get(
   '/:id/poll',
-  simulationValidator.idValidation(),
-  simulationValidator.handleValidationErrors,
+  SimulationValidator.idValidation(),
+  CustomValidationError.handleValidationErrors,
   simulationController.poll,
 );
 router.get(
   '/:id/conversations',
-  simulationValidator.idValidation(),
-  simulationValidator.handleValidationErrors,
+  SimulationValidator.idValidation(),
+  CustomValidationError.handleValidationErrors,
   simulationController.getConversations,
 );
 router.get('/all', simulationController.getAll);
@@ -34,9 +37,9 @@ router.get('/conversation/:id', simulationController.getConversation);
 // region PATCH //
 router.patch(
   '/:id',
-  simulationValidator.runValidation(),
-  simulationValidator.idValidation(),
-  simulationValidator.handleValidationErrors,
+  SimulationValidator.runValidation(),
+  SimulationValidator.idValidation(),
+  CustomValidationError.handleValidationErrors,
   simulationController.update,
 );
 // endregion PATCH //
@@ -44,8 +47,8 @@ router.patch(
 // region DELETE //
 router.delete(
   '/:id',
-  simulationValidator.idValidation(),
-  simulationValidator.handleValidationErrors,
+  SimulationValidator.idValidation(),
+  CustomValidationError.handleValidationErrors,
   simulationController.del,
 );
 // endregion DELETE //

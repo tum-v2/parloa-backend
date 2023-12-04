@@ -1,10 +1,12 @@
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { MessageDocument } from '../models/message.model';
 import { ConversationDocument } from '../models/conversation.model';
 import { SimulationDocument } from '../models/simulation.model';
 import { SimulationRepository } from './simulation.repository';
 import { ConversationStatus, SimulationType, SimulationStatus } from '../enum/enums';
 import { logger } from '../../service/logging.service';
+import { MsgHistoryItem } from '@simulation/agents/custom.agent';
+import { AIMessage, BaseMessage, HumanMessage, SystemMessage } from 'langchain/schema';
 
 class ChatRepository extends SimulationRepository {
   private messageModel: Model<MessageDocument>;
@@ -73,6 +75,72 @@ class ChatRepository extends SimulationRepository {
       logger.error(`Error sending message to chat ${chatId}!`);
       throw error;
     }
+  }
+
+  async loadChat(chatId: string): Promise<[Types.ObjectId, MsgHistoryItem[]]> {
+    try {
+      // Get conversation ID from chatId
+      const chat: SimulationDocument | null = await this.model.findById(chatId);
+      if (!chat) {
+        throw new Error(`Chat not found by id: ${chatId}`);
+      }
+
+      const conversationId = chat.conversations[0];
+      const agentId = chat.serviceAgent as Types.ObjectId;
+
+      // Get conversation document by ID
+      const conversation = await this.conversationModel.findById(conversationId);
+      if (!conversation) {
+        throw new Error(`Conversation not found by id: ${conversationId}`);
+      }
+
+      const messageIds = conversation.messages;
+
+      const messages = await this.messageModel.find({ _id: { $in: messageIds } });
+
+      const msgHistory: MsgHistoryItem[] = this.createMsgHistoryItems(messages);
+
+      return [agentId, msgHistory];
+    } catch (error) {
+      console.log(`Error while loading the chat:  ${chatId}!`);
+      throw error;
+    }
+  }
+
+  createMsgHistoryItems(messages: MessageDocument[]): MsgHistoryItem[] {
+    return messages.map((message) => {
+      const userInput: string | undefined = message.userInput !== null ? message.userInput : undefined;
+      const msgToUser: string | undefined = message.msgToUser !== null ? message.msgToUser : undefined;
+      const intermediateMsg: string | undefined =
+        message.intermediateMsg !== null ? message.intermediateMsg : undefined;
+      const action: string | undefined = message.action !== null ? message.action : undefined;
+      const toolInput: Record<string, any> | undefined = message.toolInput !== null ? message.toolInput : undefined;
+      const toolOutput: any | undefined = message.toolOutput !== null ? message.toolOutput : undefined;
+      const parentId: string | undefined = message.parentId !== null ? message.parentId : undefined;
+
+      let lcMsg: BaseMessage;
+      const type = message.type.toLowerCase();
+
+      if (type.includes('human')) {
+        lcMsg = new HumanMessage(message.lcMsg.content.toString());
+      } else if (type.includes('system')) {
+        lcMsg = new SystemMessage(message.lcMsg.content.toString());
+      } else {
+        lcMsg = new AIMessage(message.lcMsg.content.toString());
+      }
+
+      return new MsgHistoryItem(
+        lcMsg,
+        message.type,
+        userInput,
+        msgToUser,
+        intermediateMsg,
+        action,
+        toolInput,
+        toolOutput,
+        parentId,
+      );
+    });
   }
 
   async getById(id: string): Promise<SimulationDocument | null> {

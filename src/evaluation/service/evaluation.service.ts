@@ -1,24 +1,63 @@
 // Evaluation-specific functionality called by controllers or other services
 
-import { ConversationDocument } from '@simulation/db/models/conversation.model';
-import { SimulationDocument } from '@simulation/db/models/simulation.model';
-import { EvaluationDocument, EvaluationModel } from 'evaluation/db/models/evaluation.model';
+import { ConversationDocument, ConversationModel } from '@simulation/db/models/conversation.model';
+import { SimulationDocument, SimulationModel } from '@simulation/db/models/simulation.model';
+import {
+  EvaluationDocument,
+  EvaluationDocumentWithConversation,
+  EvaluationModel,
+} from 'evaluation/db/models/evaluation.model';
 import { EvaluationRepository } from 'evaluation/db/repositories/evaluation.repository';
 import { RunEvaluationRequest } from 'evaluation/model/request/run-evaluation.request';
-import { calculateAllMetrics } from './metric.service';
-import { MetricDocument } from 'evaluation/db/models/metric.model';
-import { Types } from 'mongoose';
+import metricService from './metric.service';
+import { MetricDocument, MetricNameEnum } from 'evaluation/db/models/metric.model';
 import {
   EvaluationExecuted,
   EvaluationResultForConversation,
   EvaluationResultForSimulation,
   EvaluationStatus,
 } from 'evaluation/model/request/evaluation-result.response';
+import { ConversationRepository } from '@simulation/db/repositories/conversation.repository';
+import { SimulationRepository } from '@simulation/db/repositories/simulation.repository';
+import simulationService from '@simulation/service/simulation.service';
+import { RunEvaluationResponse } from 'evaluation/model/request/run-evaluation.response';
 
 const evaluationRepository = new EvaluationRepository(EvaluationModel);
+const conversationRepository = new ConversationRepository(ConversationModel);
+const simulationRepository = new SimulationRepository(SimulationModel);
 
 /**
- * Creates an evaluation object and initiates the evaluation of the conversation and - if request.optimization is true and this is the last conversation of the simulation - also the optimization
+ * Triggers the evaluation of one conversation
+ * @param request - configuration object (type RunEvaluationRequest)
+ * @returns an RunEvaluationResponse object including the created evaluation object
+ */
+async function runEvaluation(request: RunEvaluationRequest): Promise<RunEvaluationResponse> {
+  const conversationID = request.conversation;
+  const simulationID = request.simulation;
+  const conversation: ConversationDocument | null = await conversationRepository.getById(conversationID);
+  if (!conversation) {
+    throw new Error(`Conversation ${conversationID} not found!`);
+  }
+
+  const simulation: SimulationDocument | null = await simulationService.poll(simulationID);
+
+  if (!simulation) {
+    throw new Error(`Simulation ${simulationID} not found!`);
+  } else if (!simulation.conversations.find((c) => c.toString() === conversationID)) {
+    throw new Error(`Conversation ${conversationID} does not belong to Simulation ${simulationID}`);
+  }
+
+  const evaluation: EvaluationDocument = await initiate(request, conversation, simulation);
+  const responseObject: RunEvaluationResponse = {
+    optimization: request.optimization,
+    simulation: simulationID,
+    evaluation: evaluation.id,
+  };
+  return responseObject;
+}
+
+/**
+ * Creates an evaluation object and initiates the evaluation of the conversation
  * @param request - The evaluation configuration
  * @param conversation - The conversation which will be evaluated
  * @param simulation - The simulation which the conversation belongs to.
@@ -38,16 +77,52 @@ async function initiate(
     simulation: simulation,
     conversation: conversation,
     metrics: [],
+    successRate: 0,
   });
 
-  const metrics = await calculateAllMetrics(conversation);
+  const metrics = await metricService.calculateAllMetrics(conversation);
 
   evaluation = (await evaluationRepository.updateById(evaluation.id, {
     metrics: metrics,
+    successRate: metricService.calculateWeightedAverage(metrics),
   })) as EvaluationDocument;
   console.log(evaluation);
+  await conversationRepository.saveEvaluation(conversation.id, evaluation.id);
+
+  if (request.isLast === true) {
+    const evaluationOfSimulation = await runEvaluationForSimulation(simulation);
+    console.log(evaluationOfSimulation);
+    await simulationRepository.saveEvaluation(simulation.id, evaluationOfSimulation.id);
+  }
 
   return evaluation;
+}
+
+/**
+ * Runs the evaluation for a simulation and stores the result in the database
+ * @param simulation - simulation which should be evaluated
+ * @returns the created evaluation document
+ */
+async function runEvaluationForSimulation(simulation: SimulationDocument): Promise<EvaluationDocument> {
+  const conversationEvaluations = await evaluationRepository.findConversationEvaluationsBySimulation(simulation.id);
+  const allMetrics: MetricDocument[] = conversationEvaluations.map((c) => c.metrics).flat() as MetricDocument[];
+
+  const promises: Promise<MetricDocument>[] = Object.values(MetricNameEnum).map((metricName) => {
+    const filteredMetrics = allMetrics.filter((metric) => metric.name === metricName);
+    const value = metricService.calculateEqualAverage(filteredMetrics);
+    const rawValue = metricService.calculateEqualAverage(filteredMetrics, true);
+
+    return metricService.initialize(metricName, value, rawValue);
+  });
+
+  const sumOfScores = conversationEvaluations.reduce<number>((acc, evaluation) => acc + evaluation.successRate, 0);
+
+  return await evaluationRepository.create({
+    simulation: simulation,
+    conversation: null,
+    metrics: await Promise.all(promises),
+    successRate: sumOfScores / conversationEvaluations.length,
+  });
 }
 
 /**
@@ -56,13 +131,15 @@ async function initiate(
  * @returns the evaluation results
  */
 async function getResultsForConversation(conversation: ConversationDocument): Promise<EvaluationResultForConversation> {
-  const evaluation: EvaluationDocument | null = await evaluationRepository.findByConversation(conversation.id);
+  let evaluation: EvaluationDocument | null = (await conversation.populate('evaluation'))
+    .evaluation as EvaluationDocument | null;
   if (!evaluation) {
     return {
       status: EvaluationStatus.NOT_EVALUATED,
     };
   }
 
+  evaluation = await evaluation.populate('metrics');
   return getEvaluationResults(evaluation);
 }
 
@@ -72,7 +149,8 @@ async function getResultsForConversation(conversation: ConversationDocument): Pr
  * @returns the evaluation results
  */
 async function getResultsForSimulation(simulation: SimulationDocument): Promise<EvaluationResultForSimulation> {
-  const evaluations: EvaluationDocument[] = await evaluationRepository.findBySimulation(simulation.id);
+  const evaluations: EvaluationDocumentWithConversation[] =
+    await evaluationRepository.findConversationEvaluationsBySimulation(simulation.id);
   const conversationScores = evaluations
     .map((evaluation) => {
       return {
@@ -93,13 +171,12 @@ async function getResultsForSimulation(simulation: SimulationDocument): Promise<
       };
     });
 
-  const sumOfScores = conversationScores.reduce<number>(
-    (accumulator: number, current) => accumulator + current.score,
-    0,
-  );
+  const evaluationOfSimulation = await (simulation.evaluation as EvaluationDocument).populate('metrics');
+  const averageScore = getExecuteEvaluationResults(evaluationOfSimulation);
 
   return {
-    averageScore: conversationScores.length > 0 ? sumOfScores / conversationScores.length : 0,
+    status: EvaluationStatus.EVALUATED,
+    averageScore: averageScore,
     conversations: conversationScores,
   };
 }
@@ -116,22 +193,25 @@ function getEvaluationResults(evaluation: EvaluationDocument): EvaluationResultF
     };
   }
 
-  const overallScore = evaluation.metrics.reduce<number>(
-    (accumulator: number, metric: MetricDocument | Types.ObjectId) => {
-      const metricDocument = metric as MetricDocument;
-      return accumulator + metricDocument.weight * metricDocument.value;
-    },
-    0,
-  );
-
   return {
+    ...getExecuteEvaluationResults(evaluation),
     status: EvaluationStatus.EVALUATED,
-    score: overallScore,
+  };
+}
+
+/**
+ * retrieves the evaluation results for the specified evaluation. The evaluation is known to already have been executed.
+ * @param evaluation - evaluation document
+ * @returns the evaluation results
+ */
+function getExecuteEvaluationResults(evaluation: EvaluationDocument): Omit<EvaluationExecuted, 'status'> {
+  return {
+    score: evaluation.successRate,
     metrics: evaluation.metrics.map((metric) => {
-      const { name, value, weight } = metric as MetricDocument;
-      return { name, value, weight };
+      const { name, value, rawValue, weight } = metric as MetricDocument;
+      return { name, value, rawValue, weight };
     }),
   };
 }
 
-export default { initiate, getResultsForConversation, getResultsForSimulation };
+export default { initiate, getResultsForConversation, getResultsForSimulation, runEvaluation };
