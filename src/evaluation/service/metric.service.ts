@@ -95,10 +95,6 @@ const metricCalculationFunctions = new Map<
 ]);
 
 /**
- *
- * @param messages
- * @param _usedEndpoints
- * @returns
  * Evaluates whether the user's concern was fulfilled or not
  * @param messages - The messages of the conversation
  * @param _usedEndpoints - (unused) The endpoints that were called during the conversation
