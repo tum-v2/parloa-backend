@@ -4,7 +4,7 @@ import { SimulationDocument } from '../db/models/simulation.model';
 
 import chatService from '../service/chat.service';
 import { INTERNAL_SERVER_ERROR } from '../utils/errors';
-import chatMessage from '../model/response/chat.response';
+import ChatMessage from '../model/response/chat.response';
 
 /**
  * Starts the chat (manual simulation)
@@ -38,7 +38,7 @@ async function load(req: Request, res: Response): Promise<void> {
     const chat: SimulationDocument | null = await chatService.getById(chatId);
     if (chat) {
       console.log('Loading chat...');
-      const messages: chatMessage[] = await chatService.load(chatId);
+      const messages: ChatMessage[] = await chatService.load(chatId);
       res.status(200).send(messages);
     } else {
       res.status(404).send({ error: `Chat ${chatId} not found!` });
