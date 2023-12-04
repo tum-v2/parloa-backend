@@ -2,7 +2,7 @@
 import { Request, Response } from 'express';
 import { validationResult } from 'express-validator';
 
-import { RunSimulationRequest } from '../model/request/run-simulation.request';
+import { RunSimulationRequest } from '../model/request/simulation.request';
 import optimizationService from '../service/optimization.service';
 import { logger } from '../service/logging.service';
 

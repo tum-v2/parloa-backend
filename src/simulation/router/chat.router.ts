@@ -6,6 +6,7 @@ import chatController from '../api/chat.controller';
 
 router.post('/start', chatController.start);
 router.get('/all', chatController.getAll);
+router.post('/:id/load', chatController.load);
 router.post('/:id/send-message', chatController.sendMessage);
 router.get('/:id', chatController.get);
 router.get('/:id/end', chatController.end);

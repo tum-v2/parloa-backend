@@ -4,6 +4,7 @@ info:
   version: 1.0.0
 tags:
   - name: Login
+  - name: Dashboard
   - name: Simulation
   - name: Agent
   - name: Chat
@@ -36,6 +37,73 @@ paths:
                     example: true
         500:
           description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: string
+                    example: INTERNAL_SERVER_ERROR
+                  message:
+                    type: string
+                    example: Internal server error occurred
+                  details:
+                    type: string
+                    example: Error
+  /api/v1/dashboard:
+    get:
+      summary: Dashboard
+      tags: [Dashboard]
+      parameters:
+        - in: query
+          name: days
+          schema:
+            type: number
+            example: 10
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  interactions:
+                    type: number
+                    example: 154
+                  simulationsRuns:
+                    type: number
+                    example: 23
+                  successRate:
+                    type: number
+                    example: 0.78
+                  simulationGraphData:
+                    type: array
+                    items: 
+                      type: object
+                  topSimulations:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/SimulationDocument"
+        400:
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: string
+                    example: BAD_REQUEST
+                  message:
+                    type: string
+                    example: Bad request
+                  details:
+                    type: string
+                    example: "Please provide a number of days: e.g. ?days=10"
+        500:
+          description: Internal Server Error
           content:
             application/json:
               schema:
@@ -859,7 +927,7 @@ components:
         type:
           type: string
           enum:
-            - MANUAL
+            - CHAT
             - AUTOMATED
         domain:
           type: string

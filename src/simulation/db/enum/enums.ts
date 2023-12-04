@@ -1,5 +1,5 @@
 enum SimulationType {
-  MANUAL = 'MANUAL',
+  CHAT = 'CHAT',
   AUTOMATED = 'AUTOMATED',
   OPTIMIZATION = 'OPTIMIZATION',
   AB_TESTING = 'A/B TESTING',

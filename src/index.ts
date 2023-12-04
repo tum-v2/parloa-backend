@@ -16,9 +16,10 @@ import agentRouter from '../src/simulation/router/agent.router';
 import authRouter from './simulation/router/auth.router';
 import dashRouter from './simulation/router/dashboard.router';
 import llmRouter from './simulation/router/llms.router';
+import evaluationRouter from './evaluation/router/evaluation.router';
 import optimizationRouter from './simulation/router/optimization.router';
 
-import simulationValidator from './simulation/validator/simulation.validator';
+import CustomValidationError from './simulation/validator/error.validator';
 
 const apiSpec = YAML.load('./src/simulation/docs/api.documentation.yaml');
 
@@ -31,12 +32,13 @@ app.use('/api/v1/simulation', simulationRouter);
 app.use('/api/v1/optimization', optimizationRouter);
 app.use('/api/v1/chat', chatRouter);
 app.use('/api/v1/agent', agentRouter);
+app.use('/api/v1/evaluation', evaluationRouter);
 
 app.use('/api/v1/auth', authRouter);
 app.use('/api/v1/dashboard', dashRouter);
 app.use('/api/v1/llm', llmRouter);
 
-app.use(simulationValidator.handleValidationErrors);
+app.use(CustomValidationError.handleValidationErrors);
 
 app.get('/', (req: Request, res: Response) => {
   res.send('Hello, TypeScript Express!!');

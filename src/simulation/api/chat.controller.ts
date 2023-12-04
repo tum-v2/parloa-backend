@@ -4,6 +4,7 @@ import { SimulationDocument } from '../db/models/simulation.model';
 
 import chatService from '../service/chat.service';
 import { INTERNAL_SERVER_ERROR } from '../utils/errors';
+import ChatMessage from '../model/response/chat.response';
 
 /**
  * Starts the chat (manual simulation)
@@ -25,6 +26,29 @@ async function start(req: Request, res: Response): Promise<void> {
 }
 
 /**
+ * Starts the chat (manual simulation)
+ * @param req - Request object - TBD
+ * @param res - Response object - TBD
+ */
+async function load(req: Request, res: Response): Promise<void> {
+  try {
+    const chatId: string = req.params.id;
+    console.log(chatId);
+
+    const chat: SimulationDocument | null = await chatService.getById(chatId);
+    if (chat) {
+      console.log('Loading chat...');
+      const messages: ChatMessage[] = await chatService.load(chatId);
+      res.status(200).send(messages);
+    } else {
+      res.status(404).send({ error: `Chat ${chatId} not found!` });
+    }
+  } catch (error) {
+    res.status(500).json(INTERNAL_SERVER_ERROR(error));
+  }
+}
+
+/**
  * Sends a message from client to the agent
  * @param req - Request object - TBD
  * @param res - Response object - TBD
@@ -36,10 +60,14 @@ async function sendMessage(req: Request, res: Response): Promise<void> {
     const message: string = req.body.message;
     console.log(message);
 
-    console.log('Sending message...');
-    // TODO Forward message to agent
-    const simulationWithAgentResponse: string = await chatService.sendMessage(chatId, message);
-    res.status(200).send({ message: simulationWithAgentResponse });
+    const chat: SimulationDocument | null = await chatService.getById(chatId);
+    if (chat) {
+      console.log('Sending message...');
+      const simulationWithAgentResponse: string = await chatService.sendMessage(chatId, message);
+      res.status(200).send({ message: simulationWithAgentResponse });
+    } else {
+      res.status(404).send({ error: `Chat ${chatId} not found!` });
+    }
   } catch (error) {
     res.status(500).json(INTERNAL_SERVER_ERROR(error));
   }
@@ -147,6 +175,7 @@ async function del(req: Request, res: Response): Promise<void> {
 
 export default {
   start,
+  load,
   sendMessage,
   get,
   end,

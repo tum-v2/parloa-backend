@@ -3,13 +3,14 @@ import express from 'express';
 const router = express.Router();
 
 import optimizationController from '../api/optimization.controller';
-import simulationValidator from '../validator/simulation.validator';
+import SimulationValidator from '../validator/simulation.validator';
+import CustomValidationError from '../validator/error.validator';
 
 // region POST //
 router.post(
   '/run',
-  simulationValidator.runValidation(),
-  simulationValidator.handleValidationErrors,
+  SimulationValidator.runValidation(),
+  CustomValidationError.handleValidationErrors,
   optimizationController.run,
 );
 // endregion POST //

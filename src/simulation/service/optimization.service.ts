@@ -1,5 +1,5 @@
 import { SimulationDocument } from '../db/models/simulation.model';
-import { RunSimulationRequest } from '../model/request/run-simulation.request';
+import { RunSimulationRequest } from '../model/request/simulation.request';
 import simulationService from './simulation.service';
 import conversationService from './conversation.service';
 import repositoryFactory from '../db/repositories/factory';
@@ -10,7 +10,7 @@ import { SimulationType } from '@simulation/db/enum/enums';
 import { OpenAI } from 'langchain/llms/openai';
 import { PromptTemplate } from 'langchain/prompts';
 import { CommaSeparatedListOutputParser } from 'langchain/output_parsers';
-import { RunnableSequence } from 'langchain/dist/schema/runnable';
+import { RunnableSequence } from 'langchain/schema/runnable';
 
 const NUMBER_OF_PROMPTS: number = 4;
 
@@ -55,7 +55,7 @@ async function generatePrompts(agent: AgentDocument): Promise<string[]> {
 async function initiate(request: RunSimulationRequest): Promise<OptimizationDocument> {
   console.log('Optimization initiated...');
 
-  const serviceAgent: AgentDocument | null = await agentRepository.getById(<string>request.serviceAgentId);
+  const serviceAgent: AgentDocument | null = await agentRepository.getById(request.serviceAgentId!);
 
   if (serviceAgent === null) {
     throw new Error('Service agent id not found');
@@ -89,6 +89,8 @@ async function initiate(request: RunSimulationRequest): Promise<OptimizationDocu
       numConversations: request.numConversations,
       serviceAgentId: agent._id,
       userAgentId: request.userAgentId,
+      serviceAgentConfig: agent,
+      userAgentConfig: request.userAgentConfig,
     };
     // start the simulation for one of the prompts
     const simulation: SimulationDocument = await simulationService.initiate(newRequest);
