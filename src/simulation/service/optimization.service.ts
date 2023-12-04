@@ -74,7 +74,7 @@ async function initiate(request: RunSimulationRequest): Promise<OptimizationDocu
   }
 
   // Call initiate for the base simulation and save it to the db
-  const simulation: SimulationDocument = await simulationService.initiate(request);
+  const simulation: SimulationDocument = await simulationService.initiate(request, optimizationId, false);
   optimizationDocument.baseSimulation = simulation._id;
   await optimizationDocument.save();
 
@@ -93,7 +93,7 @@ async function initiate(request: RunSimulationRequest): Promise<OptimizationDocu
       userAgentConfig: request.userAgentConfig,
     };
     // start the simulation for one of the prompts
-    const simulation: SimulationDocument = await simulationService.initiate(newRequest);
+    const simulation: SimulationDocument = await simulationService.initiate(newRequest, optimizationId, true);
 
     // Add the ongoing simulationId to the database, under its related optimizationId
     await optimizationRepository.addSimulationId(optimizationId, simulation._id);
