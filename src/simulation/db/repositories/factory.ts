@@ -17,5 +17,5 @@ export default {
   chatRepository: new ChatRepository(SimulationModel, MessageModel, ConversationModel),
   messageRepository: new MessageRepository(MessageModel),
   conversationRepository: new ConversationRepository(ConversationModel),
-  optimizationRepository: new OptimizationRepository(OptimizationModel)
+  optimizationRepository: new OptimizationRepository(OptimizationModel),
 };

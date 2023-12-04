@@ -12,6 +12,8 @@ router.post(
   simulationValidator.handleValidationErrors,
   simulationController.run,
 );
+
+router.post('/abtesting/run', simulationController.runABTesting);
 // endregion POST //
 
 // region GET //

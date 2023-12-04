@@ -68,7 +68,7 @@ class SimulationRepository extends BaseRepository<SimulationDocument> {
       throw error;
     }
   }
-  
+
   async findAllParentSimulations(): Promise<SimulationDocument[]> {
     try {
       const result = await this.model

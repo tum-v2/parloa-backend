@@ -343,5 +343,5 @@ export async function runConversation(serviceAgentData: AgentDocument, userAgent
 }
 
 export default {
-  setModelConfig
+  setModelConfig,
 };
