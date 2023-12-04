@@ -21,6 +21,8 @@ import { ConversationRepository } from '@simulation/db/repositories/conversation
 import { SimulationRepository } from '@simulation/db/repositories/simulation.repository';
 import simulationService from '@simulation/service/simulation.service';
 import { RunEvaluationResponse } from 'evaluation/model/request/run-evaluation.response';
+import { RerunEvaluationRequest } from 'evaluation/model/request/rerun-evaluation.request';
+import { RerunEvaluationResponse } from 'evaluation/model/request/rerun-evaluation.response';
 
 const evaluationRepository = new EvaluationRepository(EvaluationModel);
 const conversationRepository = new ConversationRepository(ConversationModel);
@@ -73,6 +75,23 @@ async function initiate(
   console.log('Configuration:', request);
   console.log('Creating evaluation object');
 
+  const evaluation = await createEvaluation(simulation, conversation);
+
+  await conversationRepository.saveEvaluation(conversation.id, evaluation.id);
+
+  if (request.isLast === true) {
+    const evaluationOfSimulation = await runEvaluationForSimulation(simulation);
+    console.log(evaluationOfSimulation);
+    await simulationRepository.saveEvaluation(simulation.id, evaluationOfSimulation.id);
+  }
+
+  return evaluation;
+}
+
+async function createEvaluation(
+  simulation: SimulationDocument,
+  conversation: ConversationDocument,
+): Promise<EvaluationDocument> {
   let evaluation = await evaluationRepository.create({
     simulation: simulation,
     conversation: conversation,
@@ -87,14 +106,6 @@ async function initiate(
     successRate: metricService.calculateWeightedAverage(metrics),
   })) as EvaluationDocument;
   console.log(evaluation);
-  await conversationRepository.saveEvaluation(conversation.id, evaluation.id);
-
-  if (request.isLast === true) {
-    const evaluationOfSimulation = await runEvaluationForSimulation(simulation);
-    console.log(evaluationOfSimulation);
-    await simulationRepository.saveEvaluation(simulation.id, evaluationOfSimulation.id);
-  }
-
   return evaluation;
 }
 
@@ -214,4 +225,36 @@ function getExecuteEvaluationResults(evaluation: EvaluationDocument): Omit<Evalu
   };
 }
 
-export default { initiate, getResultsForConversation, getResultsForSimulation, runEvaluation };
+/**
+ * Triggers the re-evaluation of one conversation
+ * @param request - configuration object (type RerunEvaluationRequest)
+ * @returns an RerunEvaluationResponse object including the created evaluation object
+ */
+async function rerunEvaluation(request: RerunEvaluationRequest): Promise<RerunEvaluationResponse> {
+  const conversationID = request.conversation;
+  const simulationID = request.simulation;
+  const conversation: ConversationDocument | null = await conversationRepository.getById(conversationID);
+  if (!conversation) {
+    throw new Error(`Conversation ${conversationID} not found!`);
+  }
+
+  const simulation: SimulationDocument | null = await simulationService.poll(simulationID);
+
+  if (!simulation) {
+    throw new Error(`Simulation ${simulationID} not found!`);
+  } else if (!simulation.conversations.find((c) => c.toString() === conversationID)) {
+    throw new Error(`Conversation ${conversationID} does not belong to Simulation ${simulationID}`);
+  }
+
+  console.log('Re-Evaluation initiated...');
+  console.log('Configuration:', request);
+  console.log('Creating re-evaluation object');
+  const evaluation: EvaluationDocument = await createEvaluation(simulation, conversation);
+  const responseObject: RerunEvaluationResponse = {
+    simulation: simulationID,
+    evaluation: evaluation.id,
+  };
+  return responseObject;
+}
+
+export default { initiate, getResultsForConversation, getResultsForSimulation, runEvaluation, rerunEvaluation };

@@ -14,6 +14,8 @@ import {
 } from 'evaluation/model/request/evaluation-result.response';
 import { SimulationRepository } from '@simulation/db/repositories/simulation.repository';
 import { RunEvaluationResponse } from 'evaluation/model/request/run-evaluation.response';
+import { RerunEvaluationRequest } from 'evaluation/model/request/rerun-evaluation.request';
+import { RerunEvaluationResponse } from 'evaluation/model/request/rerun-evaluation.response';
 
 const conversationRepository = new ConversationRepository(ConversationModel);
 const simulationRepository = new SimulationRepository(SimulationModel);
@@ -93,4 +95,26 @@ async function resultsForSimulation(req: Request, res: Response): Promise<void> 
   }
 }
 
-export default { run, resultsForConversation, resultsForSimulation };
+/**
+ * Triggers the re-evaluation of one conversation
+ * @param req - Request object (RerunEvaluationRequest)
+ * @param res - Response object (returns the created evaluation object)
+ * @throws Throws an internal server error if there is an issue with the operation.
+ */
+async function rerun(req: Request, res: Response): Promise<void> {
+  try {
+    const validationErrors = validationResult(req);
+    if (!validationErrors.isEmpty()) {
+      res.status(400).send({ error: validationErrors });
+      return;
+    }
+
+    const evaluationConfig: RerunEvaluationRequest = req.body as RunEvaluationRequest;
+    const responseObject: RerunEvaluationResponse = await evaluationService.rerunEvaluation(evaluationConfig);
+    res.status(200).send(responseObject);
+  } catch (error) {
+    res.status(500).json(INTERNAL_SERVER_ERROR(error));
+  }
+}
+
+export default { run, resultsForConversation, resultsForSimulation, rerun };

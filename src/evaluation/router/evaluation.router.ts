@@ -28,6 +28,13 @@ router.post(
   evaluationValidator.handleValidationErrors,
   evaluationController.run,
 );
+
+router.post(
+  '/rerun',
+  evaluationValidator.rerunValidation(),
+  evaluationValidator.handleValidationErrors,
+  evaluationController.rerun,
+);
 // endregion POST //
 
 export default router;
