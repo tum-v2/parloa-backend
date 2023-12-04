@@ -1,7 +1,7 @@
 import { MetricNameEnum } from './metric.config';
 
 const metricNormalizationFunctions: Map<MetricNameEnum, (score: number) => number> = new Map([
-  [MetricNameEnum.SUCCESS, normalizeSuccessScore],
+  [MetricNameEnum.SUCCESS, (score) => score],
   [MetricNameEnum.RESPONSE_TIME, normalizeResponseTime],
   [MetricNameEnum.MESSAGE_COUNT, normalizeMessageCount],
 ]);
@@ -15,15 +15,6 @@ const metricNormalizationFunctions: Map<MetricNameEnum, (score: number) => numbe
  */
 function minMaxNormalize(score: number, minScore: number, maxScore: number) {
   return (score - minScore) / (maxScore - minScore);
-}
-
-/**
- * Normalizes the success metric (which means: do nothing, score is already normalized :-))
- * @param success - C-style boolean whether conversation was successfull
- * @returns success
- */
-function normalizeSuccessScore(success: number) {
-  return success;
 }
 
 /**
