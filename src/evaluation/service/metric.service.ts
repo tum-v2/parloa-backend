@@ -6,6 +6,7 @@ import { MetricNameEnum, metricWeightMap } from 'evaluation/utils/metric.config'
 import mongoose from 'mongoose';
 import { ConversationDocument } from '@simulation/db/models/conversation.model';
 import { metricNormalizationFunctions } from 'evaluation/utils/data.normalization';
+import { similarityHandler, sentimentHandler, recoveryHandler } from './evaluation.python-wrapper';
 
 const metricRepository = new MetricRepository(MetricModel);
 
@@ -61,6 +62,9 @@ const metricCalculationFunctions = new Map<
   [MetricNameEnum.SUCCESS, (_messages: MessageDocument[], _usedEndpoints: string[]) => 1],
   [MetricNameEnum.RESPONSE_TIME, calculateAverageResponseTime],
   [MetricNameEnum.MESSAGE_COUNT, countSteps],
+  [MetricNameEnum.SIMILARITY, calculateSimilarity],
+  [MetricNameEnum.RECOVERY_RATE, calculateRecoveryRate],
+  [MetricNameEnum.SENTIMENT_ANALYSIS, calculateSentimentAnalysis],
 ]);
 
 /**
@@ -105,4 +109,15 @@ function calculateAverageResponseTime(messages: MessageDocument[], _usedEndpoint
   return averageResponseTime;
 }
 
+function calculateSimilarity(messages: MessageDocument[], _usedEndpoints: string[]) {
+  return similarityHandler(messages);
+}
+
+function calculateRecoveryRate(messages: MessageDocument[], _usedEndpoints: string[]) {
+  return recoveryHandler(messages);
+}
+
+function calculateSentimentAnalysis(messages: MessageDocument[], _usedEndpoints: string[]) {
+  return sentimentHandler(messages);
+}
 export { calculateAllMetrics };
