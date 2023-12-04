@@ -16,19 +16,6 @@ const validNames: string[] = [
   'RINDSLAND',
 ];
 export function auth(bookingNumber: string, lastName: string) {
-  if (bookingNumber === undefined) {
-    return { error: 'You forgot to input a booking_number!' };
-  }
-  if (lastName === undefined) {
-    return { error: 'You forgot to input a last_name!' };
-  }
-  if (bookingNumber === '') {
-    return { error: 'Your provided booking is empty.' };
-  }
-  if (lastName === '') {
-    return { error: 'Your provided lastName number is empty.' };
-  }
-
   if (bookingNumber.toUpperCase() === 'PARL0A' && validNames.includes(lastName.toUpperCase())) {
     return { authToken: validToken };
   } else {
@@ -36,13 +23,6 @@ export function auth(bookingNumber: string, lastName: string) {
   }
 }
 export function bookingInfo(bookingNumber: string, authToken: string) {
-  if (bookingNumber === undefined) {
-    return { error: 'You forgot to input a booking_number!' };
-  }
-  if (authToken === undefined) {
-    return { error: 'You forgot to input a auth_token!' };
-  }
-
   if (bookingNumber.toUpperCase() == 'PARL0A' && authToken == validToken)
     return {
       flightNumber: 'PA123',
@@ -57,16 +37,6 @@ export function bookingInfo(bookingNumber: string, authToken: string) {
   }
 }
 export function checkAvailability(bookingNumber: string, newDate: string, authToken: string) {
-  if (bookingNumber === undefined) {
-    return { error: 'You forgot to input a booking_number!' };
-  }
-  if (authToken === undefined) {
-    return { error: 'You forgot to input a auth_token!' };
-  }
-  if (newDate === undefined) {
-    return { error: 'You forgot to input a new_date!' };
-  }
-
   if (bookingNumber.toUpperCase() === 'PARL0A' && authToken === validToken)
     if (newDate == '2023-11-19')
       return [
@@ -126,16 +96,6 @@ export function checkAvailability(bookingNumber: string, newDate: string, authTo
   return { error: 'No flights available' };
 }
 export function changeFlightDate(bookingNumber: string, newDate: string, authToken: string): any {
-  if (bookingNumber === undefined) {
-    return { error: 'You forgot to input a booking_number!' };
-  }
-  if (authToken === undefined) {
-    return { error: 'You forgot to input a auth_token!' };
-  }
-  if (newDate === undefined) {
-    return { error: 'You forgot to input a new_date!' };
-  }
-
   if (
     bookingNumber.toUpperCase() === 'PARL0A' &&
     ['2023-11-19', '2024-04-01'].includes(newDate) &&
