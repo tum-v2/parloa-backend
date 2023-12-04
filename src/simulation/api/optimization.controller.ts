@@ -35,7 +35,7 @@ async function run(req: Request, res: Response): Promise<void> {
 }
 
 /**
- * Handle requests coming from the UI, get all simulations that belong to an optimization.
+ * Handle requests coming from the UI, get child simulations that belong to an optimized simulation
  * @param req - Request object
  * @param res - Response object (returns the fetched simulation)
  * @throws Throws an internal server error if there is an issue with the operation.
