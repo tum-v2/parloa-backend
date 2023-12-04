@@ -1,6 +1,7 @@
 import { MsgTypes } from '../enum/enums';
 import { Schema, Document, model } from 'mongoose';
 import { MsgSender } from '../enum/enums';
+import { BaseMessage } from 'langchain/schema';
 
 interface MessageDocument extends Document {
   sender: MsgSender;
@@ -10,6 +11,11 @@ interface MessageDocument extends Document {
   intermediateMsg: string | null;
   action: string | null;
   toolInput: Record<string, any> | null;
+  lcMsg: BaseMessage;
+  userInput: string | null;
+  msgToUser: string | null;
+  toolOutput: any | null;
+  parentId: string | null;
 }
 
 const messageSchema: Schema = new Schema(
@@ -21,6 +27,11 @@ const messageSchema: Schema = new Schema(
     intermediateMsg: { type: String },
     action: { type: String },
     toolInput: { type: Schema.Types.Mixed },
+    lcMsg: { type: Schema.Types.Mixed, ref: 'BaseMessage' },
+    userInput: { type: String },
+    msgToUser: { type: String },
+    toolOutput: { type: Schema.Types.Mixed },
+    parentId: { type: String },
   },
   { timestamps: true },
 );

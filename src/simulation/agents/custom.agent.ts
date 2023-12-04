@@ -87,6 +87,7 @@ export class CustomAgent {
     isVerbose: boolean = true,
     isEchoHumanInput: boolean = false,
     messageCallback?: Callback,
+    messageHistory?: MsgHistoryItem[] | null,
   ) {
     this.chatModel = chatModel;
     this.config = config;
@@ -99,7 +100,7 @@ export class CustomAgent {
       ...this.config.restApiTools,
       ...this.config.routingTools,
     };
-    this.messageHistory = [];
+    this.messageHistory = messageHistory || [];
   }
 
   async startAgent(): Promise<string> {
