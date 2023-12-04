@@ -109,14 +109,32 @@ function calculateAverageResponseTime(messages: MessageDocument[], _usedEndpoint
   return averageResponseTime;
 }
 
+/**
+ * Calculates the average similarity of the agent messages in a conversation.
+ * @param messages - The messages to calculate the similarity for.
+ * @param _usedEndpoints - The used endpoints from the conversation.
+ * @returns Similarity score of all agent messages.
+ */
 function calculateSimilarity(messages: MessageDocument[], _usedEndpoints: string[]) {
   return similarityHandler(messages);
 }
 
+/**
+ * Calculates the average recovery rate after response timeouts of the agent in a conversation.
+ * @param messages - The messages to calculate the recovery rate for.
+ * @param _usedEndpoints - The used endpoints from the conversation.
+ * @returns Recovery rate of the agent.
+ */
 function calculateRecoveryRate(messages: MessageDocument[], _usedEndpoints: string[]) {
   return recoveryHandler(messages);
 }
 
+/**
+ * Calculates the average polarity of the agent in a conversation (negative or positive tone)
+ * @param messages - The messages to calculate the sentiment for.
+ * @param _usedEndpoints - The used endpoints from the conversation.
+ * @returns Sentiment polarity of the agent.
+ */
 function calculateSentimentAnalysis(messages: MessageDocument[], _usedEndpoints: string[]) {
   return sentimentHandler(messages);
 }

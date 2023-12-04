@@ -56,6 +56,11 @@ function normalizeMessageCount(numberOfMessages: number) {
   return minMaxNormalize(numberOfMessages, 50, 0);
 }
 
+/**
+ * Normalizes the sentiment analysis metric
+ * @param score - non-normalized sentiment polarity
+ * @returns normalized sentiment polarity (between 0 and 1; the higher, the more positive)
+ */
 function normalizeSentimentAnalysis(score: number) {
   return sigmoidNormalize(score);
 }
