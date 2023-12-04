@@ -1,5 +1,5 @@
 enum SimulationType {
-  MANUAL = 'MANUAL',
+  CHAT = 'CHAT',
   AUTOMATED = 'AUTOMATED',
   OPTIMIZATION = 'OPTIMIZATION',
   AB_TESTING = 'A/B TESTING',
@@ -42,6 +42,7 @@ enum MsgTypes {
   TOOLOUTPUT = 'TOOLOUTPUT',
   MSGTOUSER = 'MSGTOUSER',
   ROUTE = 'ROUTE',
+  HANGUP = 'HANGUP',
 }
 
 enum MsgSender {

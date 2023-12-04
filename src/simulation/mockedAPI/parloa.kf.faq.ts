@@ -15,10 +15,10 @@ interface FAQRequest {
   context: Context;
   input: {
     question: string;
-    knowledgeBaseId: string;
-    companyReferenceName: string;
+    knowledge_base_id: string;
+    company_reference_name: string;
     verbose: boolean;
-    modelName: string;
+    model_name: string;
     persona?: string;
   };
 }
@@ -30,14 +30,18 @@ interface ChoiceResponse {
 }
 // eslint-disable-next-line require-jsdoc, @typescript-eslint/no-unused-vars
 export async function getFaqAnswer(question: string): Promise<string> {
+  if (question === undefined) {
+    return `You forgot to provide a question in the action_input like this e.g.  { "question":"Your question here?"}`;
+  }
+
   const request: FAQRequest = {
     context: context,
     input: {
       question: question,
-      knowledgeBaseId: kbID ?? '',
-      companyReferenceName: companyReferenceName ?? 'company', // how to bot referce to the company in the answer
+      knowledge_base_id: kbID ?? '',
+      company_reference_name: companyReferenceName ?? 'company', // how to bot referce to the company in the answer
       verbose: false,
-      modelName: 'gpt-4',
+      model_name: 'gpt-4',
     },
   };
 
@@ -56,16 +60,17 @@ export async function getFaqAnswer(question: string): Promise<string> {
     if (!response.ok) {
       throw new Error('Error: HTTP status: ' + response.status);
     }
-    const data: ChoiceResponse = (await response.json()) as ChoiceResponse;
+    const resp = await response.json();
+    const data: ChoiceResponse = resp as ChoiceResponse;
 
     if (data.choice === 'SUCCESS' && data.output) {
       return data.output.answer;
     } else {
-      return 'No Answer Found';
+      return 'Error: No Answer Found';
     }
   } catch (error) {
     console.error('Error:', error);
-    return 'No Answer Found';
+    return 'Error: No Answer Found';
   }
 }
 

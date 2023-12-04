@@ -144,16 +144,28 @@ class ChatRepository extends SimulationRepository {
   }
 
   async getById(id: string): Promise<SimulationDocument | null> {
-    const result: SimulationDocument | null = await super.getById(id);
-    if (result) {
-      await this._populate(result);
+    // populate each conversation with each messages
+    try {
+      const result: SimulationDocument | null = await this.model.findById(id).populate({
+        path: 'conversations',
+        populate: {
+          path: 'messages',
+        },
+      });
+
+      if (result) {
+        return result;
+      }
+      return null;
+    } catch (error) {
+      logger.error(`Error finding chat by id: ${id}`);
+      throw error;
     }
-    return result;
   }
 
   async findAll(): Promise<SimulationDocument[]> {
     try {
-      const result: SimulationDocument[] = await this.model.find({ type: SimulationType.MANUAL });
+      const result: SimulationDocument[] = await this.model.find({ type: SimulationType.CHAT });
       return result;
     } catch (error) {
       logger.error(`Error finding chats!`);
