@@ -21,7 +21,7 @@ paths:
             schema:
               type: object
               properties:
-                accessCode: 
+                accessCode:
                   type: string
                   example: 2986637656
       responses:
@@ -36,7 +36,7 @@ paths:
                     type: boolean
                     example: true
         500:
-          description: Internal Server Error
+          description: Bad Request
           content:
             application/json:
               schema:
@@ -51,7 +51,6 @@ paths:
                   details:
                     type: string
                     example: Error
-                    
   /api/v1/dashboard:
     get:
       summary: Dashboard
@@ -133,7 +132,7 @@ paths:
                 items:
                   $ref: "#/components/schemas/SimulationDocument"
         500:
-          description: Internal Server Error
+          description: Bad Request
           content:
             application/json:
               schema:
@@ -291,7 +290,7 @@ paths:
       parameters:
         - in: path
           name: simulationId
-          required: true 
+          required: true
           schema:
             type: string
             example: 6553a127fcad73273655d634
@@ -649,7 +648,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/SimulationDocument"     
+                  $ref: "#/components/schemas/SimulationDocument"
         500:
           description: Internal Server Error
           content:
@@ -665,7 +664,7 @@ paths:
                     example: Internal server error occurred
                   details:
                     type: string
-                    example: Error    
+                    example: Error
   /api/v1/chat/{chatId}:
     get:
       summary: Retrieve chat
@@ -775,7 +774,7 @@ paths:
       parameters:
         - in: path
           name: chatId
-          required: true 
+          required: true
           schema:
             type: string
             example: 6553a127fcad73273655d634
@@ -791,7 +790,7 @@ paths:
                 properties:
                   error:
                     type: string
-                    example: "Chat 1 not found!"    
+                    example: "Chat 1 not found!"
         500:
           description: Internal Server Error
           content:
@@ -826,7 +825,7 @@ paths:
                     - LLAMA2
               example:
                 - GPT4
-                - LLAMA2  
+                - LLAMA2
         500:
           description: Internal Server Error
           content:
@@ -843,7 +842,40 @@ paths:
                   details:
                     type: string
                     example: Error
-components: 
+  /api/v1/optimization/run:
+    post:
+      summary: Start a new optimization
+      tags: [ Simulation ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RunSimulationRequest"
+      responses:
+        201:
+          description: Optimization successfully initiated.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OptimizationDocument"
+        500:
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: string
+                    example: INTERNAL_SERVER_ERROR
+                  message:
+                    type: string
+                    example: Internal server error occurred
+                  details:
+                    type: string
+                    example: Error
+components:
   schemas:
     RunSimulationRequest:
       type: object
@@ -860,7 +892,7 @@ components:
         type:
           type: string
           enum:
-            - MANUAL
+            - CHAT
             - AUTOMATED
         domain:
           type: string
@@ -1001,4 +1033,3 @@ components:
         __v:
           type: integer
           example: 0
- 
