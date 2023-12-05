@@ -30,8 +30,7 @@ async function generatePrompts(agent: AgentDocument): Promise<string[]> {
       'From Munich, I want to fly to Berlin',
       'I would like to fly from Munich to Berlin',
       'I want to buy tickets from Munich to Berlin',
-      'I need tickets from Munich to Berlin',
-      'I want to purchase Munich-Berlin tickets',
+      'I need tickets from Munich to Berlin'
     ];
   }
 
