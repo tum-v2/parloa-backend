@@ -59,7 +59,7 @@ async function runEvaluation(request: RunEvaluationRequest): Promise<RunEvaluati
 }
 
 /**
- * Creates an evaluation object and initiates the evaluation of the conversation
+ * Initiates the evaluation of the conversation
  * @param request - The evaluation configuration
  * @param conversation - The conversation which will be evaluated
  * @param simulation - The simulation which the conversation belongs to.
@@ -88,6 +88,12 @@ async function initiate(
   return evaluation;
 }
 
+/**
+ * Creates an evaluation object for the specified conversation
+ * @param simulation - simulation which should be evaluated
+ * @param conversation - conversation which should be evaluated
+ * @returns the created evaluation document
+ */
 async function createEvaluation(
   simulation: SimulationDocument,
   conversation: ConversationDocument,
