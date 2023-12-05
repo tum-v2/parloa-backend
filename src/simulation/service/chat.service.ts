@@ -1,5 +1,5 @@
 /* eslint-disable require-jsdoc */
-import { SimulationDocument } from '../db/models/simulation.model';
+import { SimulationDocument, SimulationModel } from '../db/models/simulation.model';
 import repositoryFactory from '../db/repositories/factory';
 import { SimulationType, SimulationStatus, MsgTypes, MsgSender } from '../db/enum/enums';
 
@@ -8,6 +8,7 @@ import { configureServiceAgent, createMessageDocument, setupPath } from '../serv
 import { AgentDocument } from '../db/models/agent.model';
 import { MessageDocument } from '../db/models/message.model';
 import ChatMessage from '../model/response/chat.response';
+import { StartChatRequest } from '@simulation/model/request/chat.request';
 
 const agentRepository = repositoryFactory.agentRepository;
 const chatRepository = repositoryFactory.chatRepository;
@@ -20,11 +21,15 @@ let count = 0;
  * @param config - Chat configuration
  * @returns A promise that resolves to the chat simulation object.
  */
-async function start(config: Partial<SimulationDocument>): Promise<SimulationDocument> {
+async function start(config: StartChatRequest): Promise<SimulationDocument> {
   setupPath();
 
-  config.status = SimulationStatus.RUNNING;
-  config.type = SimulationType.CHAT;
+  const simulation: SimulationDocument = new SimulationModel();
+
+  simulation.name = config.name;
+  simulation.serviceAgent = config.serviceAgent;
+  simulation.status = SimulationStatus.RUNNING;
+  simulation.type = SimulationType.CHAT;
 
   let serviceAgentModel: AgentDocument | null = null;
   if (config.serviceAgent) {
@@ -36,7 +41,7 @@ async function start(config: Partial<SimulationDocument>): Promise<SimulationDoc
 
     const agentResponse: string = await serviceAgent.startAgent();
 
-    const chat: SimulationDocument = await chatRepository.create(config);
+    const chat: SimulationDocument = await chatRepository.create(simulation);
 
     const usedEndpoints: string[] = [];
 

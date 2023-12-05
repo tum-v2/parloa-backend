@@ -5,6 +5,7 @@ import { SimulationDocument } from '../db/models/simulation.model';
 import chatService from '../service/chat.service';
 import { INTERNAL_SERVER_ERROR } from '../utils/errors';
 import ChatMessage from '../model/response/chat.response';
+import { StartChatRequest } from '@simulation/model/request/chat.request';
 
 /**
  * Starts the chat (manual simulation)
@@ -13,7 +14,7 @@ import ChatMessage from '../model/response/chat.response';
  */
 async function start(req: Request, res: Response): Promise<void> {
   try {
-    const config: Partial<SimulationDocument> = req.body as Partial<SimulationDocument>;
+    const config: StartChatRequest = req.body as StartChatRequest;
     console.log(config);
 
     console.log('Starting chat...');

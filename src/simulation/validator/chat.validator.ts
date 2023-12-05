@@ -1,5 +1,4 @@
 import { body, param, ValidationChain } from 'express-validator';
-import { SimulationScenario, SimulationType } from '@simulation/db/enum/enums';
 
 class ChatValidator {
   /**
@@ -8,18 +7,11 @@ class ChatValidator {
    */
   static runValidation(): ValidationChain[] {
     return [
-      body('scenario')
-        .isIn(Object.values(SimulationScenario))
-        .withMessage(`Invalid simulation scenario. Must be one of: ${Object.values(SimulationScenario).join(', ')}`),
-      body('type')
-        .isIn(Object.values(SimulationType))
-        .withMessage(`Invalid simulation type. Must be one of: ${Object.values(SimulationType).join(', ')}`),
       body('name').isString().withMessage('Name must be a valid string.'),
-      body('numConversations').isInt().withMessage('Number of conversations must be a valid integer.'),
       body('serviceAgent').isMongoId().withMessage('Service agent id must be a valid Mongo id.'),
 
       body().custom((value, { req }) => {
-        const allowedFields = ['scenario', 'type', 'name', 'numConversations', 'serviceAgent'];
+        const allowedFields = ['name', 'serviceAgent'];
 
         const extraFields = Object.keys(req.body).filter((field) => !allowedFields.includes(field));
 
