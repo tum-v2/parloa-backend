@@ -37,8 +37,8 @@ router.get('/conversation/:id', simulationController.getConversation);
 // region PATCH //
 router.patch(
   '/:id',
-  SimulationValidator.runValidation(),
   SimulationValidator.idValidation(),
+  SimulationValidator.runValidation(),
   CustomValidationError.handleValidationErrors,
   simulationController.update,
 );
