@@ -845,7 +845,7 @@ paths:
   /api/v1/optimization/run:
     post:
       summary: Start a new optimization
-      tags: [ Simulation ]
+      tags: [ Optimization ]
       requestBody:
         required: true
         content:
@@ -859,6 +859,41 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/OptimizationDocument"
+        500:
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: string
+                    example: INTERNAL_SERVER_ERROR
+                  message:
+                    type: string
+                    example: Internal server error occurred
+                  details:
+                    type: string
+                    example: Error
+                    
+  /api/v1/optimization/{optimizationId}:
+    get:
+      summary: Get child simulations that belong to an optimized simulation
+      tags: [ Optimization ]
+      parameters:
+        - in: path
+          name: optimizationId
+          required: true
+          schema:
+            type: string
+      responses:
+        201:
+          description: Child simulations successfully retrieved.
+          content:
+            application/json:
+              schema:
+                type: array
+                $ref: "#/components/schemas/SimulationDocument"
         500:
           description: Internal Server Error
           content:

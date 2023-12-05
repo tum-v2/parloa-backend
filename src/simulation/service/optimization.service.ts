@@ -61,30 +61,39 @@ async function initiate(request: RunSimulationRequest): Promise<OptimizationDocu
     throw new Error('Service agent id not found');
   }
 
-  const originalPrompt: string = serviceAgent.prompt;
-
   // Chat with the LLM and generate 4 different prompts, also include the original prompt
   const prompts = await generatePrompts(serviceAgent);
-  prompts.push(originalPrompt);
 
   // Create a database entry for the current optimization
-  const optimizationDocument: OptimizationDocument = await optimizationRepository.create({ simulationIds: [] });
+  const optimizationDocument: OptimizationDocument = await optimizationRepository.create({ simulations: [] });
   const optimizationId = optimizationDocument._id;
+
+  // Also create an entry in the dictionary, so we can keep track of when an optimization ends
+  if (!(optimizationId in optimizationDictionary)) {
+    optimizationDictionary[optimizationId] = NUMBER_OF_PROMPTS + 1;
+  }
+
+  // Call initiate for the base simulation and save it to the db
+  const simulation: SimulationDocument = await simulationService.initiate(request, optimizationId, false);
+  optimizationDocument.baseSimulation = simulation._id;
+  await optimizationDocument.save();
 
   for (const prompt of prompts) {
     //TODO Create a template for every prompt in the database until we figure out what to do.
     const agent: AgentDocument = await agentService.create({ prompt: prompt });
     const newRequest: RunSimulationRequest = {
-      description: request.description,
-      serviceAgentId: agent._id,
-      userAgentId: request.userAgentId,
       scenario: request.scenario,
       type: SimulationType.OPTIMIZATION,
       name: request.name,
+      description: request.description,
       numConversations: request.numConversations,
+      serviceAgentId: agent._id,
+      userAgentId: request.userAgentId,
+      serviceAgentConfig: agent,
+      userAgentConfig: request.userAgentConfig,
     };
     // start the simulation for one of the prompts
-    const simulation: SimulationDocument = await simulationService.initiate(newRequest);
+    const simulation: SimulationDocument = await simulationService.initiate(newRequest, optimizationId, true);
 
     // Add the ongoing simulationId to the database, under its related optimizationId
     await optimizationRepository.addSimulationId(optimizationId, simulation._id);
@@ -93,6 +102,35 @@ async function initiate(request: RunSimulationRequest): Promise<OptimizationDocu
   return optimizationDocument;
 }
 
+/**
+ * This function gets called by the Simulation team whenever a simulation is completed.
+ * @param optimization - The ID of the optimization session that the simulation belongs to.
+ */
+async function handleSimulationOver(optimization: string) {
+  // check if optimizationId exists in the optimization dictionary
+  if (!(optimization in optimizationDictionary)) {
+    throw new Error('Optimization ID does not exist! ');
+  }
+
+  // Decrease the counter that corresponds to the optimization ID by 1, if it becomes 0, it means the optimization ended.
+  optimizationDictionary[optimization] = -1;
+
+  if (optimizationDictionary[optimization] == 0) {
+    //TODO optimization ended, call anything here - for further implementation!
+  }
+}
+
+/**
+ * Retrieves children simulations for a given optimization.
+ * @param optimization - The optimization to retrieve children simulations for.
+ * @returns A promise that resolves to an array of SimulationDocument objects.
+ */
+function getSimulations(optimization: string): Promise<SimulationDocument[] | null> {
+  return optimizationRepository.getSimulationsFromOptimization(optimization);
+}
+
 export default {
   initiate,
+  handleSimulationOver,
+  getSimulations,
 };

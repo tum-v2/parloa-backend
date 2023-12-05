@@ -109,16 +109,13 @@ function goalFulfilled(
 }
 
 /**
- * Counts the number of messages in a conversation.
+ * Calculates the number of steps per used endpoint.
  * @param messages - The messages of the conversation
- * @param _usedEndpoints - (unused) The endpoints that were called during the conversation
- * @returns Number of messages in the conversation.
+ * @param usedEndpoints - The endpoints that were called during the conversation
+ * @returns Number of steps per used endpoint.
  */
-function countSteps(
-  messages: MessageDocument[],
-  _usedEndpoints: string[] /* eslint-disable-line @typescript-eslint/no-unused-vars*/,
-) {
-  return messages.length;
+function countSteps(messages: MessageDocument[], usedEndpoints: string[]) {
+  return messages.length / usedEndpoints.length;
 }
 
 /**
