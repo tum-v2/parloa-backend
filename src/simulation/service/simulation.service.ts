@@ -9,9 +9,12 @@ import { Types } from 'mongoose';
 import repositoryFactory from '../db/repositories/factory';
 import { AgentDocument } from '../db/models/agent.model';
 import { runConversation } from './conversation.service';
+import { RunEvaluationRequest } from '../../evaluation/model/request/run-evaluation.request';
 
 import { RunABTestingRequest } from '@simulation/model/request/run-ab-testing.request';
 import DashboardData from '@simulation/model/response/dashboard.response';
+import evaluationService from '../../evaluation/service/evaluation.service';
+import optimizationService from './optimization.service';
 
 const agentRepository = repositoryFactory.agentRepository;
 const simulationRepository = repositoryFactory.simulationRepository;
@@ -164,18 +167,29 @@ async function run(
     conversations.push(conversation);
     simulation.conversations = conversations;
     await simulationRepository.updateById(simulation._id, simulation);
-    if (i === numConversations - 1) {
-      // wait for evaluation function
-    } else {
-      // trigger evaluation function
-      if (optimization !== null) {
-        // call optimization function
-      }
-    }
   }
 
   simulation.status = SimulationStatus.FINISHED;
   await simulationRepository.updateById(simulation._id, simulation);
+
+  for (let i = 0; i < conversations.length; i++) {
+    const evaluationRequest: RunEvaluationRequest = {
+      conversation: conversations[i].toString(),
+      simulation: simulation._id,
+      isLast: false,
+      optimization: optimization,
+    };
+
+    if (i === numConversations - 1) {
+      evaluationRequest.isLast = true;
+      await evaluationService.runEvaluation(evaluationRequest);
+      if (optimization !== null) {
+        optimizationService.handleSimulationOver(optimization);
+      }
+    } else {
+      evaluationService.runEvaluation(evaluationRequest);
+    }
+  }
 }
 /**
  * Starts two simulations for AB testing
