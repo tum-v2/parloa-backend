@@ -4,9 +4,8 @@ import simulationService from './simulation.service';
 import conversationService from './conversation.service';
 import repositoryFactory from '../db/repositories/factory';
 import { AgentDocument } from '../db/models/agent.model';
-import agentService from './agent.service';
 import { OptimizationDocument } from '@simulation/db/models/optimization.model';
-import { SimulationType } from '@simulation/db/enum/enums';
+import { LLMModel, SimulationType } from '@simulation/db/enum/enums';
 import { OpenAI } from 'langchain/llms/openai';
 import { PromptTemplate } from 'langchain/prompts';
 import { CommaSeparatedListOutputParser } from 'langchain/output_parsers';
@@ -14,7 +13,6 @@ import { RunnableSequence } from 'langchain/schema/runnable';
 
 const NUMBER_OF_PROMPTS: number = 4;
 
-const agentRepository = repositoryFactory.agentRepository;
 const optimizationRepository = repositoryFactory.optimizationRepository;
 
 /**
@@ -24,6 +22,18 @@ const optimizationRepository = repositoryFactory.optimizationRepository;
  */
 async function generatePrompts(agent: AgentDocument): Promise<string[]> {
   console.log('Prompt generation started.');
+
+  if (agent.llm === LLMModel.FAKE) {
+    console.log('Fake LLM, skipping prompt generation.');
+
+    return [
+      'From Munich, I want to fly to Berlin',
+      'I would like to fly from Munich to Berlin',
+      'I want to buy tickets from Munich to Berlin',
+      'I need tickets from Munich to Berlin',
+      'I want to purchase Munich-Berlin tickets',
+    ];
+  }
 
   // Set up the parser and the config, parser makes sure the result will be a comma seperated list.
   const parser = new CommaSeparatedListOutputParser();
@@ -54,24 +64,19 @@ async function generatePrompts(agent: AgentDocument): Promise<string[]> {
  */
 async function initiate(request: RunSimulationRequest): Promise<OptimizationDocument> {
   console.log('Optimization initiated...');
+  console.log('Configuration:', request);
 
-  const serviceAgent: AgentDocument | null = await agentRepository.getById(request.serviceAgentId!);
-
-  if (serviceAgent === null) {
-    throw new Error('Service agent id not found');
+  // Check if the service agent config is defined
+  if (request.serviceAgentConfig === undefined) {
+    throw new Error('Service agent config not found');
   }
 
   // Chat with the LLM and generate 4 different prompts, also include the original prompt
-  const prompts = await generatePrompts(serviceAgent);
+  const prompts = await generatePrompts(request.serviceAgentConfig);
 
   // Create a database entry for the current optimization
   const optimizationDocument: OptimizationDocument = await optimizationRepository.create({ simulations: [] });
   const optimizationId = optimizationDocument._id;
-
-  // Also create an entry in the dictionary, so we can keep track of when an optimization ends
-  if (!(optimizationId in optimizationDictionary)) {
-    optimizationDictionary[optimizationId] = NUMBER_OF_PROMPTS + 1;
-  }
 
   // Call initiate for the base simulation and save it to the db
   const simulation: SimulationDocument = await simulationService.initiate(request, optimizationId, false);
@@ -80,18 +85,26 @@ async function initiate(request: RunSimulationRequest): Promise<OptimizationDocu
 
   for (const prompt of prompts) {
     //TODO Create a template for every prompt in the database until we figure out what to do.
-    const agent: AgentDocument = await agentService.create({ prompt: prompt });
-    const newRequest: RunSimulationRequest = {
+    const agentConfig = {
+      domain: request.serviceAgentConfig.domain,
+      llm: request.serviceAgentConfig.llm,
+      temperature: request.serviceAgentConfig.temperature,
+      maxTokens: request.serviceAgentConfig.maxTokens,
+      prompt: prompt,
+    };
+
+    const simulationConfig = {
       scenario: request.scenario,
       type: SimulationType.OPTIMIZATION,
       name: request.name,
       description: request.description,
       numConversations: request.numConversations,
-      serviceAgentId: agent._id,
-      userAgentId: request.userAgentId,
-      serviceAgentConfig: agent,
+      serviceAgentConfig: agentConfig,
       userAgentConfig: request.userAgentConfig,
     };
+
+    const newRequest: RunSimulationRequest = simulationConfig as RunSimulationRequest;
+
     // start the simulation for one of the prompts
     const simulation: SimulationDocument = await simulationService.initiate(newRequest, optimizationId, true);
 
@@ -108,16 +121,7 @@ async function initiate(request: RunSimulationRequest): Promise<OptimizationDocu
  */
 async function handleSimulationOver(optimization: string) {
   // check if optimizationId exists in the optimization dictionary
-  if (!(optimization in optimizationDictionary)) {
-    throw new Error('Optimization ID does not exist! ');
-  }
-
-  // Decrease the counter that corresponds to the optimization ID by 1, if it becomes 0, it means the optimization ended.
-  optimizationDictionary[optimization] = -1;
-
-  if (optimizationDictionary[optimization] == 0) {
-    //TODO optimization ended, call anything here - for further implementation!
-  }
+  console.log('Simulation over, received optimization ID:', optimization);
 }
 
 /**
