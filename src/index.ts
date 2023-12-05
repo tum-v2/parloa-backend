@@ -21,9 +21,17 @@ import optimizationRouter from './simulation/router/optimization.router';
 
 import CustomValidationError from './simulation/validator/error.validator';
 
+import cors from 'cors';
+
 const apiSpec = YAML.load('./src/simulation/docs/api.documentation.yaml');
 
 const app = express();
+app.use(
+  cors({
+    origin: '*',
+  }),
+);
+
 const port = process.env.NODE_DOCKER_PORT || 3000;
 
 app.use(bodyParser.json());
