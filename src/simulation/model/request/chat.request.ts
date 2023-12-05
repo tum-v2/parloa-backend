@@ -2,7 +2,7 @@ import { Types } from 'mongoose';
 
 interface StartChatRequest {
   name: string;
-  serviceAgent: Types.ObjectId;
+  agent: Types.ObjectId;
 }
 
 export { StartChatRequest };

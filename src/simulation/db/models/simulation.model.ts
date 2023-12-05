@@ -23,10 +23,10 @@ interface SimulationDocument extends Document {
 const SimulationSchema: Schema = new Schema(
   {
     scenario: { type: String, enum: Object.values(SimulationScenario) },
-    type: { type: String, enum: Object.values(SimulationType) },
+    type: { type: String, enum: Object.values(SimulationType), required: true },
     name: { type: String, required: true },
     description: { type: String },
-    numConversations: { type: Number },
+    numConversations: { type: Number, required: true },
     userAgent: { type: Schema.Types.ObjectId, ref: 'Agent' },
     serviceAgent: { type: Schema.Types.ObjectId, ref: 'Agent' },
     conversations: [{ type: Schema.Types.ObjectId, ref: 'Conversation' }],

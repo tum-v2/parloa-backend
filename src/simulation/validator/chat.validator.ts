@@ -8,10 +8,10 @@ class ChatValidator {
   static runValidation(): ValidationChain[] {
     return [
       body('name').isString().withMessage('Name must be a valid string.'),
-      body('serviceAgent').isMongoId().withMessage('Service agent id must be a valid Mongo id.'),
+      body('agent').isMongoId().withMessage('Service agent id must be a valid Mongo id.'),
 
       body().custom((value, { req }) => {
-        const allowedFields = ['name', 'serviceAgent'];
+        const allowedFields = ['name', 'agent'];
 
         const extraFields = Object.keys(req.body).filter((field) => !allowedFields.includes(field));
 

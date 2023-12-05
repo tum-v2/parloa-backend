@@ -27,13 +27,13 @@ async function start(config: StartChatRequest): Promise<SimulationDocument> {
   const simulation: SimulationDocument = new SimulationModel();
 
   simulation.name = config.name;
-  simulation.serviceAgent = config.serviceAgent;
+  simulation.serviceAgent = config.agent;
   simulation.status = SimulationStatus.RUNNING;
   simulation.type = SimulationType.CHAT;
 
   let serviceAgentModel: AgentDocument | null = null;
-  if (config.serviceAgent) {
-    serviceAgentModel = await agentRepository.getById(config.serviceAgent.toString());
+  if (config.agent) {
+    serviceAgentModel = await agentRepository.getById(config.agent.toString());
   }
 
   if (serviceAgentModel) {
