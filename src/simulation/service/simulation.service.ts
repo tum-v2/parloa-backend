@@ -176,11 +176,12 @@ async function run(
     const evaluationRequest: RunEvaluationRequest = {
       conversation: conversations[i].toString(),
       simulation: simulation._id,
-      isLast: true,
+      isLast: false,
       optimization: optimization,
     };
 
     if (i === numConversations - 1) {
+      evaluationRequest.isLast = true;
       await evaluationService.runEvaluation(evaluationRequest);
       if (optimization !== null) {
         optimizationService.handleSimulationOver(optimization);
