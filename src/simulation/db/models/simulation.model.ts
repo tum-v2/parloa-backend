@@ -18,6 +18,8 @@ interface SimulationDocument extends Document {
   abPartner: Types.ObjectId | undefined;
   evaluation: EvaluationDocument | Types.ObjectId;
   optimization: Types.ObjectId | OptimizationDocument | null;
+  //in seconds
+  duration: number;
 }
 
 const SimulationSchema: Schema = new Schema(
@@ -34,6 +36,7 @@ const SimulationSchema: Schema = new Schema(
     abPartner: { type: Schema.Types.ObjectId, ref: 'Simulation' },
     evaluation: { type: Schema.Types.ObjectId, ref: 'Evaluation' },
     optimization: { type: Schema.Types.ObjectId, ref: 'Optimization', default: null },
+    duration: { type: Number, default: 0 },
   },
   {
     timestamps: true,

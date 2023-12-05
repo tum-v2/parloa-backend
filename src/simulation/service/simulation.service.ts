@@ -162,13 +162,15 @@ async function run(
   }
   simulation.status = SimulationStatus.RUNNING;
   await simulationRepository.updateById(simulation._id, simulation);
+  const simulationStart = new Date();
   for (let i = 0; i < numConversations; i++) {
     const conversation: any = await runConversation(serviceAgent, userAgent);
     conversations.push(conversation);
     simulation.conversations = conversations;
     await simulationRepository.updateById(simulation._id, simulation);
   }
-
+  const simulationEnd = new Date();
+  simulation.duration = (simulationEnd.getTime() - simulationStart.getTime()) / 1000;
   simulation.status = SimulationStatus.FINISHED;
   await simulationRepository.updateById(simulation._id, simulation);
 
