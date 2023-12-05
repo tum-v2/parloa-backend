@@ -24,6 +24,7 @@ async function run(req: Request, res: Response): Promise<void> {
       return;
     }
 
+    logger.info(req.body);
     const simulationConfig: RunSimulationRequest = req.body as RunSimulationRequest;
     const optimization: OptimizationDocument = await optimizationService.initiate(simulationConfig);
 
