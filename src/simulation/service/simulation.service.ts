@@ -14,6 +14,7 @@ import { RunEvaluationRequest } from '../../evaluation/model/request/run-evaluat
 import { RunABTestingRequest } from '@simulation/model/request/run-ab-testing.request';
 import DashboardData from '@simulation/model/response/dashboard.response';
 import evaluationService from '../../evaluation/service/evaluation.service';
+import optimizationService from './optimization.service';
 
 const agentRepository = repositoryFactory.agentRepository;
 const simulationRepository = repositoryFactory.simulationRepository;
@@ -182,7 +183,7 @@ async function run(
     if (i === numConversations - 1) {
       await evaluationService.runEvaluation(evaluationRequest);
       if (optimization !== null) {
-        // call optimization function
+        optimizationService.handleSimulationOver(optimization);
       }
     } else {
       evaluationService.runEvaluation(evaluationRequest);
