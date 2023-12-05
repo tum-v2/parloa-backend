@@ -26,7 +26,7 @@ const SimulationSchema: Schema = new Schema(
     type: { type: String, enum: Object.values(SimulationType), required: true },
     name: { type: String, required: true },
     description: { type: String },
-    numConversations: { type: Number, required: true },
+    numConversations: { type: Number },
     userAgent: { type: Schema.Types.ObjectId, ref: 'Agent' },
     serviceAgent: { type: Schema.Types.ObjectId, ref: 'Agent' },
     conversations: [{ type: Schema.Types.ObjectId, ref: 'Conversation' }],
