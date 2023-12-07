@@ -2,7 +2,7 @@
 import express from 'express';
 const router = express.Router();
 
-import authController from '../api/auth.controller';
+import authController from '@simulation/api/auth.controller';
 
 router.post('/login', authController.login);
 

@@ -2,7 +2,7 @@
 import express from 'express';
 const router = express.Router();
 
-import dashboardController from '../api/dashboard.controller';
+import dashboardController from '@simulation/api/dashboard.controller';
 
 router.get('/', dashboardController.getDashboardData);
 

@@ -1,9 +1,9 @@
-import { SimulationDocument } from '../db/models/simulation.model';
-import { RunSimulationRequest } from '../model/request/simulation.request';
-import simulationService from './simulation.service';
-import conversationService from './conversation.service';
-import repositoryFactory from '../db/repositories/factory';
-import { AgentDocument } from '../db/models/agent.model';
+import { SimulationDocument } from '@simulation/db/models/simulation.model';
+import { RunSimulationRequest } from '@simulation/model/request/simulation.request';
+import simulationService from '@simulation/service/simulation.service';
+import conversationService from '@simulation/service/conversation.service';
+import repositoryFactory from '@simulation/db/repositories/factory';
+import { AgentDocument } from '@simulation/db/models/agent.model';
 import { OptimizationDocument } from '@simulation/db/models/optimization.model';
 import { LLMModel, SimulationType } from '@simulation/db/enum/enums';
 import { OpenAI } from 'langchain/llms/openai';
@@ -30,7 +30,7 @@ async function generatePrompts(agent: AgentDocument): Promise<string[]> {
       'From Munich, I want to fly to Berlin',
       'I would like to fly from Munich to Berlin',
       'I want to buy tickets from Munich to Berlin',
-      'I need tickets from Munich to Berlin'
+      'I need tickets from Munich to Berlin',
     ];
   }
 

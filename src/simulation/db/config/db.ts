@@ -1,5 +1,5 @@
 import mongoose, { ConnectOptions } from 'mongoose';
-import { logger } from '../../service/logging.service';
+import { logger } from '@simulation/service/logging.service';
 
 interface DatabaseConnectOptions {
   uri: string;

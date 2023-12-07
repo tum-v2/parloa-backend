@@ -1,6 +1,6 @@
 import { Model } from 'mongoose';
-import { BaseRepository } from './base.repository';
-import { ConversationDocument } from '../models/conversation.model';
+import { BaseRepository } from '@simulation/db/repositories/base.repository';
+import { ConversationDocument } from '@simulation/db/models/conversation.model';
 import { Types } from 'mongoose';
 import { logger } from '@simulation/service/logging.service';
 

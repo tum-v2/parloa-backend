@@ -5,7 +5,7 @@ import {
   CustomAgentConfig,
   RestAPITool,
   RouteToCoreTool,
-} from '../custom.agent.config';
+} from '@simulation/agents/custom.agent.config';
 
 import {
   auth,
@@ -13,7 +13,7 @@ import {
   checkAvailability,
   changeFlightDate,
   getAllFlights,
-} from '../../mockedAPI/flightBooking.mocks';
+} from '@simulation/mockedAPI/flightBooking.mocks';
 import { getFaqAnswer } from '../../mockedAPI/parloa.kf.faq';
 const bookingNumberParam = new APIParam(
   'booking_number',

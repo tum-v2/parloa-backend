@@ -1,6 +1,6 @@
 import { Model } from 'mongoose';
-import { BaseRepository } from './base.repository';
-import { MessageDocument } from '../models/message.model';
+import { BaseRepository } from '@simulation/db/repositories/base.repository';
+import { MessageDocument } from '@simulation/db/models/message.model';
 
 class MessageRepository extends BaseRepository<MessageDocument> {
   constructor(model: Model<MessageDocument>) {

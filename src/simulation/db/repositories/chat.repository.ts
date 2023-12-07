@@ -1,10 +1,10 @@
 import { Model, Types } from 'mongoose';
-import { MessageDocument } from '../models/message.model';
-import { ConversationDocument } from '../models/conversation.model';
-import { SimulationDocument } from '../models/simulation.model';
-import { SimulationRepository } from './simulation.repository';
-import { ConversationStatus, SimulationType, SimulationStatus } from '../enum/enums';
-import { logger } from '../../service/logging.service';
+import { MessageDocument } from '@simulation/db/models/message.model';
+import { ConversationDocument } from '@simulation/db/models/conversation.model';
+import { SimulationDocument } from '@simulation/db/models/simulation.model';
+import { SimulationRepository } from '@simulation/db/repositories/simulation.repository';
+import { ConversationStatus, SimulationType, SimulationStatus } from '@simulation/db/enum/enums';
+import { logger } from '@simulation/service/logging.service';
 import { MsgHistoryItem } from '@simulation/agents/custom.agent';
 import { AIMessage, BaseMessage, HumanMessage, SystemMessage } from 'langchain/schema';
 

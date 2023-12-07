@@ -1,4 +1,4 @@
-import { MsgSender } from '../../db/enum/enums';
+import { MsgSender } from '@simulation/db/enum/enums';
 
 interface ChatMessage {
   sender: MsgSender;

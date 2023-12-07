@@ -1,8 +1,8 @@
 import { Model } from 'mongoose';
-import { logger } from '../../service/logging.service';
-import { BaseRepository } from './base.repository';
-import { OptimizationDocument } from '../models/optimization.model';
-import { SimulationDocument } from '../models/simulation.model';
+import { logger } from '@simulation/service/logging.service';
+import { BaseRepository } from '@simulation/db/repositories/base.repository';
+import { OptimizationDocument } from '@simulation/db/models/optimization.model';
+import { SimulationDocument } from '@simulation/db/models/simulation.model';
 
 class OptimizationRepository extends BaseRepository<OptimizationDocument> {
   constructor(model: Model<OptimizationDocument>) {
