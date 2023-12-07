@@ -24,6 +24,8 @@ let count = 0;
 async function start(config: StartChatRequest): Promise<SimulationDocument> {
   setupPath();
 
+  count = 0;
+
   const simulation: SimulationDocument = new SimulationModel();
 
   simulation.name = config.name;
