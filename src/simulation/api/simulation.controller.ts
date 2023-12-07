@@ -11,6 +11,9 @@ import { logger } from '@simulation/service/logging.service';
 import { ConversationDocument } from '@simulation/db/models/conversation.model';
 
 import { INTERNAL_SERVER_ERROR } from '@simulation/utils/errors';
+import repositoryFactory from '@simulation/db/repositories/factory';
+
+const messageRepository = repositoryFactory.messageRepository;
 
 /**
  * Runs the simulation.
@@ -144,7 +147,22 @@ async function getConversation(req: Request, res: Response): Promise<void> {
     const id: string = req.params.id;
     const conversation: ConversationDocument | null = await simulationService.getConversation(id);
     if (conversation) {
-      res.status(200).send(conversation);
+      const modifiedConversation: any = {};
+      const messages: any[] = [];
+      for (const messageId of conversation.messages) {
+        const message: any = await messageRepository.getById(messageId as unknown as string);
+        const modifiedMessage: any = {};
+        modifiedMessage.sender = message.sender;
+        modifiedMessage.text = message.text;
+        modifiedMessage.timeStamp = message.timeStamp;
+        messages.push(modifiedMessage);
+      }
+      modifiedConversation._id = conversation.id;
+      modifiedConversation.startTime = conversation.startTime;
+      modifiedConversation.endTime = conversation.endTime;
+      modifiedConversation.status = conversation.status;
+      modifiedConversation.messages = messages;
+      res.status(200).send(modifiedConversation);
     } else {
       res.status(404).send({ error: `Conversation ${id} not found!` });
     }
