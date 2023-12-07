@@ -1,5 +1,5 @@
 import dotenv from 'dotenv';
-import { Database, DatabaseConnectOptions } from './db';
+import { Database, DatabaseConnectOptions } from '@simulation/db/config/db';
 
 dotenv.config();
 

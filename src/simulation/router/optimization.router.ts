@@ -2,9 +2,9 @@
 import express from 'express';
 const router = express.Router();
 
-import optimizationController from '../api/optimization.controller';
-import SimulationValidator from '../validator/simulation.validator';
-import CustomValidationError from '../validator/error.validator';
+import optimizationController from '@simulation/api/optimization.controller';
+import SimulationValidator from '@simulation/validator/simulation.validator';
+import CustomValidationError from '@simulation/validator/error.validator';
 
 // region POST //
 router.post(

@@ -1,9 +1,9 @@
 import { Schema, Document, model, Types } from 'mongoose';
-import { AgentDocument } from './agent.model';
-import { ConversationDocument } from './conversation.model';
-import { SimulationType, SimulationStatus, SimulationScenario } from '../enum/enums';
-import { EvaluationDocument } from 'evaluation/db/models/evaluation.model';
-import { OptimizationDocument } from './optimization.model';
+import { AgentDocument } from '@simulation/db/models/agent.model';
+import { ConversationDocument } from '@simulation/db/models/conversation.model';
+import { SimulationType, SimulationStatus, SimulationScenario } from '@simulation/db/enum/enums';
+import { EvaluationDocument } from '@evaluation/db/models/evaluation.model';
+import { OptimizationDocument } from '@simulation/db/models/optimization.model';
 
 interface SimulationDocument extends Document {
   scenario: SimulationScenario;

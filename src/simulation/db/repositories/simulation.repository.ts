@@ -1,9 +1,9 @@
 import { Model, Types } from 'mongoose';
-import { logger } from '../../service/logging.service';
-import { BaseRepository } from './base.repository';
-import { SimulationDocument } from '../models/simulation.model';
-import { SimulationStatus, SimulationType } from '../enum/enums';
-import { ConversationDocument } from '../models/conversation.model';
+import { logger } from '@simulation/service/logging.service';
+import { BaseRepository } from '@simulation/db/repositories/base.repository';
+import { SimulationDocument } from '@simulation/db/models/simulation.model';
+import { SimulationStatus, SimulationType } from '@simulation/db/enum/enums';
+import { ConversationDocument } from '@simulation/db/models/conversation.model';
 
 class SimulationRepository extends BaseRepository<SimulationDocument> {
   constructor(model: Model<SimulationDocument>) {

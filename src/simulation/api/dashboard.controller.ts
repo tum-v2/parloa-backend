@@ -1,8 +1,8 @@
 /* eslint-disable require-jsdoc */
-import DashboardData from '../model/response/dashboard.response';
+import DashboardData from '@simulation/model/response/dashboard.response';
 import { Request, Response } from 'express';
-import simulationService from '../service/simulation.service';
-import { BAD_REQUEST, INTERNAL_SERVER_ERROR } from 'simulation/utils/errors';
+import simulationService from '@simulation/service/simulation.service';
+import { BAD_REQUEST, INTERNAL_SERVER_ERROR } from '@simulation/utils/errors';
 
 /**
  * Get dashboard data

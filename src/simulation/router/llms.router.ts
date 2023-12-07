@@ -2,7 +2,7 @@
 import express from 'express';
 const router = express.Router();
 
-import llmController from '../api/llms.controller';
+import llmController from '@simulation/api/llms.controller';
 
 router.get('/models', llmController.getLLMs);
 

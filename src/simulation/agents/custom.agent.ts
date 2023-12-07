@@ -1,10 +1,10 @@
 import { BaseChatModel } from 'langchain/chat_models/base';
 import { HumanMessagePromptTemplate, SystemMessagePromptTemplate } from 'langchain/prompts';
 import { BaseMessage } from 'langchain/schema';
-import { CustomAgentConfig, RestAPITool, RouteToCoreTool } from './custom.agent.config';
+import { CustomAgentConfig, RestAPITool, RouteToCoreTool } from '@simulation/agents/custom.agent.config';
 import moment from 'moment';
 import { appendFileSync } from 'fs';
-import { MsgTypes } from '../db/enum/enums';
+import { MsgTypes } from '@simulation/db/enum/enums';
 
 export class MsgHistoryItem {
   lcMsg: BaseMessage;

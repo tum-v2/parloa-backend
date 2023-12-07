@@ -1,6 +1,6 @@
-import { MsgTypes } from '../enum/enums';
+import { MsgTypes } from '@simulation/db/enum/enums';
 import { Schema, Document, model } from 'mongoose';
-import { MsgSender } from '../enum/enums';
+import { MsgSender } from '@simulation/db/enum/enums';
 import { BaseMessage } from 'langchain/schema';
 
 interface MessageDocument extends Document {

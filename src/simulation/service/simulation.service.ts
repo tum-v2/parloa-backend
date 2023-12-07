@@ -1,20 +1,20 @@
-import { SimulationDocument } from '../db/models/simulation.model';
-import { ConversationDocument } from '../db/models/conversation.model';
+import { SimulationDocument } from '@simulation/db/models/simulation.model';
+import { ConversationDocument } from '@simulation/db/models/conversation.model';
 
-import { SimulationType, SimulationStatus } from '../db/enum/enums';
-import { RunSimulationRequest } from '../model/request/simulation.request';
+import { SimulationType, SimulationStatus } from '@simulation/db/enum/enums';
+import { RunSimulationRequest } from '@simulation/model/request/simulation.request';
 
 import { Types } from 'mongoose';
 
-import repositoryFactory from '../db/repositories/factory';
-import { AgentDocument } from '../db/models/agent.model';
-import { runConversation } from './conversation.service';
-import { RunEvaluationRequest } from '../../evaluation/model/request/run-evaluation.request';
+import repositoryFactory from '@simulation/db/repositories/factory';
+import { AgentDocument } from '@simulation/db/models/agent.model';
+import { runConversation } from '@simulation/service/conversation.service';
+import { RunEvaluationRequest } from '@evaluation/model/request/run-evaluation.request';
 
 import { RunABTestingRequest } from '@simulation/model/request/run-ab-testing.request';
 import DashboardData from '@simulation/model/response/dashboard.response';
-import evaluationService from '../../evaluation/service/evaluation.service';
-import optimizationService from './optimization.service';
+import evaluationService from '@evaluation/service/evaluation.service';
+import optimizationService from '@simulation/service/optimization.service';
 
 const agentRepository = repositoryFactory.agentRepository;
 const simulationRepository = repositoryFactory.simulationRepository;

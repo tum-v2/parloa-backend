@@ -1,9 +1,9 @@
 import express from 'express';
 const router = express.Router();
 
-import chatController from '../api/chat.controller';
-import ChatValidator from 'simulation/validator/chat.validator';
-import CustomValidationError from 'simulation/validator/error.validator';
+import chatController from '@simulation/api/chat.controller';
+import ChatValidator from '@simulation/validator/chat.validator';
+import CustomValidationError from '@simulation/validator/error.validator';
 
 // region POST //
 router.post(

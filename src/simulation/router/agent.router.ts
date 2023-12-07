@@ -1,7 +1,7 @@
 import express, { Router } from 'express';
-import agentController from '../api/agent.controller';
-import CustomValidationError from '../validator/error.validator';
-import AgentValidator from 'simulation/validator/agent.validator';
+import agentController from '@simulation/api/agent.controller';
+import CustomValidationError from '@simulation/validator/error.validator';
+import AgentValidator from '@simulation/validator/agent.validator';
 
 const router: Router = express.Router();
 
