@@ -1,8 +1,8 @@
-// Router that routes incoming requests to relevant controller function
 import express from 'express';
-const router = express.Router();
 
 import llmController from '@simulation/api/llms.controller';
+
+const router = express.Router();
 
 router.get('/models', llmController.getLLMs);
 

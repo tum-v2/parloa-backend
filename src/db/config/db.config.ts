@@ -1,7 +1,4 @@
-import dotenv from 'dotenv';
 import { Database, DatabaseConnectOptions } from 'db/config/db';
-
-dotenv.config();
 
 const dbOptions: DatabaseConnectOptions = {
   uri: `mongodb://${process.env.MONGODB_USER}:${process.env.MONGODB_PASSWORD}@mongodb:${process.env.MONGODB_DOCKER_PORT}/${process.env.MONGODB_DATABASE}?authSource=admin`,

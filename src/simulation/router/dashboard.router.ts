@@ -1,9 +1,11 @@
-// Router that routes incoming requests to relevant controller function
 import express from 'express';
-const router = express.Router();
 
 import dashboardController from '@simulation/api/dashboard.controller';
 
+const router = express.Router();
+
+// region GET //
 router.get('/', dashboardController.getDashboardData);
+// endregion GET //
 
 export default router;

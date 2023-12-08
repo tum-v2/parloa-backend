@@ -1,9 +1,10 @@
 import express from 'express';
-const router = express.Router();
 
 import chatController from '@simulation/api/chat.controller';
 import ChatValidator from '@simulation/validator/chat.validator';
 import CustomValidationError from '@simulation/validator/error.validator';
+
+const router = express.Router();
 
 // region POST //
 router.post(
@@ -33,7 +34,7 @@ router.get('/:id', ChatValidator.idValidation(), CustomValidationError.handleVal
 router.get('/:id/end', ChatValidator.idValidation(), CustomValidationError.handleValidationErrors, chatController.end);
 // region GET //
 
-// region PATCH //
+// region PUT //
 router.put(
   '/:id',
   ChatValidator.idValidation(),
@@ -41,7 +42,7 @@ router.put(
   CustomValidationError.handleValidationErrors,
   chatController.update,
 );
-// endregion PATCH //
+// endregion PUT //
 
 // region DELETE //
 router.delete('/:id', ChatValidator.idValidation(), CustomValidationError.handleValidationErrors, chatController.del);
