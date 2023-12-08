@@ -19,6 +19,7 @@ import optimizationService from '@simulation/service/optimization.service';
 const agentRepository = repositoryFactory.agentRepository;
 const simulationRepository = repositoryFactory.simulationRepository;
 const conversationRepository = repositoryFactory.conversationRepository;
+const messageRepository = repositoryFactory.messageRepository;
 
 /**
  * Creates a simulation object and initiates the simulation.
@@ -245,9 +246,30 @@ async function getAll(): Promise<SimulationDocument[]> {
  * @returns A promise that resolves to the conversation object.
  * @throws Throws an error if there is an issue with the MongoDB query.
  */
-export async function getConversation(id: string): Promise<ConversationDocument | null> {
+export async function getConversation(id: string): Promise<any | null> {
   const conversation: ConversationDocument | null = await conversationRepository.getMessages(id);
-  return conversation;
+  if (conversation) {
+    const modifiedConversation: any = {};
+    const messages: any[] = [];
+    for (const messageId of conversation.messages) {
+      const message: any = await messageRepository.getById(messageId as unknown as string);
+      if (message.sender === 'TOOL') {
+        continue;
+      }
+      const modifiedMessage: any = {};
+      modifiedMessage.sender = message.sender;
+      modifiedMessage.text = message.text;
+      modifiedMessage.timestamp = message.timestamp;
+      modifiedMessage.userCanReply = true;
+      messages.push(modifiedMessage);
+    }
+    modifiedConversation._id = conversation.id;
+    modifiedConversation.startTime = conversation.startTime;
+    modifiedConversation.endTime = conversation.endTime;
+    modifiedConversation.status = conversation.status;
+    modifiedConversation.messages = messages;
+    return modifiedConversation;
+  }
 }
 
 /**
