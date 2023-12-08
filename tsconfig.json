@@ -37,7 +37,6 @@
       "@simulation/model/*": ["simulation/model/*"],
       "@simulation/router/*": ["simulation/router/*"],
       "@simulation/service/*": ["simulation/service/*"],
-      "@simulation/utils/*": ["simulation/utils/*"],
       "@simulation/validator/*": ["simulation/validator/*"],
       "@evaluation/api/*": ["evaluation/api/*"],
       "@evaluation/docs/*": ["evaluation/docs/*"],
