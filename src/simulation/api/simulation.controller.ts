@@ -151,10 +151,14 @@ async function getConversation(req: Request, res: Response): Promise<void> {
       const messages: any[] = [];
       for (const messageId of conversation.messages) {
         const message: any = await messageRepository.getById(messageId as unknown as string);
+        if (message.sender === 'TOOL') {
+          continue;
+        }
         const modifiedMessage: any = {};
         modifiedMessage.sender = message.sender;
         modifiedMessage.text = message.text;
-        modifiedMessage.timeStamp = message.timeStamp;
+        modifiedMessage.timestamp = message.timestamp;
+        modifiedMessage.userCanReply = true;
         messages.push(modifiedMessage);
       }
       modifiedConversation._id = conversation.id;
