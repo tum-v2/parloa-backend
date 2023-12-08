@@ -55,6 +55,29 @@ class EvaluationValidator {
   }
 
   /**
+   * Validate the request body for /rerun endpoint
+   * @returns Validation chain array that checks evaluation rerun request
+   */
+  static rerunValidation(): ValidationChain[] {
+    return [
+      body('conversation').isMongoId().withMessage('Invalid conversation ID'),
+      body('simulation').isMongoId().withMessage('Invalid simulation ID'),
+
+      body().custom((value, { req }) => {
+        const allowedFields = ['conversation', 'simulation'];
+
+        const extraFields = Object.keys(req.body).filter((field) => !allowedFields.includes(field));
+
+        if (extraFields.length > 0) {
+          throw new Error(`Unexpected fields: ${extraFields.join(', ')}`);
+        }
+
+        return true;
+      }),
+    ];
+  }
+
+  /**
    * Middleware to handle validation errors
    * @param req - Request
    * @param res - Response
