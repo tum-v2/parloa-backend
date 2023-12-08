@@ -1,5 +1,5 @@
-import repositoryFactory from '@simulation/db/repositories/factory';
-import { AgentDocument } from '@simulation/db/models/agent.model';
+import repositoryFactory from 'db/repositories/factory';
+import { AgentDocument } from 'db/models/agent.model';
 
 const agentRepository = repositoryFactory.agentRepository;
 

@@ -1,26 +1,22 @@
 // Evaluation-specific functionality called by controllers or other services
 
-import { ConversationDocument, ConversationModel } from '@simulation/db/models/conversation.model';
-import { SimulationDocument, SimulationModel } from '@simulation/db/models/simulation.model';
-import {
-  EvaluationDocument,
-  EvaluationDocumentWithConversation,
-  EvaluationModel,
-} from 'evaluation/db/models/evaluation.model';
-import { EvaluationRepository } from 'evaluation/db/repositories/evaluation.repository';
+import { ConversationDocument, ConversationModel } from 'db/models/conversation.model';
+import { SimulationDocument, SimulationModel } from 'db/models/simulation.model';
+import { EvaluationDocument, EvaluationDocumentWithConversation, EvaluationModel } from 'db/models/evaluation.model';
+import { EvaluationRepository } from 'db/repositories/evaluation.repository';
 import { RunEvaluationRequest } from 'evaluation/model/request/run-evaluation.request';
 import metricService from './metric.service';
-import { MetricDocument, MetricNameEnum } from 'evaluation/db/models/metric.model';
+import { MetricDocument, MetricNameEnum } from 'db/models/metric.model';
 import {
   EvaluationExecuted,
   EvaluationResultForConversation,
   EvaluationResultForSimulation,
   EvaluationStatus,
-} from 'evaluation/model/request/evaluation-result.response';
-import { ConversationRepository } from '@simulation/db/repositories/conversation.repository';
-import { SimulationRepository } from '@simulation/db/repositories/simulation.repository';
+} from '@evaluation/model/response/evaluation-result.response';
+import { ConversationRepository } from 'db/repositories/conversation.repository';
+import { SimulationRepository } from 'db/repositories/simulation.repository';
 import simulationService from '@simulation/service/simulation.service';
-import { RunEvaluationResponse } from 'evaluation/model/request/run-evaluation.response';
+import { RunEvaluationResponse } from '@evaluation/model/response/run-evaluation.response';
 
 const evaluationRepository = new EvaluationRepository(EvaluationModel);
 const conversationRepository = new ConversationRepository(ConversationModel);

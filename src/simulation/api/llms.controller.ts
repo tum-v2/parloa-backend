@@ -1,6 +1,6 @@
 /* eslint-disable require-jsdoc */
 import { Request, Response } from 'express';
-import { LLMModel } from '@simulation/db/enum/enums';
+import { LLMModel } from 'db/enum/enums';
 
 /**
  * Get all LLMs

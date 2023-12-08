@@ -6,8 +6,8 @@ import bodyParser from 'body-parser';
 import YAML from 'yamljs';
 import swaggerUi from 'swagger-ui-express';
 
-import { logger } from './simulation/service/logging.service';
-import { connectToDatabase } from './simulation/db/config/db.config';
+import { logger } from './utils/logger';
+import { connectToDatabase } from './db/config/db.config';
 
 // routers
 import simulationRouter from '../src/simulation/router/simulation.router';

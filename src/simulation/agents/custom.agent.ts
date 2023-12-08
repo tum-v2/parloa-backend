@@ -4,7 +4,7 @@ import { BaseMessage } from 'langchain/schema';
 import { CustomAgentConfig, RestAPITool, RouteToCoreTool } from '@simulation/agents/custom.agent.config';
 import moment from 'moment';
 import { appendFileSync } from 'fs';
-import { MsgTypes } from '@simulation/db/enum/enums';
+import { MsgTypes } from 'db/enum/enums';
 
 export class MsgHistoryItem {
   lcMsg: BaseMessage;

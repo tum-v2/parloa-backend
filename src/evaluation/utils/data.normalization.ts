@@ -1,4 +1,4 @@
-import { MetricNameEnum } from './metric.config';
+import { MetricNameEnum } from 'db/enum/enums';
 
 const metricNormalizationFunctions: Map<MetricNameEnum, (score: number) => number> = new Map([
   [MetricNameEnum.SUCCESS, (score) => score],

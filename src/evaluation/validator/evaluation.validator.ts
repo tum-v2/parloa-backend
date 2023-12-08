@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { body, param, ValidationChain, ValidationError, validationResult } from 'express-validator';
-import { logger } from '@simulation/service/logging.service';
+import { logger } from 'utils/logger';
 
 class CustomValidationError extends Error {
   errors: string[];

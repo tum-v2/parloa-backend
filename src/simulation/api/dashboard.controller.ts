@@ -2,7 +2,7 @@
 import DashboardData from '@simulation/model/response/dashboard.response';
 import { Request, Response } from 'express';
 import simulationService from '@simulation/service/simulation.service';
-import { BAD_REQUEST, INTERNAL_SERVER_ERROR } from '@simulation/utils/errors';
+import { BAD_REQUEST, INTERNAL_SERVER_ERROR } from 'utils/errors';
 
 /**
  * Get dashboard data

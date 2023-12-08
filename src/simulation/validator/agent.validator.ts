@@ -1,5 +1,5 @@
 import { body, param, ValidationChain } from 'express-validator';
-import { LLMModel, ConversationDomain } from '@simulation/db/enum/enums';
+import { LLMModel, ConversationDomain } from 'db/enum/enums';
 
 class AgentValidator {
   /**

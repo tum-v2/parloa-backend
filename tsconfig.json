@@ -32,7 +32,6 @@
       "@simulation/agents/*": ["simulation/agents/*"],
       "@simulation/api/*": ["simulation/api/*"],
       "@simulation/config/*": ["simulation/config/*"],
-      "@simulation/db/*": ["simulation/db/*"],
       "@simulation/docs/*": ["simulation/docs/*"],
       "@simulation/mockedAPI/*": ["simulation/mockedAPI/*"],
       "@simulation/model/*": ["simulation/model/*"],
@@ -41,13 +40,17 @@
       "@simulation/utils/*": ["simulation/utils/*"],
       "@simulation/validator/*": ["simulation/validator/*"],
       "@evaluation/api/*": ["evaluation/api/*"],
-      "@evaluation/db/*": ["evaluation/db/*"],
       "@evaluation/docs/*": ["evaluation/docs/*"],
       "@evaluation/model/*": ["evaluation/model/*"],
       "@evaluation/router/*": ["evaluation/router/*"],
       "@evaluation/service/*": ["evaluation/service/*"],
       "@evaluation/utils/*": ["evaluation/utils/*"],
-      "@evaluation/validator/*": ["evaluation/validator/*"]
+      "@evaluation/validator/*": ["evaluation/validator/*"],
+      "@enums/*": ["enums/*"],
+      "@db/models/*": ["db/models/*"],
+      "@db/repositories/*": ["db/repositories/*"],
+      "@db/config/*": ["db/config/*"],
+      "@utils/*": ["utils/*"],
     },
     // "rootDirs": [],                                   /* Allow multiple folders to be treated as one when resolving modules. */
     // "typeRoots": [],                                  /* Specify multiple folders that act like './node_modules/@types'. */

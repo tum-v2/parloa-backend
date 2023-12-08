@@ -12,12 +12,12 @@ import {
 } from '@simulation/agents/service/service.agent.flight.booker';
 import { Types } from 'mongoose';
 import { MsgHistoryItem } from '@simulation/agents/custom.agent';
-import { AgentDocument } from '@simulation/db/models/agent.model';
+import { AgentDocument } from 'db/models/agent.model';
 import { FakeListChatModel } from 'langchain/chat_models/fake';
-import { LLMModel } from '@simulation/db/enum/enums';
-import repositoryFactory from '@simulation/db/repositories/factory';
-import { MessageDocument } from '@simulation/db/models/message.model';
-import { MsgSender, MsgTypes, ConversationStatus } from '@simulation/db/enum/enums';
+import { LLMModel } from 'db/enum/enums';
+import repositoryFactory from 'db/repositories/factory';
+import { MessageDocument } from 'db/models/message.model';
+import { MsgSender, MsgTypes, ConversationStatus } from 'db/enum/enums';
 import * as fs from 'fs';
 import * as path from 'path';
 

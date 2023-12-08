@@ -1,10 +1,10 @@
-import { MsgSender, MsgTypes } from '@simulation/db/enum/enums';
-import { MessageDocument } from '@simulation/db/models/message.model';
-import { MetricRepository } from 'evaluation/db/repositories/metric.repository';
-import { MetricDocument, MetricModel } from 'evaluation/db/models/metric.model';
+import { MsgSender, MsgTypes } from 'db/enum/enums';
+import { MessageDocument } from 'db/models/message.model';
+import { MetricRepository } from 'db/repositories/metric.repository';
+import { MetricDocument, MetricModel } from 'db/models/metric.model';
 import { MetricNameEnum, metricWeightMap } from 'evaluation/utils/metric.config';
 import mongoose, { Types } from 'mongoose';
-import { ConversationDocument } from '@simulation/db/models/conversation.model';
+import { ConversationDocument } from 'db/models/conversation.model';
 import { metricNormalizationFunctions } from 'evaluation/utils/data.normalization';
 
 const metricRepository = new MetricRepository(MetricModel);

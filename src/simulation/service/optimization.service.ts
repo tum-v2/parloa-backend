@@ -1,11 +1,11 @@
-import { SimulationDocument } from '@simulation/db/models/simulation.model';
+import { SimulationDocument } from 'db/models/simulation.model';
 import { RunSimulationRequest } from '@simulation/model/request/simulation.request';
 import simulationService from '@simulation/service/simulation.service';
 import conversationService from '@simulation/service/conversation.service';
-import repositoryFactory from '@simulation/db/repositories/factory';
-import { AgentDocument } from '@simulation/db/models/agent.model';
-import { OptimizationDocument } from '@simulation/db/models/optimization.model';
-import { LLMModel, SimulationType } from '@simulation/db/enum/enums';
+import repositoryFactory from 'db/repositories/factory';
+import { AgentDocument } from 'db/models/agent.model';
+import { OptimizationDocument } from 'db/models/optimization.model';
+import { LLMModel, SimulationType } from 'db/enum/enums';
 import { OpenAI } from 'langchain/llms/openai';
 import { PromptTemplate } from 'langchain/prompts';
 import { CommaSeparatedListOutputParser } from 'langchain/output_parsers';

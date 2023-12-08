@@ -1,12 +1,12 @@
 /* eslint-disable require-jsdoc */
-import { SimulationDocument, SimulationModel } from '@simulation/db/models/simulation.model';
-import repositoryFactory from '@simulation/db/repositories/factory';
-import { SimulationType, SimulationStatus, MsgTypes, MsgSender } from '@simulation/db/enum/enums';
+import { SimulationDocument, SimulationModel } from 'db/models/simulation.model';
+import repositoryFactory from 'db/repositories/factory';
+import { SimulationType, SimulationStatus, MsgTypes, MsgSender } from 'db/enum/enums';
 
 import { CustomAgent } from '@simulation/agents/custom.agent';
 import { configureServiceAgent, createMessageDocument, setupPath } from '@simulation/service/conversation.service';
-import { AgentDocument } from '@simulation/db/models/agent.model';
-import { MessageDocument } from '@simulation/db/models/message.model';
+import { AgentDocument } from 'db/models/agent.model';
+import { MessageDocument } from 'db/models/message.model';
 import ChatMessage from '@simulation/model/response/chat.response';
 import { StartChatRequest } from '@simulation/model/request/chat.request';
 
