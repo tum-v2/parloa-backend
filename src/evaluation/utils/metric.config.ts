@@ -1,5 +1,4 @@
-// Configuration of the metrics
-import { MetricNameEnum } from 'db/enum/enums';
+import { MetricNameEnum } from '@enums/metric-name.enum';
 
 const metricWeightMap: Map<MetricNameEnum, number> = new Map([
   [MetricNameEnum.SUCCESS, 1 / 3],

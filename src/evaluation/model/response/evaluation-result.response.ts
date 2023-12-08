@@ -1,14 +1,8 @@
-import { MetricDocument } from 'db/models/metric.model';
+import { MetricDocument } from '@db/models/metric.model';
+import { EvaluationStatus } from '@enums/evaluation-status.enum';
 
 type EvaluationResultForConversation = EvaluationExecuted | EvaluationInProgress | EvaluationNotExecuted;
-
 type EvaluationResultForSimulation = SimulationEvaluationExecuted | SimulationEvaluationNotExecuted;
-
-enum EvaluationStatus {
-  EVALUATED = 'evaluated',
-  IN_PROGRESS = 'in_progress',
-  NOT_EVALUATED = 'not_evaluated',
-}
 
 interface SimulationEvaluationNotExecuted {
   status: EvaluationStatus.NOT_EVALUATED;
@@ -38,4 +32,4 @@ interface EvaluationExecutedWithConversation extends Omit<EvaluationExecuted, 's
   conversation: string;
 }
 
-export { EvaluationStatus, EvaluationResultForConversation, EvaluationResultForSimulation, EvaluationExecuted };
+export { EvaluationResultForConversation, EvaluationResultForSimulation, EvaluationExecuted };

@@ -1,12 +1,14 @@
 import { Model, Types } from 'mongoose';
-import { MessageDocument } from 'db/models/message.model';
-import { ConversationDocument } from 'db/models/conversation.model';
-import { SimulationDocument } from 'db/models/simulation.model';
-import { SimulationRepository } from 'db/repositories/simulation.repository';
-import { ConversationStatus, SimulationType, SimulationStatus } from 'db/enum/enums';
-import { logger } from 'utils/logger';
+import { MessageDocument } from '@db/models/message.model';
+import { ConversationDocument } from '@db/models/conversation.model';
+import { SimulationDocument } from '@db/models/simulation.model';
+import { SimulationRepository } from '@db/repositories/simulation.repository';
+import { logger } from '@utils/logger';
 import { MsgHistoryItem } from '@simulation/agents/custom.agent';
 import { AIMessage, BaseMessage, HumanMessage, SystemMessage } from 'langchain/schema';
+import { ConversationStatus } from '@enums/conversation-status.enum';
+import { SimulationStatus } from '@enums/simulation-status.enum';
+import { SimulationType } from '@enums/simulation-type.enum';
 
 class ChatRepository extends SimulationRepository {
   private messageModel: Model<MessageDocument>;

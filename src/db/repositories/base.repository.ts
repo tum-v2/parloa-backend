@@ -1,5 +1,5 @@
 import { Document, Model } from 'mongoose';
-import { logger } from 'utils/logger';
+import { logger } from '@utils/logger';
 
 abstract class BaseRepository<T extends Document> {
   protected model: Model<T>;

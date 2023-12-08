@@ -1,7 +1,7 @@
-import { BaseRepository } from 'db/repositories/base.repository';
-import { EvaluationDocument, EvaluationDocumentWithConversation } from '../models/evaluation.model';
+import { BaseRepository } from '@db/repositories/base.repository';
+import { EvaluationDocument, EvaluationDocumentWithConversation } from '@db/models/evaluation.model';
 import { Model } from 'mongoose';
-import { logger } from 'evaluation/service/logging.service';
+import { logger } from '@utils/logger';
 
 class EvaluationRepository extends BaseRepository<EvaluationDocument> {
   constructor(model: Model<EvaluationDocument>) {

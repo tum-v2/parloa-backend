@@ -1,15 +1,15 @@
-import { AgentModel } from 'db/models/agent.model';
-import { SimulationModel } from 'db/models/simulation.model';
-import { MessageModel } from 'db/models/message.model';
-import { ConversationModel } from 'db/models/conversation.model';
+import { AgentModel } from '@db/models/agent.model';
+import { SimulationModel } from '@db/models/simulation.model';
+import { MessageModel } from '@db/models/message.model';
+import { ConversationModel } from '@db/models/conversation.model';
 
-import { AgentRepository } from 'db/repositories/agent.repository';
-import { SimulationRepository } from 'db/repositories/simulation.repository';
-import { ChatRepository } from 'db/repositories/chat.repository';
-import { MessageRepository } from 'db/repositories/message.repository';
-import { ConversationRepository } from 'db/repositories/conversation.repository';
-import { OptimizationRepository } from 'db/repositories/optimization.repository';
-import { OptimizationModel } from 'db/models/optimization.model';
+import { AgentRepository } from '@db/repositories/agent.repository';
+import { SimulationRepository } from '@db/repositories/simulation.repository';
+import { ChatRepository } from '@db/repositories/chat.repository';
+import { MessageRepository } from '@db/repositories/message.repository';
+import { ConversationRepository } from '@db/repositories/conversation.repository';
+import { OptimizationRepository } from '@db/repositories/optimization.repository';
+import { OptimizationModel } from '@db/models/optimization.model';
 
 export default {
   agentRepository: new AgentRepository(AgentModel),

@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { body, param, ValidationChain, ValidationError, validationResult } from 'express-validator';
-import { logger } from 'utils/logger';
+import { logger } from '@utils/logger';
 
 class CustomValidationError extends Error {
   errors: string[];
@@ -14,8 +14,8 @@ class CustomValidationError extends Error {
 
 class EvaluationValidator {
   /**
-   * Validate the request body for /run endpoint
-   * @returns Validation chain array that checks evaluation run request
+   * Validate the request body for /run endpoint.
+   * @returns ValidationChain[] - ValidationChain array that checks evaluation run request.
    */
   static runValidation(): ValidationChain[] {
     return [
@@ -39,16 +39,16 @@ class EvaluationValidator {
   }
 
   /**
-   * Validate the parmeter for the /results-for-conversation endpoint
-   * @returns Validation chain array that checks the request parameter
+   * Validate the parameter for the /results-for-conversation endpoint.
+   * @returns ValidationChain[] - ValidationChain array that checks the request parameter.
    */
   static resultsForConversationValidation(): ValidationChain[] {
     return [param('conversationId').isMongoId().withMessage('Invalid conversation ID.')];
   }
 
   /**
-   * Validate the parmeter for the /results-for-simulation endpoint
-   * @returns Validation chain array that checks the request parameter
+   * Validate the parameter for the /results-for-simulation endpoint.
+   * @returns ValidationChain[] - ValidationChain array that checks the request parameter.
    */
   static resultsForSimulationValidation(): ValidationChain[] {
     return [param('simulationId').isMongoId().withMessage('Invalid simulation ID')];

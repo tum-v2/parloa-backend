@@ -1,6 +1,6 @@
 import { Schema, Document, model } from 'mongoose';
-import { ConversationDomain } from 'enums/conversation-domain.enum';
-import { LLMModel } from 'enums/llm-model.enum';
+import { ConversationDomain } from '@enums/conversation-domain.enum';
+import { LLMModel } from '@enums/llm-model.enum';
 
 interface AgentDocument extends Document {
   llm: LLMModel;

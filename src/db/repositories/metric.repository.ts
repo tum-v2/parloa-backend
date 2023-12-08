@@ -1,6 +1,6 @@
-import { BaseRepository } from 'db/repositories/base.repository';
+import { BaseRepository } from '@db/repositories/base.repository';
 import { Model } from 'mongoose';
-import { MetricDocument } from '../models/metric.model';
+import { MetricDocument } from '@db/models/metric.model';
 
 class MetricRepository extends BaseRepository<MetricDocument> {
   constructor(model: Model<MetricDocument>) {

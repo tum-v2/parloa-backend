@@ -1,7 +1,7 @@
 import { Schema, Document, model, Types } from 'mongoose';
-import { SimulationDocument } from './simulation.model';
-import { ConversationDocument } from './conversation.model';
-import { MetricDocument } from './metric.model';
+import { SimulationDocument } from '@db/models/simulation.model';
+import { ConversationDocument } from '@db/models/conversation.model';
+import { MetricDocument } from '@db/models/metric.model';
 
 interface EvaluationDocument extends Document {
   simulation: Types.ObjectId | SimulationDocument;

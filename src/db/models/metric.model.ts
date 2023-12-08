@@ -1,5 +1,5 @@
 import { Schema, Document, model } from 'mongoose';
-import { MetricNameEnum } from 'db/enum/enums';
+import { MetricNameEnum } from '@enums/metric-name.enum';
 
 interface MetricDocument extends Document {
   name: MetricNameEnum;

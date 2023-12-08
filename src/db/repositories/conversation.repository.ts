@@ -1,8 +1,8 @@
 import { Model } from 'mongoose';
-import { BaseRepository } from 'db/repositories/base.repository';
-import { ConversationDocument } from 'db/models/conversation.model';
+import { BaseRepository } from '@db/repositories/base.repository';
+import { ConversationDocument } from '@db/models/conversation.model';
 import { Types } from 'mongoose';
-import { logger } from 'utils/logger';
+import { logger } from '@utils/logger';
 
 class ConversationRepository extends BaseRepository<ConversationDocument> {
   constructor(model: Model<ConversationDocument>) {

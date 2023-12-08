@@ -1,5 +1,5 @@
 import { Schema, Document, model, ObjectId } from 'mongoose';
-import { SimulationDocument } from 'db/models/simulation.model';
+import { SimulationDocument } from '@db/models/simulation.model';
 
 interface OptimizationDocument extends Document {
   baseSimulation: ObjectId;
