@@ -29,10 +29,9 @@ import evaluationRouter from '@evaluation/router/evaluation.router';
 const port = process.env.NODE_DOCKER_PORT || 3000;
 const app = express();
 
-// Enable CORS for all origins
 app.use(
   cors({
-    origin: '*',
+    origin: process.env.NODE_ENV === 'development' ? '*' : process.env.FRONTEND_URL,
   }),
 );
 
