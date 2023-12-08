@@ -1,13 +1,14 @@
-/* eslint-disable require-jsdoc */
-import DashboardData from '@simulation/model/response/dashboard.response';
 import { Request, Response } from 'express';
+import { BAD_REQUEST, INTERNAL_SERVER_ERROR } from '@utils/errors';
+
+import DashboardData from '@simulation/model/response/dashboard.response';
 import simulationService from '@simulation/service/simulation.service';
-import { BAD_REQUEST, INTERNAL_SERVER_ERROR } from 'utils/errors';
 
 /**
  * Get dashboard data
- * @param req - Request
- * @param res - Response
+ * @param req - Request object. It requires a number of days.
+ * @param res - Response object. It returns Dashboard data.
+ * @throws Throws an internal server error if number of days is not provided.
  */
 async function getDashboardData(req: Request, res: Response): Promise<void> {
   try {

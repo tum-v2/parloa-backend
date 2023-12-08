@@ -1,20 +1,21 @@
-import { SimulationDocument } from 'db/models/simulation.model';
-import { ConversationDocument } from 'db/models/conversation.model';
+import { SimulationDocument } from '@db/models/simulation.model';
+import { ConversationDocument } from '@db/models/conversation.model';
+import { AgentDocument } from '@db/models/agent.model';
+import repositoryFactory from '@db/repositories/factory';
 
-import { SimulationType, SimulationStatus } from 'db/enum/enums';
+import { SimulationType } from '@enums/simulation-type.enum';
+import { SimulationStatus } from '@enums/simulation-status.enum';
+
 import { RunSimulationRequest } from '@simulation/model/request/simulation.request';
-
-import { Types } from 'mongoose';
-
-import repositoryFactory from 'db/repositories/factory';
-import { AgentDocument } from 'db/models/agent.model';
-import { runConversation } from '@simulation/service/conversation.service';
 import { RunEvaluationRequest } from '@evaluation/model/request/run-evaluation.request';
-
 import { RunABTestingRequest } from '@simulation/model/request/run-ab-testing.request';
 import DashboardData from '@simulation/model/response/dashboard.response';
-import evaluationService from '@evaluation/service/evaluation.service';
+import { runConversation } from '@simulation/service/conversation.service';
 import optimizationService from '@simulation/service/optimization.service';
+
+import evaluationService from '@evaluation/service/evaluation.service';
+
+import { Types } from 'mongoose';
 
 const agentRepository = repositoryFactory.agentRepository;
 const simulationRepository = repositoryFactory.simulationRepository;
@@ -24,6 +25,8 @@ const messageRepository = repositoryFactory.messageRepository;
 /**
  * Creates a simulation object and initiates the simulation.
  * @param request - The simulation configuration.
+ * @param optimization - The optimization ID (optional).
+ * @param child - Indicates if the simulation is a child simulation (optional).
  * @returns A promise that resolves to the simulation object.
  * @throws Throws an error if there is an issue with the MongoDB query.
  */
@@ -75,6 +78,7 @@ async function initiate(
 
   return simulation;
 }
+
 /**
  * Creates a simulation object and initiates the simulation.
  * @param request - The simulation configuration.
@@ -144,7 +148,15 @@ async function initiateAB(request: RunABTestingRequest): Promise<SimulationDocum
 }
 
 /**
- * Run the simulation.
+ * Runs a simulation. This function runs conversations for the simulation and then runs evaluations for each conversation.
+ * For the last conversation, it sends a flag to the evaluation service to indicate that this is the last conversation.
+ * It waits for the evaluation services answer for the last conversation.
+ * If the simulation is an optimization simulation, it calls the optimization service to handle the simulation over.
+ * @param simulation - The simulation object.
+ * @param request - The simulation configuration.
+ * @param serviceAgent - The service agent.
+ * @param userAgent - The user agent.
+ * @param optimization - The optimization ID (optional).
  */
 async function run(
   simulation: SimulationDocument,
@@ -194,8 +206,15 @@ async function run(
     }
   }
 }
+
 /**
- * Starts two simulations for AB testing
+ * Starts two simulations for AB testing.
+ * @param simulation1 - The first simulation object.
+ * @param simulation2 - The second simulation object.
+ * @param request - The simulation configuration.
+ * @param serviceAgent1 - The first service agent.
+ * @param serviceAgent2 - The second service agent.
+ * @param userAgent - The user agent.
  */
 async function runAB(
   simulation1: SimulationDocument,

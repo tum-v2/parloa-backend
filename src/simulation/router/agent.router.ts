@@ -1,4 +1,5 @@
 import express, { Router } from 'express';
+
 import agentController from '@simulation/api/agent.controller';
 import CustomValidationError from '@simulation/validator/error.validator';
 import AgentValidator from '@simulation/validator/agent.validator';
@@ -14,7 +15,7 @@ router.get('/all', agentController.getAll);
 router.get('/:id', AgentValidator.idValidation(), CustomValidationError.handleValidationErrors, agentController.get);
 // region GET //
 
-// region PATCH //
+// region PUT //
 router.put(
   '/:id',
   AgentValidator.idValidation(),
@@ -22,7 +23,7 @@ router.put(
   CustomValidationError.handleValidationErrors,
   agentController.update,
 );
-// endregion PATCH //
+// endregion PUT //
 
 // region DELETE //
 router.delete('/:id', AgentValidator.idValidation(), CustomValidationError.handleValidationErrors, agentController.del);

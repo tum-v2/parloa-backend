@@ -1,9 +1,7 @@
-// Controller that implements chat related endpoints
 import { Request, Response } from 'express';
-import { SimulationDocument } from 'db/models/simulation.model';
-
+import { INTERNAL_SERVER_ERROR } from '@utils/errors';
+import { SimulationDocument } from '@db/models/simulation.model';
 import chatService from '@simulation/service/chat.service';
-import { INTERNAL_SERVER_ERROR } from 'utils/errors';
 import ChatMessage from '@simulation/model/response/chat.response';
 import { StartChatRequest } from '@simulation/model/request/chat.request';
 
