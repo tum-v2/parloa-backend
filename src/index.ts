@@ -5,7 +5,7 @@ import express, { Request, Response } from 'express';
 import bodyParser from 'body-parser';
 import YAML from 'yamljs';
 import swaggerUi from 'swagger-ui-express';
-import merge from 'lodash/merge';
+import merge from 'lodash.merge';
 import cors from 'cors';
 
 import { logger } from '@utils/logger';
@@ -36,8 +36,8 @@ app.use(
 );
 
 // Load API specifications and merge them
-const apiSpecSimulation = YAML.load('@simulation/docs/api.documentation.yaml');
-const apiSpecEvaluation = YAML.load('@evaluation/docs/api.documentation.yaml');
+const apiSpecSimulation = YAML.load('./src/simulation/docs/api.documentation.yaml');
+const apiSpecEvaluation = YAML.load('./src/evaluation/docs/api.documentation.yaml');
 const apiSpec = merge(apiSpecSimulation, apiSpecEvaluation);
 
 // Use body-parser middleware to parse JSON requests
