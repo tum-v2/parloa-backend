@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import agentService from '@simulation/service/agent.service';
-import { AgentDocument } from '@simulation/db/models/agent.model';
-import { INTERNAL_SERVER_ERROR } from '@simulation/utils/errors';
+import { AgentDocument } from '@db/models/agent.model';
+import { INTERNAL_SERVER_ERROR } from '@utils/errors';
 
 /**
  * Creates a new agent.

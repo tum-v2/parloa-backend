@@ -1,9 +1,11 @@
-// Router that routes incoming requests to relevant controller function
 import express from 'express';
-const router = express.Router();
 
 import authController from '@simulation/api/auth.controller';
 
+const router = express.Router();
+
+// region POST //
 router.post('/login', authController.login);
+// endregion POST //
 
 export default router;

@@ -1,10 +1,4 @@
-// Configuration of the metrics
-
-enum MetricNameEnum {
-  SUCCESS = 'success',
-  RESPONSE_TIME = 'response_time',
-  MESSAGE_COUNT = 'message_count',
-}
+import { MetricNameEnum } from '@enums/metric-name.enum';
 
 const metricWeightMap: Map<MetricNameEnum, number> = new Map([
   [MetricNameEnum.SUCCESS, 1 / 3],
@@ -12,4 +6,4 @@ const metricWeightMap: Map<MetricNameEnum, number> = new Map([
   [MetricNameEnum.MESSAGE_COUNT, 1 / 3],
 ]);
 
-export { MetricNameEnum, metricWeightMap };
+export { metricWeightMap };

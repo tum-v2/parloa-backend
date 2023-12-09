@@ -1,5 +1,7 @@
-import { SimulationType, SimulationScenario } from '@simulation/db/enum/enums';
-import { AgentDocument } from '@simulation/db/models/agent.model';
+import { SimulationType } from '@enums/simulation-type.enum';
+import { SimulationScenario } from '@enums/simulation-scenario.enum';
+
+import { AgentDocument } from '@db/models/agent.model';
 
 interface RunABTestingRequest {
   scenario: SimulationScenario;

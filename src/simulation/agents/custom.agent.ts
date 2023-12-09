@@ -4,11 +4,11 @@ import { BaseMessage } from 'langchain/schema';
 import { CustomAgentConfig, RestAPITool, RouteToCoreTool } from '@simulation/agents/custom.agent.config';
 import moment from 'moment';
 import { appendFileSync } from 'fs';
-import { MsgTypes } from '@simulation/db/enum/enums';
+import { MsgType } from '@enums/msg-type.enum';
 
 export class MsgHistoryItem {
   lcMsg: BaseMessage;
-  type: MsgTypes;
+  type: MsgType;
   timestamp: Date;
   userInput: string | null;
   msgToUser: string | null;
@@ -20,7 +20,7 @@ export class MsgHistoryItem {
 
   constructor(
     lcMsg: BaseMessage,
-    type: MsgTypes,
+    type: MsgType,
     userInput?: string,
     msgToUser?: string,
     intermediateMsg?: string,
@@ -110,14 +110,14 @@ export class CustomAgent {
 
     const lcMsg: BaseMessage = await this.getSystemPrompt();
     // console.log(lcMsg.content.toString());
-    await this.addMessage(new MsgHistoryItem(lcMsg, MsgTypes.SYSTEMPROMPT));
+    await this.addMessage(new MsgHistoryItem(lcMsg, MsgType.SYSTEMPROMPT));
 
     return this.config.welcomeMessage;
   }
 
   async processHumanInput(humanInput: string, id: string | null = null): Promise<string> {
     const lcMsg: BaseMessage = await this.getHumanPrompt(humanInput);
-    const msg = new MsgHistoryItem(lcMsg, MsgTypes.HUMANINPUT, humanInput, id ?? undefined);
+    const msg = new MsgHistoryItem(lcMsg, MsgType.HUMANINPUT, humanInput, id ?? undefined);
     await this.addMessage(msg);
 
     let response: Record<string, any> = {};
@@ -135,7 +135,7 @@ export class CustomAgent {
       actionInput = response.action_input ?? {};
 
       if (
-        action === MsgTypes.MSGTOUSER ||
+        action === MsgType.MSGTOUSER ||
         action == 'message_to_user' ||
         action == 'None' ||
         action == 'message_to_agent'
@@ -143,7 +143,7 @@ export class CustomAgent {
         await this.addMessage(
           new MsgHistoryItem(
             responseMessage,
-            MsgTypes.MSGTOUSER,
+            MsgType.MSGTOUSER,
             undefined,
             String(actionInput),
             undefined,
@@ -165,7 +165,7 @@ export class CustomAgent {
         await this.addMessage(
           new MsgHistoryItem(
             responseMessage,
-            MsgTypes.ROUTE,
+            MsgType.ROUTE,
             undefined,
             undefined,
             response.intermediate_message,
@@ -188,7 +188,7 @@ export class CustomAgent {
         await this.addMessage(
           new MsgHistoryItem(
             responseMessage,
-            MsgTypes.TOOLCALL,
+            MsgType.TOOLCALL,
             undefined,
             undefined,
             response.intermediate_message,
@@ -206,7 +206,7 @@ export class CustomAgent {
         await this.addMessage(
           new MsgHistoryItem(
             lcMsg,
-            MsgTypes.TOOLOUTPUT,
+            MsgType.TOOLOUTPUT,
             undefined,
             undefined,
             undefined,
@@ -283,17 +283,17 @@ export class CustomAgent {
   }
 
   logMessage(msg: MsgHistoryItem) {
-    if (msg.type === MsgTypes.SYSTEMPROMPT) {
+    if (msg.type === MsgType.SYSTEMPROMPT) {
       this.logChat(`🤖 ${Colors.BLUE}${this.config.welcomeMessage}${Colors.END}`);
-    } else if (msg.type === MsgTypes.HUMANINPUT) {
+    } else if (msg.type === MsgType.HUMANINPUT) {
       this.logChat(`${Colors.GREEN}👧 ${msg.userInput}${Colors.END}`, this.isEchoHumanInput);
-    } else if (msg.type === MsgTypes.TOOLCALL) {
+    } else if (msg.type === MsgType.TOOLCALL) {
       this.logChat(`      🛠️ ${Colors.GREY}[${msg.action}] call input: ${JSON.stringify(msg.toolInput)}${Colors.END}`);
-    } else if (msg.type === MsgTypes.TOOLOUTPUT) {
+    } else if (msg.type === MsgType.TOOLOUTPUT) {
       this.logChat(`      🛠️ ${Colors.GREY}[${msg.action}] result: ${msg.toolOutput}${Colors.END}`);
-    } else if (msg.type === MsgTypes.MSGTOUSER) {
+    } else if (msg.type === MsgType.MSGTOUSER) {
       this.logChat(`🤖 ${Colors.BLUE}${msg.msgToUser}${Colors.END}`);
-    } else if (msg.type === MsgTypes.ROUTE) {
+    } else if (msg.type === MsgType.ROUTE) {
       this.logChat(`   ⏳ ${Colors.BLUE}${msg.intermediateMsg}${Colors.END}`);
       this.logChat(`🏓 ${Colors.BLUE}${msg.action} ${Colors.GREY}${JSON.stringify(msg.toolInput)}${Colors.END}`);
     }
@@ -349,7 +349,7 @@ export class CustomAgent {
           await this.addMessage(
             new MsgHistoryItem(
               inputBaseMessage,
-              MsgTypes.TOOLCALL,
+              MsgType.TOOLCALL,
               undefined,
               inputBaseMessage.content.toString(),
               undefined,
@@ -364,7 +364,7 @@ export class CustomAgent {
           await this.addMessage(
             new MsgHistoryItem(
               await this.getHumanPrompt(msg),
-              MsgTypes.TOOLOUTPUT,
+              MsgType.TOOLOUTPUT,
               undefined,
               undefined,
               undefined,

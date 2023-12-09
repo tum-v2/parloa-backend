@@ -27,27 +27,29 @@
 
     /* Modules */
     "moduleResolution": "node",                     /* Specify how TypeScript looks up a file from a given module specifier. */
-    "baseUrl": "./src",                                  /* Specify the base directory to resolve non-relative module names. */
+    "baseUrl": "./",                                  /* Specify the base directory to resolve non-relative module names. */
     "paths": {
-      "@simulation/agents/*": ["simulation/agents/*"],
-      "@simulation/api/*": ["simulation/api/*"],
-      "@simulation/config/*": ["simulation/config/*"],
-      "@simulation/db/*": ["simulation/db/*"],
-      "@simulation/docs/*": ["simulation/docs/*"],
-      "@simulation/mockedAPI/*": ["simulation/mockedAPI/*"],
-      "@simulation/model/*": ["simulation/model/*"],
-      "@simulation/router/*": ["simulation/router/*"],
-      "@simulation/service/*": ["simulation/service/*"],
-      "@simulation/utils/*": ["simulation/utils/*"],
-      "@simulation/validator/*": ["simulation/validator/*"],
-      "@evaluation/api/*": ["evaluation/api/*"],
-      "@evaluation/db/*": ["evaluation/db/*"],
-      "@evaluation/docs/*": ["evaluation/docs/*"],
-      "@evaluation/model/*": ["evaluation/model/*"],
-      "@evaluation/router/*": ["evaluation/router/*"],
-      "@evaluation/service/*": ["evaluation/service/*"],
-      "@evaluation/utils/*": ["evaluation/utils/*"],
-      "@evaluation/validator/*": ["evaluation/validator/*"]
+      "@simulation/agents/*": ["src/simulation/agents/*"],
+      "@simulation/api/*": ["src/simulation/api/*"],
+      "@simulation/config/*": ["src/simulation/config/*"],
+      "@simulation/docs/*": ["src/simulation/docs/*"],
+      "@simulation/mockedAPI/*": ["src/simulation/mockedAPI/*"],
+      "@simulation/model/*": ["src/simulation/model/*"],
+      "@simulation/router/*": ["src/simulation/router/*"],
+      "@simulation/service/*": ["src/simulation/service/*"],
+      "@simulation/validator/*": ["src/simulation/validator/*"],
+      "@evaluation/api/*": ["src/evaluation/api/*"],
+      "@evaluation/docs/*": ["src/evaluation/docs/*"],
+      "@evaluation/model/*": ["src/evaluation/model/*"],
+      "@evaluation/router/*": ["src/evaluation/router/*"],
+      "@evaluation/service/*": ["src/evaluation/service/*"],
+      "@evaluation/utils/*": ["src/evaluation/utils/*"],
+      "@evaluation/validator/*": ["src/evaluation/validator/*"],
+      "@enums/*": ["src/enums/*"],
+      "@db/models/*": ["src/db/models/*"],
+      "@db/repositories/*": ["src/db/repositories/*"],
+      "@db/config/*": ["src/db/config/*"],
+      "@utils/*": ["src/utils/*"],
     },
     // "rootDirs": [],                                   /* Allow multiple folders to be treated as one when resolving modules. */
     // "typeRoots": [],                                  /* Specify multiple folders that act like './node_modules/@types'. */

@@ -1,4 +1,3 @@
-// User agent
 import { CustomAgentConfig } from '@simulation/agents/custom.agent.config';
 
 const PERSONAS: Record<string, string> = {
@@ -81,9 +80,11 @@ const TOOL_OUTPUT_TEMPLATE = `# RESULT FROM '{toolName}' TOOL
 `;
 
 /**
- * Returns the config for the user agent
- * @param persona - One of the follwing strings: "sarcastic" | "nonative" | "terse" | "riddling" | "concise"
- * @returns the configuration for this persona
+ * Retrieves the simulation configuration for a given persona.
+ * @param persona - The persona for which to retrieve the configuration.
+ * Must be one of the available personas: sarcastic, nonative, terse, riddling, concise.
+ * @returns The custom agent configuration for the specified persona.
+ * @throws Error if the persona is not found in the available personas.
  */
 export function getSimConfig(persona: string): CustomAgentConfig {
   if (!(persona in PERSONAS)) {

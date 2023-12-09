@@ -1,10 +1,10 @@
-// Router that routes incoming requests to relevant controller function
 import express from 'express';
-const router = express.Router();
 
 import simulationController from '@simulation/api/simulation.controller';
 import SimulationValidator from '@simulation/validator/simulation.validator';
-import CustomValidationError from '@simulation/validator/error.validator';
+import { CustomValidationError } from '@utils/handle-validation-errors';
+
+const router = express.Router();
 
 // region POST //
 router.post(
@@ -32,9 +32,9 @@ router.get(
 );
 router.get('/all', simulationController.getAll);
 router.get('/conversation/:id', simulationController.getConversation);
-// region GET //
+// endregion GET //
 
-// region PATCH //
+// region PUT//
 router.patch(
   '/:id',
   SimulationValidator.idValidation(),
@@ -42,7 +42,7 @@ router.patch(
   CustomValidationError.handleValidationErrors,
   simulationController.update,
 );
-// endregion PATCH //
+// endregion PUT //
 
 // region DELETE //
 router.delete(

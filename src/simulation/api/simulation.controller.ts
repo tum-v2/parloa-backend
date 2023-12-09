@@ -1,16 +1,15 @@
-// Controller that implements simulation related endpoints
 import { Request, Response } from 'express';
 import { validationResult } from 'express-validator';
 
 import { RunABTestingRequest } from '@simulation/model/request/run-ab-testing.request';
 import { RunSimulationRequest } from '@simulation/model/request/simulation.request';
-
-import { SimulationDocument } from '@simulation/db/models/simulation.model';
 import simulationService from '@simulation/service/simulation.service';
-import { logger } from '@simulation/service/logging.service';
-import { ConversationDocument } from '@simulation/db/models/conversation.model';
 
-import { INTERNAL_SERVER_ERROR } from '@simulation/utils/errors';
+import { SimulationDocument } from '@db/models/simulation.model';
+import { ConversationDocument } from '@db/models/conversation.model';
+
+import { logger } from '@utils/logger';
+import { INTERNAL_SERVER_ERROR } from '@utils/errors';
 
 /**
  * Runs the simulation.

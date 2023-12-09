@@ -1,8 +1,12 @@
-/* eslint-disable require-jsdoc */
-// Controller that implements authentication
 import { Request, Response } from 'express';
-import { INTERNAL_SERVER_ERROR } from '@simulation/utils/errors';
+import { INTERNAL_SERVER_ERROR } from '@utils/errors';
 
+/**
+ * Handles the login request.
+ * @param req - The request object.
+ * @param res - The response object. Returns a success boolean.
+ * @throws Throws an internal server error if access code is not provided.
+ */
 async function login(req: Request, res: Response): Promise<void> {
   const { accessCode } = req.body;
 

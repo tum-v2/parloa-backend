@@ -1,4 +1,4 @@
-import { SimulationDocument } from '@simulation/db/models/simulation.model';
+import { SimulationDocument } from '@db/models/simulation.model';
 
 interface DashboardData {
   interactions: number;

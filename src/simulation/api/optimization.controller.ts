@@ -1,14 +1,13 @@
-// Controller that implements simulation related endpoints
 import { Request, Response } from 'express';
 import { validationResult } from 'express-validator';
+import { logger } from '@utils/logger';
+import { INTERNAL_SERVER_ERROR } from '@utils/errors';
 
 import { RunSimulationRequest } from '@simulation/model/request/simulation.request';
 import optimizationService from '@simulation/service/optimization.service';
-import { logger } from '@simulation/service/logging.service';
 
-import { INTERNAL_SERVER_ERROR } from '@simulation/utils/errors';
-import { OptimizationDocument } from '@simulation/db/models/optimization.model';
-import { SimulationDocument } from '@simulation/db/models/simulation.model';
+import { OptimizationDocument } from '@db/models/optimization.model';
+import { SimulationDocument } from '@db/models/simulation.model';
 
 /**
  * Handle requests coming from the UI, start the optimization process.

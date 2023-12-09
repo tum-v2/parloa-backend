@@ -1,12 +1,15 @@
-/* eslint-disable require-jsdoc */
-import { SimulationDocument, SimulationModel } from '@simulation/db/models/simulation.model';
-import repositoryFactory from '@simulation/db/repositories/factory';
-import { SimulationType, SimulationStatus, MsgTypes, MsgSender } from '@simulation/db/enum/enums';
+import repositoryFactory from '@db/repositories/factory';
+import { AgentDocument } from '@db/models/agent.model';
+import { MessageDocument } from '@db/models/message.model';
+import { SimulationDocument, SimulationModel } from '@db/models/simulation.model';
+
+import { SimulationType } from '@enums/simulation-type.enum';
+import { SimulationStatus } from '@enums/simulation-status.enum';
+import { MsgType } from '@enums/msg-type.enum';
+import { MsgSender } from '@enums/msg-sender.enum';
 
 import { CustomAgent } from '@simulation/agents/custom.agent';
 import { configureServiceAgent, createMessageDocument, setupPath } from '@simulation/service/conversation.service';
-import { AgentDocument } from '@simulation/db/models/agent.model';
-import { MessageDocument } from '@simulation/db/models/message.model';
 import ChatMessage from '@simulation/model/response/chat.response';
 import { StartChatRequest } from '@simulation/model/request/chat.request';
 
@@ -100,6 +103,11 @@ async function sendMessage(chatId: string, message: string): Promise<string> {
   return agentResponse;
 }
 
+/**
+ * Forward a message to the service agent and wait for the response.
+ * @param message - The message to be forwarded.
+ * @returns A promise that resolves to the response from the service agent.
+ */
 async function forwardMessageToAgentAndWaitResponse(message: string): Promise<string> {
   if (!serviceAgent) {
     throw new Error('Service agent not found!');
@@ -130,7 +138,7 @@ async function load(chatId: string): Promise<ChatMessage[]> {
     console.log('Agent configs: ', serviceAgent);
 
     for (let i = 0; i < serviceAgent.messageHistory.length; i++) {
-      if (serviceAgent.messageHistory[i].type === MsgTypes.HUMANINPUT) {
+      if (serviceAgent.messageHistory[i].type === MsgType.HUMANINPUT) {
         const userInput = serviceAgent.messageHistory[i].userInput;
         if (userInput !== null) {
           messages.push({ sender: MsgSender.USER, text: userInput });

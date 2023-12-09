@@ -6,7 +6,6 @@ import {
   RestAPITool,
   RouteToCoreTool,
 } from '@simulation/agents/custom.agent.config';
-
 import {
   auth,
   bookingInfo,
@@ -14,7 +13,8 @@ import {
   changeFlightDate,
   getAllFlights,
 } from '@simulation/mockedAPI/flightBooking.mocks';
-import { getFaqAnswer } from '../../mockedAPI/parloa.kf.faq';
+import { getFaqAnswer } from '@simulation/mockedAPI/parloa.kf.faq';
+
 const bookingNumberParam = new APIParam(
   'booking_number',
   'The booking number. Format is 6 alphanumeric characters.',

@@ -1,4 +1,4 @@
-import { MetricNameEnum } from './metric.config';
+import { MetricNameEnum } from '@enums/metric-name.enum';
 
 const metricNormalizationFunctions: Map<MetricNameEnum, (score: number) => number> = new Map([
   [MetricNameEnum.SUCCESS, (score) => score],
@@ -8,30 +8,30 @@ const metricNormalizationFunctions: Map<MetricNameEnum, (score: number) => numbe
 
 /**
  *
- * @param score - the (not normalized) score
- * @param minScore - the score which is considered the best (normalized score will be 1)
- * @param maxScore - the score which is considered the worst (normalized score will be 0)
- * @returns the normalized score (using the min-max-normalizer)
+ * @param score - The (not normalized) score.
+ * @param minScore - The score which is considered the best (normalized score will be 1).
+ * @param maxScore - The score which is considered the worst (normalized score will be 0).
+ * @returns number - The normalized score (using the min-max-normalizer).
  */
-function minMaxNormalize(score: number, minScore: number, maxScore: number) {
+function minMaxNormalize(score: number, minScore: number, maxScore: number): number {
   return (score - minScore) / (maxScore - minScore);
 }
 
 /**
- * Normalizes the response time
- * @param responseTime - response time
- * @returns normalized response time (score between 0 and 1; the higher, the better)
+ * Normalizes the response time.
+ * @param responseTime - response time.
+ * @returns number - Normalized response time (score between 0 and 1; the higher, the better).
  */
-function normalizeResponseTime(responseTime: number) {
+function normalizeResponseTime(responseTime: number): number {
   return minMaxNormalize(responseTime, 60_000, 0);
 }
 
 /**
- * Normalizes the message count metric
- * @param numberOfMessages - number of messages
- * @returns normalized message count score (between 0 and 1; the higher, the better)
+ * Normalizes the message count metric.
+ * @param numberOfMessages - Number of messages.
+ * @returns number - Normalized message count score (between 0 and 1; the higher, the better).
  */
-function normalizeMessageCount(numberOfMessages: number) {
+function normalizeMessageCount(numberOfMessages: number): number {
   return minMaxNormalize(numberOfMessages, 10, 0);
 }
 

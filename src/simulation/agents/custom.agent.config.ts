@@ -1,4 +1,5 @@
-const DEFAULT_AZURE_DEPLOYMENT_NAME: string = 'gpt-4'; //os.getenv("AZURE_DEPLOYMENT_NAME") needs to be replaced
+const DEFAULT_AZURE_MODEL_NAME: string = process.env.DEFAULT_AZURE_MODEL_NAME!;
+const DEFAULT_AZURE_DEPLOYMENT_NAME: string = process.env.DEFAULT_AZURE_DEPLOYMENT_NAME!;
 
 export class APIParam {
   name: string;
@@ -90,28 +91,78 @@ export class RouteToCoreTool {
   }
 }
 
+/**
+ * Represents the configuration for a custom agent.
+ */
 export class CustomAgentConfig {
-  //The temperature parameter.
+  /**
+   * The temperature parameter.
+   */
   temperature: number;
-  //The OpenAI model name
+
+  /**
+   * The OpenAI model name.
+   */
   modelName: string;
-  //The Azure deployment name
+
+  /**
+   * The Azure deployment name.
+   */
   deploymentName: string;
-  //The agents opening message.
+
+  /**
+   * The agent's opening message.
+   */
   welcomeMessage: string;
-  //What the agent should say to the enduser if there is an error executing an LLM call
+
+  /**
+   * The message to be displayed if there is an error executing an LLM call.
+   */
   errorMessage: string;
+
+  /**
+   * The role of the agent.
+   */
   role: string;
+
+  /**
+   * The persona of the agent.
+   */
   persona: string;
+
+  /**
+   * The conversation strategy of the agent.
+   */
   conversationStrategy: string;
+
+  /**
+   * The tasks associated with the agent.
+   */
   tasks: Record<string, string>;
+
+  /**
+   * The REST API tools associated with the agent.
+   */
   restApiTools: Record<string, RestAPITool>;
+
+  /**
+   * The routing tools associated with the agent.
+   */
   routingTools: Record<string, RouteToCoreTool>;
-  //The first system prompt sent when agent starts
+
+  /**
+   * The template for the first system prompt sent when the agent starts.
+   */
   systemPromptTemplate: string;
-  //Template to send human input
+
+  /**
+   * The template for sending human input.
+   */
   humanInputTemplate: string;
-  //Template to send tool output to model
+
+  /**
+   * The template for sending tool output to the model.
+   */
   toolOutputTemplate: string;
 
   constructor(
@@ -127,7 +178,7 @@ export class CustomAgentConfig {
     humanInputTemplate: string = '',
     toolOutputTemplate: string = '',
     errorMessage: string = 'We encountered an error. Would you please repeat?',
-    modelName: string = 'gpt-4',
+    modelName: string = DEFAULT_AZURE_MODEL_NAME,
     deploymentName: string = DEFAULT_AZURE_DEPLOYMENT_NAME,
   ) {
     if (temperature < 0.0 || temperature > 2.0) {

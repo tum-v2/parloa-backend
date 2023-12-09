@@ -1,22 +1,23 @@
-// Router that routes incoming requests to relevant controller function
 import express from 'express';
-const router = express.Router();
 
-import evaluationController from 'evaluation/api/evaluation.controller';
-import evaluationValidator from 'evaluation/validator/evaluation.validator';
+import evaluationController from '@evaluation/api/evaluation.controller';
+import evaluationValidator from '@evaluation/validator/evaluation.validator';
+import { CustomValidationError } from '@utils/handle-validation-errors';
+
+const router = express.Router();
 
 // region GET //
 router.get(
   '/results-for-conversation/:conversationId',
   evaluationValidator.resultsForConversationValidation(),
-  evaluationValidator.handleValidationErrors,
+  CustomValidationError.handleValidationErrors,
   evaluationController.resultsForConversation,
 );
 
 router.get(
   '/results-for-simulation/:simulationId',
   evaluationValidator.resultsForSimulationValidation(),
-  evaluationValidator.handleValidationErrors,
+  CustomValidationError.handleValidationErrors,
   evaluationController.resultsForSimulation,
 );
 // endregion GET //
@@ -25,7 +26,7 @@ router.get(
 router.post(
   '/run',
   evaluationValidator.runValidation(),
-  evaluationValidator.handleValidationErrors,
+  CustomValidationError.handleValidationErrors,
   evaluationController.run,
 );
 // endregion POST //

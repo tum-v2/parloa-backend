@@ -1,5 +1,7 @@
 import { body, param, ValidationChain } from 'express-validator';
-import { SimulationType, SimulationScenario } from '@simulation/db/enum/enums';
+
+import { SimulationType } from '@enums/simulation-type.enum';
+import { SimulationScenario } from '@enums/simulation-scenario.enum';
 
 class SimulationValidator {
   /**
