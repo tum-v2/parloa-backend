@@ -1,7 +1,7 @@
 import express, { Router } from 'express';
 
 import agentController from '@simulation/api/agent.controller';
-import CustomValidationError from '@simulation/validator/error.validator';
+import { CustomValidationError } from '@utils/handle-validation-errors';
 import AgentValidator from '@simulation/validator/agent.validator';
 
 const router: Router = express.Router();

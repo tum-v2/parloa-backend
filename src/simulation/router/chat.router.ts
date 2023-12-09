@@ -2,7 +2,7 @@ import express from 'express';
 
 import chatController from '@simulation/api/chat.controller';
 import ChatValidator from '@simulation/validator/chat.validator';
-import CustomValidationError from '@simulation/validator/error.validator';
+import { CustomValidationError } from '@utils/handle-validation-errors';
 
 const router = express.Router();
 

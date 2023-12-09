@@ -1,9 +1,8 @@
 import { ValidationError, validationResult } from 'express-validator';
 import { Request, Response, NextFunction } from 'express';
-
 import { logger } from '@utils/logger';
 
-class CustomValidationError extends Error {
+export class CustomValidationError extends Error {
   errors: string[];
 
   constructor(errors: string[]) {
@@ -12,12 +11,6 @@ class CustomValidationError extends Error {
     this.errors = errors;
   }
 
-  /**
-   * Middleware to handle validation errors
-   * @param req - Request
-   * @param res - Response
-   * @param next - Next function
-   */
   static handleValidationErrors(req: Request, res: Response, next: NextFunction): void {
     const errors = validationResult(req);
 
@@ -38,5 +31,3 @@ class CustomValidationError extends Error {
     next();
   }
 }
-
-export default CustomValidationError;

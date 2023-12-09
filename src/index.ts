@@ -12,7 +12,7 @@ import { logger } from '@utils/logger';
 
 import { connectToDatabase } from '@db/config/db.config';
 
-import CustomValidationError from '@simulation/validator/error.validator';
+import { CustomValidationError } from '@utils/handle-validation-errors';
 
 // Simulation routers
 import simulationRouter from '@simulation/router/simulation.router';
