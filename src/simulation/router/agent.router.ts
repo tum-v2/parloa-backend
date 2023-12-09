@@ -18,9 +18,9 @@ router.get('/:id', AgentValidator.idValidation(), CustomValidationError.handleVa
 // region PUT //
 router.put(
   '/:id',
-  AgentValidator.idValidation(),
-  AgentValidator.runValidation(),
-  CustomValidationError.handleValidationErrors,
+  // AgentValidator.idValidation(),
+  // AgentValidator.runValidation(),
+  // CustomValidationError.handleValidationErrors,
   agentController.update,
 );
 // endregion PUT //

@@ -346,7 +346,7 @@ export async function createMessageDocument(
     toolInput: msg.toolInput,
     lcMsg: msg.lcMsg,
     userInput: msg.userInput,
-    msgToUser: msg.msgToUser,
+    msgToUser: msg.type == MsgType.SYSTEMPROMPT ? welcomeMessage : msg.msgToUser,
     toolOutput: msg.toolOutput,
     parentId: msg.parentId,
   });

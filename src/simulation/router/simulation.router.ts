@@ -18,28 +18,22 @@ router.post('/abtesting/run', simulationController.runABTesting);
 // endregion POST //
 
 // region GET //
+router.get('/all', simulationController.getAll);
 router.get(
-  '/:id/poll',
+  '/:id',
   SimulationValidator.idValidation(),
   CustomValidationError.handleValidationErrors,
   simulationController.poll,
 );
-router.get(
-  '/:id/conversations',
-  SimulationValidator.idValidation(),
-  CustomValidationError.handleValidationErrors,
-  simulationController.getConversations,
-);
-router.get('/all', simulationController.getAll);
 router.get('/conversation/:id', simulationController.getConversation);
 // endregion GET //
 
 // region PUT//
 router.patch(
   '/:id',
-  SimulationValidator.idValidation(),
-  SimulationValidator.runValidation(),
-  CustomValidationError.handleValidationErrors,
+  // SimulationValidator.idValidation(),
+  // SimulationValidator.runValidation(),
+  // CustomValidationError.handleValidationErrors,
   simulationController.update,
 );
 // endregion PUT //

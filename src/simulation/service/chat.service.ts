@@ -64,21 +64,12 @@ async function start(config: StartChatRequest): Promise<SimulationDocument> {
 }
 
 /**
- * Fetch a chat with a given id
- * @param id - Chat id
- * @returns A promise that resolves to the chat simulation object.
- */
-async function getById(id: string): Promise<SimulationDocument | null> {
-  return await chatRepository.getById(id);
-}
-
-/**
  * Send a message to service agent
  * @param chatId - Chat id
  * @param message - Message
  * @returns A promise that resolves to the message response of service agents.
  */
-async function sendMessage(chatId: string, message: string): Promise<string> {
+async function sendMessage(chatId: string, message: string): Promise<ChatMessage> {
   if (!serviceAgent) {
     throw new Error('Service agent not found!');
   }
@@ -93,14 +84,20 @@ async function sendMessage(chatId: string, message: string): Promise<string> {
   );
   await chatRepository.send(chatId, userMessage);
 
-  const agentMessage: MessageDocument = await createMessageDocument(
-    serviceAgent.messageHistory[count++],
-    agentResponse,
-    usedEndpoints,
-  );
-  await chatRepository.send(chatId, agentMessage);
+  let agentMessage: MessageDocument = {} as MessageDocument;
+  while (count < serviceAgent.messageHistory.length) {
+    agentMessage = await createMessageDocument(serviceAgent.messageHistory[count++], agentResponse, usedEndpoints);
+    await chatRepository.send(chatId, agentMessage);
+  }
 
-  return agentResponse;
+  const response: ChatMessage = {
+    sender: agentMessage.sender,
+    text: agentMessage.msgToUser ? agentMessage.msgToUser : '',
+    timestamp: agentMessage.timestamp,
+    userCanReply: true,
+  };
+
+  return response;
 }
 
 /**
@@ -140,19 +137,16 @@ async function load(chatId: string): Promise<ChatMessage[]> {
     for (let i = 0; i < serviceAgent.messageHistory.length; i++) {
       if (serviceAgent.messageHistory[i].type === MsgType.HUMANINPUT) {
         const userInput = serviceAgent.messageHistory[i].userInput;
+        const timestamp = serviceAgent.messageHistory[i].timestamp;
         if (userInput !== null) {
-          messages.push({ sender: MsgSender.USER, text: userInput });
+          messages.push({ sender: MsgSender.USER, text: userInput, timestamp: timestamp, userCanReply: true });
         }
       }
 
-      const intermediateMsg = serviceAgent.messageHistory[i].intermediateMsg;
-      if (intermediateMsg !== null) {
-        messages.push({ sender: MsgSender.AGENT, text: intermediateMsg });
-      }
-
       const msgToUser = serviceAgent.messageHistory[i].msgToUser;
+      const timestamp = serviceAgent.messageHistory[i].timestamp;
       if (msgToUser !== null) {
-        messages.push({ sender: MsgSender.AGENT, text: msgToUser });
+        messages.push({ sender: MsgSender.AGENT, text: msgToUser, timestamp: timestamp, userCanReply: true });
       }
     }
 
@@ -170,41 +164,9 @@ async function getAll(): Promise<SimulationDocument[]> {
   return await chatRepository.findAll();
 }
 
-/**
- * End a chat with a given id
- * @param id - Chat id
- * @returns A promise that resolves to the schat imulation object.
- */
-async function end(id: string): Promise<SimulationDocument | null> {
-  return await chatRepository.end(id);
-}
-
-/**
- * Update a chat with a given id
- * @param id - Chat id
- * @param chatData - Chat details
- * @returns A promise that resolves to the chat simulation object.
- */
-async function update(id: string, chatData: Partial<SimulationDocument>): Promise<SimulationDocument | null> {
-  return await chatRepository.updateById(id, chatData);
-}
-
-/**
- * Fetch a chat with a given id
- * @param id - Chat id
- * @returns A promise that resolves to the success of deletion.
- */
-async function del(id: string): Promise<boolean> {
-  return await chatRepository.deleteById(id);
-}
-
 export default {
   start,
-  getById,
   load,
-  update,
-  del,
   getAll,
   sendMessage,
-  end,
 };
