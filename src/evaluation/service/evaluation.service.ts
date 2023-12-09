@@ -5,6 +5,7 @@ import { MetricDocument, MetricNameEnum } from '@db/models/metric.model';
 import { EvaluationRepository } from '@db/repositories/evaluation.repository';
 import { ConversationRepository } from '@db/repositories/conversation.repository';
 import { SimulationRepository } from '@db/repositories/simulation.repository';
+
 import { RunEvaluationRequest } from '@evaluation/model/request/run-evaluation.request';
 import { RunEvaluationResponse } from '@evaluation/model/response/run-evaluation.response';
 import {
@@ -13,7 +14,9 @@ import {
   EvaluationResultForSimulation,
 } from '@evaluation/model/response/evaluation-result.response';
 import metricService from '@evaluation/service/metric.service';
+
 import { EvaluationStatus } from '@enums/evaluation-status.enum';
+
 import simulationService from '@simulation/service/simulation.service';
 
 const evaluationRepository = new EvaluationRepository(EvaluationModel);

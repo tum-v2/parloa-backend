@@ -1,13 +1,16 @@
 import { MsgSender } from '@enums/msg-sender.enum';
 import { MsgType } from '@enums/msg-type.enum';
 import { MetricNameEnum } from '@enums/metric-name.enum';
+
 import { MessageDocument } from '@db/models/message.model';
 import { MetricRepository } from '@db/repositories/metric.repository';
 import { MetricDocument, MetricModel } from '@db/models/metric.model';
 import { ConversationDocument } from '@db/models/conversation.model';
+
 import { metricWeightMap } from '@evaluation/utils/metric.config';
-import mongoose, { Types } from 'mongoose';
 import { metricNormalizationFunctions } from '@evaluation/utils/data.normalization';
+
+import mongoose, { Types } from 'mongoose';
 
 const metricRepository = new MetricRepository(MetricModel);
 

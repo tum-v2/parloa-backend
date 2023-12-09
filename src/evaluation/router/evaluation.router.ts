@@ -1,9 +1,9 @@
 import express from 'express';
 
-const router = express.Router();
-
 import evaluationController from '@evaluation/api/evaluation.controller';
 import evaluationValidator from '@evaluation/validator/evaluation.validator';
+
+const router = express.Router();
 
 // region GET //
 router.get(
