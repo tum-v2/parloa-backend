@@ -118,13 +118,6 @@ async function getConversations(req: Request, res: Response): Promise<void> {
  */
 async function getAll(req: Request, res: Response): Promise<void> {
   try {
-    // TODO Apply filters if needed
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      res.status(400).send({ error: errors });
-      return;
-    }
-
     const simulations: SimulationDocument[] = await simulationService.getAll();
     res.status(200).send(simulations);
   } catch (error) {

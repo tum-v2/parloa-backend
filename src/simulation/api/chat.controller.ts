@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { INTERNAL_SERVER_ERROR } from '@utils/errors';
 import { SimulationDocument } from '@db/models/simulation.model';
 import chatService from '@simulation/service/chat.service';
+import simulationService from '@simulation/service/simulation.service';
 import ChatMessage from '@simulation/model/response/chat.response';
 import { StartChatRequest } from '@simulation/model/request/chat.request';
 
@@ -34,7 +35,7 @@ async function load(req: Request, res: Response): Promise<void> {
     const chatId: string = req.params.id;
     console.log(chatId);
 
-    const chat: SimulationDocument | null = await chatService.getById(chatId);
+    const chat: SimulationDocument | null = await simulationService.poll(chatId);
     if (chat) {
       console.log('Loading chat...');
       const messages: ChatMessage[] = await chatService.load(chatId);
@@ -59,55 +60,13 @@ async function sendMessage(req: Request, res: Response): Promise<void> {
     const message: string = req.body.message;
     console.log(message);
 
-    const chat: SimulationDocument | null = await chatService.getById(chatId);
+    const chat: SimulationDocument | null = await simulationService.poll(chatId);
     if (chat) {
       console.log('Sending message...');
-      const simulationWithAgentResponse: string = await chatService.sendMessage(chatId, message);
-      res.status(200).send({ message: simulationWithAgentResponse });
+      const chatAgentResponse: ChatMessage = await chatService.sendMessage(chatId, message);
+      res.status(200).send(chatAgentResponse);
     } else {
       res.status(404).send({ error: `Chat ${chatId} not found!` });
-    }
-  } catch (error) {
-    res.status(500).json(INTERNAL_SERVER_ERROR(error));
-  }
-}
-
-/**
- * Gets the chat by id
- * @param req - Request object
- * @param res - Response object
- */
-async function get(req: Request, res: Response): Promise<void> {
-  try {
-    console.log('Getting chat...');
-    const id: string = req.params.id;
-    console.log(id);
-    const chat: SimulationDocument | null = await chatService.getById(id);
-    if (chat) {
-      res.status(200).send(chat);
-    } else {
-      res.status(404).send({ error: `Chat ${id} not found!` });
-    }
-  } catch (error) {
-    res.status(500).json(INTERNAL_SERVER_ERROR(error));
-  }
-}
-
-/**
- * Ends the chat
- * @param req - Request object - TBD
- * @param res - Response object - TBD
- */
-async function end(req: Request, res: Response): Promise<void> {
-  try {
-    console.log('Ending chat...');
-    const id: string = req.params.id;
-    console.log(id);
-    const chat: SimulationDocument | null = await chatService.end(id);
-    if (chat) {
-      res.status(200).send(chat);
-    } else {
-      res.status(404).send({ error: `Chat ${id} not found!` });
     }
   } catch (error) {
     res.status(500).json(INTERNAL_SERVER_ERROR(error));
@@ -130,55 +89,9 @@ async function getAll(req: Request, res: Response): Promise<void> {
   }
 }
 
-/**
- * Updates the chat
- * @param req - Request object
- * @param res - Response object
- */
-async function update(req: Request, res: Response): Promise<void> {
-  try {
-    console.log('Updating chat...');
-    const id: string = req.params.id;
-    const updates: Partial<SimulationDocument> = req.body as Partial<SimulationDocument>;
-    console.log(updates);
-    const updatedChat: SimulationDocument | null = await chatService.update(id, updates);
-    if (updatedChat) {
-      res.status(200).send(updatedChat);
-    } else {
-      res.status(404).send({ error: `Chat ${id} not found!` });
-    }
-  } catch (error) {
-    res.status(500).json(INTERNAL_SERVER_ERROR(error));
-  }
-}
-
-/**
- * Deletes the chat
- * @param req - Request object
- * @param res - Response object
- */
-async function del(req: Request, res: Response): Promise<void> {
-  try {
-    console.log('Deleting chat...');
-    const id: string = req.params.id;
-    const success: boolean = await chatService.del(id);
-    if (success) {
-      res.status(204).send();
-    } else {
-      res.status(404).send({ error: `Chat ${id} not found!` });
-    }
-  } catch (error) {
-    res.status(500).json(INTERNAL_SERVER_ERROR(error));
-  }
-}
-
 export default {
   start,
   load,
   sendMessage,
-  get,
-  end,
   getAll,
-  update,
-  del,
 };

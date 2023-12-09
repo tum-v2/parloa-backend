@@ -7,7 +7,6 @@ import { logger } from '@utils/logger';
 import { MsgHistoryItem } from '@simulation/agents/custom.agent';
 import { AIMessage, BaseMessage, HumanMessage, SystemMessage } from 'langchain/schema';
 import { ConversationStatus } from '@enums/conversation-status.enum';
-import { SimulationStatus } from '@enums/simulation-status.enum';
 import { SimulationType } from '@enums/simulation-type.enum';
 
 class ChatRepository extends SimulationRepository {
@@ -145,49 +144,12 @@ class ChatRepository extends SimulationRepository {
     });
   }
 
-  async getById(id: string): Promise<SimulationDocument | null> {
-    // populate each conversation with each messages
-    try {
-      const result: SimulationDocument | null = await this.model.findById(id).populate({
-        path: 'conversations',
-        populate: {
-          path: 'messages',
-        },
-      });
-
-      if (result) {
-        return result;
-      }
-      return null;
-    } catch (error) {
-      logger.error(`Error finding chat by id: ${id}`);
-      throw error;
-    }
-  }
-
   async findAll(): Promise<SimulationDocument[]> {
     try {
       const result: SimulationDocument[] = await this.model.find({ type: SimulationType.CHAT });
       return result;
     } catch (error) {
       logger.error(`Error finding chats!`);
-      throw error;
-    }
-  }
-
-  async end(id: string): Promise<SimulationDocument | null> {
-    try {
-      const simulation: SimulationDocument | null = await this.model.findOneAndUpdate(
-        { _id: id, status: SimulationStatus.RUNNING },
-        { status: SimulationStatus.FINISHED, $set: { 'conversations.0.status': SimulationStatus.FINISHED } },
-        { new: true },
-      );
-      if (simulation) {
-        return await this._populate(simulation);
-      }
-      return simulation;
-    } catch (error) {
-      logger.error(`Error ending chat ${id}!`);
       throw error;
     }
   }

@@ -3,6 +3,7 @@ import { ConversationDomain } from '@enums/conversation-domain.enum';
 import { LLMModel } from '@enums/llm-model.enum';
 
 interface AgentDocument extends Document {
+  name: string;
   llm: LLMModel;
   temperature: number;
   maxTokens: number;
@@ -12,6 +13,7 @@ interface AgentDocument extends Document {
 
 const agentSchema: Schema = new Schema(
   {
+    name: { type: String, required: true },
     llm: { type: String, enum: Object.values(LLMModel), required: true },
     temperature: { type: Number, required: true },
     maxTokens: { type: Number, required: true },

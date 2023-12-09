@@ -10,6 +10,7 @@ class AgentValidator {
    */
   static runValidation(): ValidationChain[] {
     return [
+      body('name').isString().withMessage('Name must be a valid string.'),
       body('llm')
         .isIn(Object.values(LLMModel))
         .withMessage(`Invalid model type. Must be one of: ${Object.values(LLMModel).join(', ')}`),
@@ -21,7 +22,7 @@ class AgentValidator {
       body('prompt').isString().withMessage('Prompt must be a valid string.'),
 
       body().custom((value, { req }) => {
-        const allowedFields = ['llm', 'temperature', 'maxTokens', 'domain', 'prompt'];
+        const allowedFields = ['name', 'llm', 'temperature', 'maxTokens', 'domain', 'prompt'];
 
         const extraFields = Object.keys(req.body).filter((field) => !allowedFields.includes(field));
 
