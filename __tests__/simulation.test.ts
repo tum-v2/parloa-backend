@@ -1,7 +1,7 @@
 import request, { Response } from 'supertest';
 import { app, server } from '../src/index';
-import { disconnectFromDatabase } from '../src/db/config/db.config';
-import { ConversationDomain } from '../src/db/enum/enums';
+import { disconnectFromDatabase } from '@db/config/db.config';
+import { ConversationDomain } from '@enums/conversation-domain.enum';
 
 let validSimulationId = '';
 let deleteValidSimulationId = '';
