@@ -38,7 +38,7 @@ app.use(
 // Load API specifications and merge them
 const apiSpecSimulation = YAML.load('./src/simulation/docs/api.documentation.yaml');
 const apiSpecEvaluation = YAML.load('./src/evaluation/docs/api.documentation.yaml');
-const apiSpec = merge(apiSpecSimulation, apiSpecEvaluation);
+const apiSpec = merge(apiSpecEvaluation, apiSpecSimulation);
 
 // Use body-parser middleware to parse JSON requests
 app.use(bodyParser.json());

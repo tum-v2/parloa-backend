@@ -1,6 +1,6 @@
 openapi: 3.0.0
 info:
-  title: Simulation API
+  title: API
   version: 1.0.0
 tags:
   - name: Login
@@ -1068,3 +1068,16 @@ components:
         __v:
           type: integer
           example: 0
+    OptimizationDocument:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: 6553a127fcad73273655d634
+        baseSimulation:
+          type: string
+          example: 6553a127fcad73273655d634
+        childSimulations:
+          type: array
+          items:
+            $ref: '#/components/schemas/SimulationDocument'
