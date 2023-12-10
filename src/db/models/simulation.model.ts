@@ -80,8 +80,9 @@ async function deleteSimulation(simulation: SimulationDocument) {
   if (simulation.optimization) {
     await OptimizationModel.findByIdAndDelete(simulation.optimization).exec();
   }
-
-  await SimulationModel.updateMany({ abPartner: simulation?._id }, { $unset: { abPartner: 1 } });
+  if (simulation.abPartner) {
+    await SimulationModel.findByIdAndDelete(simulation.abPartner).exec();
+  }
 }
 
 const SimulationModel = model<SimulationDocument>('Simulation', SimulationSchema);
