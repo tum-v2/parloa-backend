@@ -8,7 +8,7 @@ import { SimulationStatus } from '@enums/simulation-status.enum';
 
 import { RunSimulationRequest } from '@simulation/model/request/simulation.request';
 import { RunEvaluationRequest } from '@evaluation/model/request/run-evaluation.request';
-import { RunABTestingRequest } from '@simulation/model/request/run-ab-testing.request';
+import { RunABTestingRequest } from '@simulation/model/request/ab-testing.request';
 import DashboardData from '@simulation/model/response/dashboard.response';
 import { runConversation } from '@simulation/service/conversation.service';
 import optimizationService from '@simulation/service/optimization.service';
@@ -57,7 +57,6 @@ async function initiate(
   }
 
   const simulationData: Partial<SimulationDocument> = {
-    scenario: request.scenario,
     type: request.type,
     name: request.name,
     userAgent: userAgent,
@@ -115,7 +114,6 @@ async function initiateAB(request: RunABTestingRequest): Promise<SimulationDocum
   }
 
   const simulationData1: Partial<SimulationDocument> = {
-    scenario: request.scenario,
     type: SimulationType.AB_TESTING,
     name: request.name,
     userAgent: userAgent,
@@ -127,7 +125,6 @@ async function initiateAB(request: RunABTestingRequest): Promise<SimulationDocum
   const simulation1: SimulationDocument = await simulationRepository.create(simulationData1);
 
   const simulationData2: Partial<SimulationDocument> = {
-    scenario: request.scenario,
     type: SimulationType.AB_TESTING,
     name: request.name,
     userAgent: userAgent,

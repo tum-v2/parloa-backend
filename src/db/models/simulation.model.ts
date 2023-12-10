@@ -4,12 +4,10 @@ import { ConversationDocument, ConversationModel } from '@db/models/conversation
 import { SimulationType } from '@enums/simulation-type.enum';
 import { EvaluationDocument, EvaluationModel } from '@db/models/evaluation.model';
 import { OptimizationDocument, OptimizationModel } from '@db/models/optimization.model';
-import { SimulationScenario } from '@enums/simulation-scenario.enum';
 import { SimulationStatus } from '@enums/simulation-status.enum';
 import { CallbackError } from 'mongoose';
 
 interface SimulationDocument extends Document {
-  scenario: SimulationScenario;
   type: SimulationType;
   name: string;
   description: string;
@@ -27,7 +25,6 @@ interface SimulationDocument extends Document {
 
 const SimulationSchema: Schema = new Schema(
   {
-    scenario: { type: String, enum: Object.values(SimulationScenario) },
     type: { type: String, enum: Object.values(SimulationType), required: true },
     name: { type: String, required: true },
     description: { type: String },

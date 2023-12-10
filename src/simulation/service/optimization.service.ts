@@ -98,7 +98,6 @@ async function initiate(request: RunSimulationRequest): Promise<OptimizationDocu
     };
 
     const simulationConfig = {
-      scenario: request.scenario,
       type: SimulationType.OPTIMIZATION,
       name: request.name,
       description: request.description,

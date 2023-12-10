@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { validationResult } from 'express-validator';
 
-import { RunABTestingRequest } from '@simulation/model/request/run-ab-testing.request';
+import { RunABTestingRequest } from '@simulation/model/request/ab-testing.request';
 import { RunSimulationRequest } from '@simulation/model/request/simulation.request';
 import simulationService from '@simulation/service/simulation.service';
 
