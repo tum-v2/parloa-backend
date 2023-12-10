@@ -4,11 +4,9 @@ import { ConversationDocument } from '@db/models/conversation.model';
 import { SimulationType } from '@enums/simulation-type.enum';
 import { EvaluationDocument } from '@db/models/evaluation.model';
 import { OptimizationDocument } from '@db/models/optimization.model';
-import { SimulationScenario } from '@enums/simulation-scenario.enum';
 import { SimulationStatus } from '@enums/simulation-status.enum';
 
 interface SimulationDocument extends Document {
-  scenario: SimulationScenario;
   type: SimulationType;
   name: string;
   description: string;
@@ -26,7 +24,6 @@ interface SimulationDocument extends Document {
 
 const SimulationSchema: Schema = new Schema(
   {
-    scenario: { type: String, enum: Object.values(SimulationScenario) },
     type: { type: String, enum: Object.values(SimulationType), required: true },
     name: { type: String, required: true },
     description: { type: String },
