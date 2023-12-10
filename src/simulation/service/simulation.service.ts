@@ -177,9 +177,10 @@ async function run(
   await simulationRepository.updateById(simulation._id, simulation);
   const simulationStart = new Date();
   for (let i = 0; i < numConversations; i++) {
-    const conversation: any = await runConversation(serviceAgent, userAgent);
-    conversations.push(conversation);
+    const conversation: ConversationDocument = await runConversation(serviceAgent, userAgent);
+    conversations.push(conversation._id);
     simulation.conversations = conversations;
+    simulation.totalNumberOfInteractions += await _increaseTotalNumberOfInteractions(simulation._id, conversation._id);
     await simulationRepository.updateById(simulation._id, simulation);
   }
   const simulationEnd = new Date();
@@ -265,7 +266,7 @@ async function getAll(): Promise<SimulationDocument[]> {
  * @returns A promise that resolves to the conversation object.
  * @throws Throws an error if there is an issue with the MongoDB query.
  */
-export async function getConversation(id: string): Promise<any | null> {
+async function getConversation(id: string): Promise<any | null> {
   const conversation: ConversationDocument | null = await conversationRepository.getMessages(id);
   if (conversation) {
     const modifiedConversation: any = {};
@@ -289,6 +290,17 @@ export async function getConversation(id: string): Promise<any | null> {
     modifiedConversation.messages = messages;
     return modifiedConversation;
   }
+}
+
+/**
+ * Increases the number of interactions of a simulation by filtering the TOOL messages out of conversation.
+ * @param simulationId - The ID of the simulation object to update.
+ * @param conversationId - The ID of the conversation object to update.
+ */
+async function _increaseTotalNumberOfInteractions(simulationId: string, conversationId: string): Promise<number> {
+  const conversation = await getConversation(conversationId);
+  await simulationRepository.increaseTotalNumberOfInteractions(simulationId, conversation.messages.length);
+  return conversation.messages.length;
 }
 
 /**

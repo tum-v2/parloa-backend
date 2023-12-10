@@ -63,7 +63,12 @@ class ChatRepository extends SimulationRepository {
 
       const updatedChat: SimulationDocument | null = await this.model.findOneAndUpdate(
         { _id: chatId }, // find a simulation with this conversation
-        { $set: { 'conversations[0]': updatedConversation } }, // update the conversation in the conversations array
+        {
+          $set: {
+            'conversations[0]': updatedConversation,
+            totalNumberOfInteractions: updatedConversation.messages.length,
+          },
+        }, // update the conversation in the conversations array
         { new: true }, // option to return the updated document
       );
 

@@ -1,7 +1,6 @@
 import { body, param, ValidationChain } from 'express-validator';
 
 import { SimulationType } from '@enums/simulation-type.enum';
-import { SimulationScenario } from '@enums/simulation-scenario.enum';
 
 class SimulationValidator {
   /**
@@ -11,9 +10,6 @@ class SimulationValidator {
   static runValidation(): ValidationChain[] {
     return [
       body('name').isString().withMessage('Simulation name must be a valid string.'),
-      body('scenario')
-        .isIn(Object.values(SimulationScenario))
-        .withMessage(`Invalid scenario type. Must be one of: ${Object.values(SimulationScenario).join(', ')}`),
       body('type')
         .isIn(Object.values(SimulationType))
         .withMessage(`Invalid simulation type. Must be one of: ${Object.values(SimulationType).join(', ')}`),
@@ -26,7 +22,6 @@ class SimulationValidator {
         const allowedFields = [
           'name',
           'description',
-          'scenario',
           'type',
           'numConversations',
           'serviceAgentId',

@@ -25,6 +25,10 @@ class SimulationRepository extends BaseRepository<SimulationDocument> {
     return await this.updateById(simulationId, { evaluation: new Types.ObjectId(evaluationId) });
   }
 
+  async increaseTotalNumberOfInteractions(simulationId: string, by: number): Promise<void> {
+    await this.model.updateOne({ _id: simulationId }, { $inc: { totalNumberOfInteractions: by } });
+  }
+
   // endregion WRITE //
 
   // region GET_ATTRIBUTE //
@@ -105,29 +109,10 @@ class SimulationRepository extends BaseRepository<SimulationDocument> {
           },
         },
         {
-          $lookup: {
-            from: 'conversations',
-            localField: 'conversations',
-            foreignField: '_id',
-            as: 'conversations',
+          $group: {
+            _id: null,
+            interactions: { $sum: '$totalNumberOfInteractions' },
           },
-        },
-        {
-          $unwind: '$conversations',
-        },
-        {
-          $lookup: {
-            from: 'messages',
-            localField: 'conversations.messages',
-            foreignField: '_id',
-            as: 'conversations.messages',
-          },
-        },
-        {
-          $unwind: '$conversations.messages',
-        },
-        {
-          $count: 'interactions',
         },
       ]);
 
