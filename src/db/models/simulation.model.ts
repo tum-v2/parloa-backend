@@ -1,11 +1,12 @@
 import { Schema, Document, model, Types } from 'mongoose';
 import { AgentDocument } from '@db/models/agent.model';
-import { ConversationDocument } from '@db/models/conversation.model';
+import { ConversationDocument, ConversationModel } from '@db/models/conversation.model';
 import { SimulationType } from '@enums/simulation-type.enum';
-import { EvaluationDocument } from '@db/models/evaluation.model';
-import { OptimizationDocument } from '@db/models/optimization.model';
+import { EvaluationDocument, EvaluationModel } from '@db/models/evaluation.model';
+import { OptimizationDocument, OptimizationModel } from '@db/models/optimization.model';
 import { SimulationScenario } from '@enums/simulation-scenario.enum';
 import { SimulationStatus } from '@enums/simulation-status.enum';
+import { CallbackError } from 'mongoose';
 
 interface SimulationDocument extends Document {
   scenario: SimulationScenario;
@@ -44,6 +45,45 @@ const SimulationSchema: Schema = new Schema(
     timestamps: true,
   },
 );
+
+SimulationSchema.pre<SimulationDocument>('findOneAndDelete', async function (next) {
+  try {
+    const simulation = await SimulationModel.findOne(this.getFilter()).exec();
+    if (simulation) {
+      deleteSimulation(simulation);
+    }
+    next();
+  } catch (error) {
+    console.log(error);
+    next(error as CallbackError);
+  }
+});
+
+SimulationSchema.pre<SimulationDocument>('deleteMany', async function (next) {
+  try {
+    const simulation = await SimulationModel.findOne(this.getFilter()).exec();
+    if (simulation) {
+      deleteSimulation(simulation);
+    }
+    next();
+  } catch (error) {
+    console.log(error);
+    next(error as CallbackError);
+  }
+});
+
+async function deleteSimulation(simulation: SimulationDocument) {
+  await ConversationModel.deleteMany({ _id: { $in: simulation.conversations } }).exec();
+  if (simulation.evaluation) {
+    await EvaluationModel.findByIdAndDelete(simulation.evaluation).exec();
+  }
+  if (simulation.optimization) {
+    await OptimizationModel.findByIdAndDelete(simulation.optimization).exec();
+  }
+  if (simulation.abPartner) {
+    await SimulationModel.findByIdAndDelete(simulation.abPartner).exec();
+  }
+}
 
 const SimulationModel = model<SimulationDocument>('Simulation', SimulationSchema);
 
