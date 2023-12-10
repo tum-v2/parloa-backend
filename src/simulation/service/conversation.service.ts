@@ -227,6 +227,14 @@ export async function configureServiceAgent(
     agentLLM = new ChatOpenAI(azureOpenAIInput);
   }
 
+  if (agentData.prompt !== 'default') {
+    flightBookingAgentConfig.persona = agentData.prompt;
+  } else {
+    flightBookingAgentConfig.persona = `- You should be empathetic, helpful, comprehensive and polite.
+    - Never use gender specific prefixes like Mr. or Mrs. when addressing the user unless they used it themselves.
+    `;
+  }
+
   const serviceAgent: CustomAgent = new CustomAgent(
     agentLLM,
     flightBookingAgentConfig,

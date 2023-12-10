@@ -87,13 +87,17 @@ const TOOL_OUTPUT_TEMPLATE = `# RESULT FROM '{toolName}' TOOL
  * @throws Error if the persona is not found in the available personas.
  */
 export function getSimConfig(persona: string): CustomAgentConfig {
-  if (!(persona in PERSONAS)) {
-    throw new Error(`Persona ${persona} not found. Available personas: ${Object.keys(PERSONAS)}`);
+  let convertedPersona: string;
+  if (persona in PERSONAS) {
+    convertedPersona = PERSONAS[persona];
+  } else {
+    convertedPersona = persona;
+    //throw new Error(`Persona ${persona} not found. Available personas: ${Object.keys(PERSONAS)}`);
   }
   const personaConfig = new CustomAgentConfig();
   personaConfig.temperature = TEMPERATURE;
   personaConfig.role = ROLE;
-  personaConfig.persona = PERSONAS[persona];
+  personaConfig.persona = convertedPersona;
   personaConfig.conversationStrategy = CONVERSATION_STRATEGY;
   personaConfig.systemPromptTemplate = SYSTEM_PROMPT_TEMPLATE;
   personaConfig.humanInputTemplate = HUMAN_INPUT_TEMPLATE;
