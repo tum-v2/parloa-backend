@@ -73,7 +73,7 @@ async function initiate(
   const simulation = await simulationRepository.create(simulationData);
   console.log(simulation);
 
-  run(simulation, request, serviceAgent, userAgent, optimization);
+  run(simulation, request.numConversations, serviceAgent, userAgent, optimization);
 
   return simulation;
 }
@@ -89,19 +89,19 @@ async function initiateAB(request: RunABTestingRequest): Promise<SimulationDocum
   console.log('Configuration:', request);
 
   let userAgent: AgentDocument | null = null;
-  let serviceAgent1: AgentDocument | null = null;
-  let serviceAgent2: AgentDocument | null = null;
+  let serviceAgentA: AgentDocument | null = null;
+  let serviceAgentB: AgentDocument | null = null;
   console.log('Creating simulation object...');
 
-  if (request.serviceAgent1Config !== undefined) {
-    serviceAgent1 = await agentRepository.create(request.serviceAgent1Config!);
-  } else if (request.serviceAgent1Id !== undefined) {
-    serviceAgent1 = await agentRepository.getById(request.serviceAgent1Id!);
+  if (request.serviceAgentAConfig !== undefined) {
+    serviceAgentA = await agentRepository.create(request.serviceAgentAConfig!);
+  } else if (request.serviceAgentAId !== undefined) {
+    serviceAgentA = await agentRepository.getById(request.serviceAgentAId!);
   }
-  if (request.serviceAgent2Config !== undefined) {
-    serviceAgent2 = await agentRepository.create(request.serviceAgent2Config!);
-  } else if (request.serviceAgent2Id !== undefined) {
-    serviceAgent2 = await agentRepository.getById(request.serviceAgent2Id!);
+  if (request.serviceAgentBConfig !== undefined) {
+    serviceAgentB = await agentRepository.create(request.serviceAgentBConfig!);
+  } else if (request.serviceAgentBId !== undefined) {
+    serviceAgentB = await agentRepository.getById(request.serviceAgentBId!);
   }
   if (request.userAgentConfig !== undefined) {
     userAgent = await agentRepository.create(request.userAgentConfig!);
@@ -109,39 +109,39 @@ async function initiateAB(request: RunABTestingRequest): Promise<SimulationDocum
     userAgent = await agentRepository.getById(request.userAgentId!);
   }
 
-  if (userAgent === null || serviceAgent1 === null || serviceAgent2 === null) {
+  if (userAgent === null || serviceAgentA === null || serviceAgentB === null) {
     throw new Error('User agent or service agent id not found');
   }
 
-  const simulationData1: Partial<SimulationDocument> = {
+  const simulationDataA: Partial<SimulationDocument> = {
     type: SimulationType.AB_TESTING,
     name: request.name,
     userAgent: userAgent,
-    serviceAgent: serviceAgent1,
+    serviceAgent: serviceAgentA,
     numConversations: request.numConversations,
     conversations: [],
     status: SimulationStatus.SCHEDULED,
   };
-  const simulation1: SimulationDocument = await simulationRepository.create(simulationData1);
+  const simulationA: SimulationDocument = await simulationRepository.create(simulationDataA);
 
-  const simulationData2: Partial<SimulationDocument> = {
+  const simulationDataB: Partial<SimulationDocument> = {
     type: SimulationType.AB_TESTING,
     name: request.name,
     userAgent: userAgent,
-    serviceAgent: serviceAgent2,
+    serviceAgent: serviceAgentB,
     numConversations: request.numConversations,
     conversations: [],
     status: SimulationStatus.SCHEDULED,
-    abPartner: simulation1._id,
+    abPartner: simulationA._id,
   };
-  const simulation2: SimulationDocument = await simulationRepository.create(simulationData2);
+  const simulationB: SimulationDocument = await simulationRepository.create(simulationDataB);
 
-  simulation1.abPartner = simulation2._id;
-  await simulationRepository.updateById(simulation1._id, simulation1);
+  simulationA.abPartner = simulationB._id;
+  await simulationRepository.updateById(simulationA._id, simulationA);
 
-  runAB(simulation1, simulation2, request, serviceAgent1, serviceAgent2, userAgent);
+  runAB(simulationA, simulationB, request.numConversations, serviceAgentA, serviceAgentB, userAgent);
 
-  return [simulation1, simulation2];
+  return [simulationA, simulationB];
 }
 
 /**
@@ -151,20 +151,19 @@ async function initiateAB(request: RunABTestingRequest): Promise<SimulationDocum
  * If the simulation is an optimization simulation, it calls the optimization service to handle the simulation over.
  * @param simulation - The simulation object.
  * @param request - The simulation configuration.
- * @param serviceAgent - The service agent.
+ * @param numConversations - The number of conversations to run.
  * @param userAgent - The user agent.
  * @param optimization - The optimization ID (optional).
  */
 async function run(
   simulation: SimulationDocument,
-  request: RunSimulationRequest,
+  numConversations: number,
   serviceAgent: AgentDocument,
   userAgent: AgentDocument,
   optimization: string | null,
 ) {
   const conversations: Types.ObjectId[] = [];
 
-  const numConversations = request.numConversations;
   if (numConversations <= 0 || numConversations > 2) {
     throw new Error(
       'Number of conversations must be between 1 and 2 (just for now so nobody miss clicks and runs 100 conversations which would cost a lot of money))',
@@ -209,21 +208,21 @@ async function run(
  * Starts two simulations for AB testing.
  * @param simulation1 - The first simulation object.
  * @param simulation2 - The second simulation object.
- * @param request - The simulation configuration.
- * @param serviceAgent1 - The first service agent.
- * @param serviceAgent2 - The second service agent.
+ * @param numConversations - The number of conversations to run.
+ * @param serviceAgentA - The first service agent.
+ * @param serviceAgentB - The second service agent.
  * @param userAgent - The user agent.
  */
 async function runAB(
   simulation1: SimulationDocument,
   simulation2: SimulationDocument,
-  request: RunSimulationRequest,
-  serviceAgent1: AgentDocument,
-  serviceAgent2: AgentDocument,
+  numConversations: number,
+  serviceAgentA: AgentDocument,
+  serviceAgentB: AgentDocument,
   userAgent: AgentDocument,
 ) {
-  await run(simulation1, request, serviceAgent1, userAgent, null);
-  await run(simulation2, request, serviceAgent2, userAgent, null);
+  await run(simulation1, numConversations, serviceAgentA, userAgent, null);
+  await run(simulation2, numConversations, serviceAgentB, userAgent, null);
 }
 //
 
