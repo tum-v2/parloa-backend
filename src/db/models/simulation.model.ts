@@ -49,22 +49,40 @@ const SimulationSchema: Schema = new Schema(
 SimulationSchema.pre<SimulationDocument>('findOneAndDelete', async function (next) {
   try {
     const simulation = await SimulationModel.findOne(this.getFilter()).exec();
-    await ConversationModel.deleteMany({ _id: { $in: simulation?.conversations } }).exec();
-    if (simulation?.evaluation) {
-      await EvaluationModel.findByIdAndDelete(simulation.evaluation).exec();
+    if (simulation) {
+      deleteSimulation(simulation);
     }
-    if (simulation?.optimization) {
-      await OptimizationModel.findByIdAndDelete(simulation.optimization).exec();
-    }
-
-    await SimulationModel.updateMany({ abPartner: simulation?._id }, { $unset: { abPartner: 1 } });
-
     next();
   } catch (error) {
     console.log(error);
     next(error as CallbackError);
   }
 });
+
+SimulationSchema.pre<SimulationDocument>('deleteMany', async function (next) {
+  try {
+    const simulation = await SimulationModel.findOne(this.getFilter()).exec();
+    if (simulation) {
+      deleteSimulation(simulation);
+    }
+    next();
+  } catch (error) {
+    console.log(error);
+    next(error as CallbackError);
+  }
+});
+
+async function deleteSimulation(simulation: SimulationDocument) {
+  await ConversationModel.deleteMany({ _id: { $in: simulation.conversations } }).exec();
+  if (simulation.evaluation) {
+    await EvaluationModel.findByIdAndDelete(simulation.evaluation).exec();
+  }
+  if (simulation.optimization) {
+    await OptimizationModel.findByIdAndDelete(simulation.optimization).exec();
+  }
+
+  await SimulationModel.updateMany({ abPartner: simulation?._id }, { $unset: { abPartner: 1 } });
+}
 
 const SimulationModel = model<SimulationDocument>('Simulation', SimulationSchema);
 

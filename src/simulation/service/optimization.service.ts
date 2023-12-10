@@ -89,6 +89,7 @@ async function initiate(request: RunSimulationRequest): Promise<OptimizationDocu
   for (const prompt of prompts) {
     //TODO Create a template for every prompt in the database until we figure out what to do.
     const agentConfig = {
+      name: request.serviceAgentConfig.name,
       domain: request.serviceAgentConfig.domain,
       llm: request.serviceAgentConfig.llm,
       temperature: request.serviceAgentConfig.temperature,
