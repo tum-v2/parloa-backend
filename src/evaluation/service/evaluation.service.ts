@@ -49,7 +49,7 @@ async function runEvaluation(request: RunEvaluationRequest): Promise<RunEvaluati
 
   const evaluation: EvaluationDocument = await initiate(request, conversation, simulation);
   const responseObject: RunEvaluationResponse = {
-    optimization: request.optimization,
+    optimization: request.optimization || null,
     simulation: simulationID,
     evaluation: evaluation.id,
   };
