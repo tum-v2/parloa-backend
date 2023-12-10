@@ -1,5 +1,4 @@
 import { Request, Response } from 'express';
-import { validationResult } from 'express-validator';
 import { logger } from '@utils/logger';
 import { INTERNAL_SERVER_ERROR } from '@utils/errors';
 
@@ -17,12 +16,6 @@ import { SimulationDocument } from '@db/models/simulation.model';
  */
 async function run(req: Request, res: Response): Promise<void> {
   try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      res.status(400).send({ error: errors });
-      return;
-    }
-
     logger.info(req.body);
     const simulationConfig: RunSimulationRequest = req.body as RunSimulationRequest;
     const optimization: OptimizationDocument = await optimizationService.initiate(simulationConfig);
