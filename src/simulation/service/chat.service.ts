@@ -1,12 +1,17 @@
-/* eslint-disable require-jsdoc */
-import { SimulationDocument } from '../db/models/simulation.model';
-import repositoryFactory from '../db/repositories/factory';
-import { SimulationType, SimulationStatus } from '../db/enum/enums';
+import repositoryFactory from '@db/repositories/factory';
+import { AgentDocument } from '@db/models/agent.model';
+import { MessageDocument } from '@db/models/message.model';
+import { SimulationDocument, SimulationModel } from '@db/models/simulation.model';
 
-import { CustomAgent } from '../agents/custom.agent';
-import { configureServiceAgent, createMessageDocument, setupPath } from '../service/conversation.service';
-import { AgentDocument } from '../db/models/agent.model';
-import { MessageDocument } from '../db/models/message.model';
+import { SimulationType } from '@enums/simulation-type.enum';
+import { SimulationStatus } from '@enums/simulation-status.enum';
+import { MsgType } from '@enums/msg-type.enum';
+import { MsgSender } from '@enums/msg-sender.enum';
+
+import { CustomAgent } from '@simulation/agents/custom.agent';
+import { configureServiceAgent, createMessageDocument, setupPath } from '@simulation/service/conversation.service';
+import ChatMessage from '@simulation/model/response/chat.response';
+import { StartChatRequest } from '@simulation/model/request/chat.request';
 
 const agentRepository = repositoryFactory.agentRepository;
 const chatRepository = repositoryFactory.chatRepository;
@@ -19,15 +24,21 @@ let count = 0;
  * @param config - Chat configuration
  * @returns A promise that resolves to the chat simulation object.
  */
-async function start(config: Partial<SimulationDocument>): Promise<SimulationDocument> {
+async function start(config: StartChatRequest): Promise<SimulationDocument> {
   setupPath();
 
-  config.status = SimulationStatus.RUNNING;
-  config.type = SimulationType.CHAT;
+  count = 0;
+
+  const simulation: SimulationDocument = new SimulationModel();
+
+  simulation.name = config.name;
+  simulation.serviceAgent = config.agent;
+  simulation.status = SimulationStatus.RUNNING;
+  simulation.type = SimulationType.CHAT;
 
   let serviceAgentModel: AgentDocument | null = null;
-  if (config.serviceAgent) {
-    serviceAgentModel = await agentRepository.getById(config.serviceAgent.toString());
+  if (config.agent) {
+    serviceAgentModel = await agentRepository.getById(config.agent.toString());
   }
 
   if (serviceAgentModel) {
@@ -35,7 +46,7 @@ async function start(config: Partial<SimulationDocument>): Promise<SimulationDoc
 
     const agentResponse: string = await serviceAgent.startAgent();
 
-    const chat: SimulationDocument = await chatRepository.create(config);
+    const chat: SimulationDocument = await chatRepository.create(simulation);
 
     const usedEndpoints: string[] = [];
 
@@ -53,21 +64,12 @@ async function start(config: Partial<SimulationDocument>): Promise<SimulationDoc
 }
 
 /**
- * Fetch a chat with a given id
- * @param id - Chat id
- * @returns A promise that resolves to the chat simulation object.
- */
-async function getById(id: string): Promise<SimulationDocument | null> {
-  return await chatRepository.getById(id);
-}
-
-/**
  * Send a message to service agent
  * @param chatId - Chat id
  * @param message - Message
  * @returns A promise that resolves to the message response of service agents.
  */
-async function sendMessage(chatId: string, message: string): Promise<string> {
+async function sendMessage(chatId: string, message: string): Promise<ChatMessage> {
   if (!serviceAgent) {
     throw new Error('Service agent not found!');
   }
@@ -82,22 +84,76 @@ async function sendMessage(chatId: string, message: string): Promise<string> {
   );
   await chatRepository.send(chatId, userMessage);
 
-  const agentMessage: MessageDocument = await createMessageDocument(
-    serviceAgent.messageHistory[count++],
-    agentResponse,
-    usedEndpoints,
-  );
-  await chatRepository.send(chatId, agentMessage);
+  let agentMessage: MessageDocument = {} as MessageDocument;
+  while (count < serviceAgent.messageHistory.length) {
+    agentMessage = await createMessageDocument(serviceAgent.messageHistory[count++], agentResponse, usedEndpoints);
+    await chatRepository.send(chatId, agentMessage);
+  }
 
-  return agentResponse;
+  const response: ChatMessage = {
+    sender: agentMessage.sender,
+    text: agentMessage.msgToUser ? agentMessage.msgToUser : '',
+    timestamp: agentMessage.timestamp,
+    userCanReply: true,
+  };
+
+  return response;
 }
 
+/**
+ * Forward a message to the service agent and wait for the response.
+ * @param message - The message to be forwarded.
+ * @returns A promise that resolves to the response from the service agent.
+ */
 async function forwardMessageToAgentAndWaitResponse(message: string): Promise<string> {
   if (!serviceAgent) {
     throw new Error('Service agent not found!');
   }
   const agentResponse = await serviceAgent.processHumanInput(message);
   return agentResponse;
+}
+
+/**
+ * Load an old chat with a given id
+ * @param id - Simulation id
+ * @returns A promise that resolves to the chat simulation object.
+ */
+async function load(chatId: string): Promise<ChatMessage[]> {
+  setupPath();
+
+  const messages: ChatMessage[] = [];
+
+  const [agentId, msgHistory] = await chatRepository.loadChat(chatId);
+
+  let serviceAgentModel: AgentDocument | null = null;
+  if (agentId) {
+    serviceAgentModel = await agentRepository.getById(agentId.toString());
+  }
+
+  if (serviceAgentModel) {
+    serviceAgent = await configureServiceAgent(serviceAgentModel, msgHistory);
+    console.log('Agent configs: ', serviceAgent);
+
+    for (let i = 0; i < serviceAgent.messageHistory.length; i++) {
+      if (serviceAgent.messageHistory[i].type === MsgType.HUMANINPUT) {
+        const userInput = serviceAgent.messageHistory[i].userInput;
+        const timestamp = serviceAgent.messageHistory[i].timestamp;
+        if (userInput !== null) {
+          messages.push({ sender: MsgSender.USER, text: userInput, timestamp: timestamp, userCanReply: true });
+        }
+      }
+
+      const msgToUser = serviceAgent.messageHistory[i].msgToUser;
+      const timestamp = serviceAgent.messageHistory[i].timestamp;
+      if (msgToUser !== null) {
+        messages.push({ sender: MsgSender.AGENT, text: msgToUser, timestamp: timestamp, userCanReply: true });
+      }
+    }
+
+    count = serviceAgent.messageHistory.length;
+  }
+
+  return messages;
 }
 
 /**
@@ -108,40 +164,9 @@ async function getAll(): Promise<SimulationDocument[]> {
   return await chatRepository.findAll();
 }
 
-/**
- * End a chat with a given id
- * @param id - Chat id
- * @returns A promise that resolves to the schat imulation object.
- */
-async function end(id: string): Promise<SimulationDocument | null> {
-  return await chatRepository.end(id);
-}
-
-/**
- * Update a chat with a given id
- * @param id - Chat id
- * @param chatData - Chat details
- * @returns A promise that resolves to the chat simulation object.
- */
-async function update(id: string, chatData: Partial<SimulationDocument>): Promise<SimulationDocument | null> {
-  return await chatRepository.updateById(id, chatData);
-}
-
-/**
- * Fetch a chat with a given id
- * @param id - Chat id
- * @returns A promise that resolves to the success of deletion.
- */
-async function del(id: string): Promise<boolean> {
-  return await chatRepository.deleteById(id);
-}
-
 export default {
   start,
-  getById,
-  update,
-  del,
+  load,
   getAll,
   sendMessage,
-  end,
 };

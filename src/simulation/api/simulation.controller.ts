@@ -1,14 +1,15 @@
-// Controller that implements simulation related endpoints
 import { Request, Response } from 'express';
 import { validationResult } from 'express-validator';
 
-import { RunSimulationRequest } from '../model/request/simulation.request';
-import { SimulationDocument } from '../db/models/simulation.model';
-import simulationService from '../service/simulation.service';
-import { logger } from '../service/logging.service';
-import { ConversationDocument } from '../db/models/conversation.model';
+import { RunABTestingRequest } from '@simulation/model/request/run-ab-testing.request';
+import { RunSimulationRequest } from '@simulation/model/request/simulation.request';
+import simulationService from '@simulation/service/simulation.service';
 
-import { INTERNAL_SERVER_ERROR } from '../utils/errors';
+import { SimulationDocument } from '@db/models/simulation.model';
+import { ConversationDocument } from '@db/models/conversation.model';
+
+import { logger } from '@utils/logger';
+import { INTERNAL_SERVER_ERROR } from '@utils/errors';
 
 /**
  * Runs the simulation.
@@ -27,6 +28,28 @@ async function run(req: Request, res: Response): Promise<void> {
     const simulationConfig: RunSimulationRequest = req.body as RunSimulationRequest;
     const simulation: SimulationDocument = await simulationService.initiate(simulationConfig);
     res.status(201).send(simulation);
+  } catch (error) {
+    logger.error(`Simulation run failed! ${error}`);
+    res.status(500).json(INTERNAL_SERVER_ERROR(error));
+  }
+}
+/**
+ * Runs the simulation.
+ * @param req - Request object (RunSimulationRequest)
+ * @param res - Response object (returns the created simulations)
+ * @throws Throws an internal server error if there is an issue with the operation.
+ */
+async function runABTesting(req: Request, res: Response): Promise<void> {
+  try {
+    /* const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      res.status(400).send({ error: errors });
+      return;
+    }*/
+
+    const simulationConfig: RunABTestingRequest = req.body as RunABTestingRequest;
+    const simulations: SimulationDocument[] = await simulationService.initiateAB(simulationConfig);
+    res.status(201).send(simulations);
   } catch (error) {
     logger.error(`Simulation run failed! ${error}`);
     res.status(500).json(INTERNAL_SERVER_ERROR(error));
@@ -95,13 +118,6 @@ async function getConversations(req: Request, res: Response): Promise<void> {
  */
 async function getAll(req: Request, res: Response): Promise<void> {
   try {
-    // TODO Apply filters if needed
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      res.status(400).send({ error: errors });
-      return;
-    }
-
     const simulations: SimulationDocument[] = await simulationService.getAll();
     res.status(200).send(simulations);
   } catch (error) {
@@ -184,6 +200,7 @@ async function del(req: Request, res: Response): Promise<void> {
 
 export default {
   run,
+  runABTesting,
   poll,
   getConversations,
   getAll,

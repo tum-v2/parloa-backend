@@ -1,13 +1,13 @@
-// Controller that implements simulation related endpoints
 import { Request, Response } from 'express';
 import { validationResult } from 'express-validator';
+import { logger } from '@utils/logger';
+import { INTERNAL_SERVER_ERROR } from '@utils/errors';
 
-import { RunSimulationRequest } from '../model/request/simulation.request';
-import optimizationService from '../service/optimization.service';
-import { logger } from '../service/logging.service';
+import { RunSimulationRequest } from '@simulation/model/request/simulation.request';
+import optimizationService from '@simulation/service/optimization.service';
 
-import { INTERNAL_SERVER_ERROR } from '../utils/errors';
-import { OptimizationDocument } from '../db/models/optimization.model';
+import { OptimizationDocument } from '@db/models/optimization.model';
+import { SimulationDocument } from '@db/models/simulation.model';
 
 /**
  * Handle requests coming from the UI, start the optimization process.
@@ -23,6 +23,7 @@ async function run(req: Request, res: Response): Promise<void> {
       return;
     }
 
+    logger.info(req.body);
     const simulationConfig: RunSimulationRequest = req.body as RunSimulationRequest;
     const optimization: OptimizationDocument = await optimizationService.initiate(simulationConfig);
 
@@ -33,6 +34,24 @@ async function run(req: Request, res: Response): Promise<void> {
   }
 }
 
+/**
+ * Handle requests coming from the UI, get child simulations that belong to an optimized simulation
+ * @param req - Request object
+ * @param res - Response object (returns the fetched simulation)
+ * @throws Throws an internal server error if there is an issue with the operation.
+ */
+async function get(req: Request, res: Response): Promise<void> {
+  try {
+    const optimization: string = req.params.id;
+    const simulations: SimulationDocument[] | null = await optimizationService.getSimulations(optimization);
+
+    res.status(200).send(simulations);
+  } catch (error) {
+    res.status(500).json(INTERNAL_SERVER_ERROR(error));
+  }
+}
+
 export default {
   run,
+  get,
 };

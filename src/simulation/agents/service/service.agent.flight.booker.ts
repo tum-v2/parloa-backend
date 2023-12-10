@@ -5,16 +5,16 @@ import {
   CustomAgentConfig,
   RestAPITool,
   RouteToCoreTool,
-} from '../custom.agent.config';
-
+} from '@simulation/agents/custom.agent.config';
 import {
   auth,
   bookingInfo,
   checkAvailability,
   changeFlightDate,
   getAllFlights,
-} from '../../mockedAPI/flightBooking.mocks';
-import { getFaqAnswer } from '../../mockedAPI/parloa.kf.faq';
+} from '@simulation/mockedAPI/flightBooking.mocks';
+import { getFaqAnswer } from '@simulation/mockedAPI/parloa.kf.faq';
+
 const bookingNumberParam = new APIParam(
   'booking_number',
   'The booking number. Format is 6 alphanumeric characters.',
@@ -32,6 +32,18 @@ const restApiTools: Record<string, RestAPITool> = {
     ]),
     new APIResponse('auth_token to be used for other tools'),
     (data) => {
+      if (data.booking_number === undefined) {
+        return JSON.stringify({ error: 'You forgot to input a booking_number!' });
+      }
+      if (data.last_name === undefined) {
+        return JSON.stringify({ error: 'You forgot to input a last_name!' });
+      }
+      if (data.booking_number === '') {
+        return JSON.stringify({ error: 'Your provided booking is empty.' });
+      }
+      if (data.last_name === '') {
+        return JSON.stringify({ error: 'Your provided last_name number is empty.' });
+      }
       return JSON.stringify(auth(data.booking_number, data.last_name));
     },
   ),
@@ -41,7 +53,15 @@ const restApiTools: Record<string, RestAPITool> = {
     new APIResponse(
       '"flight number, departure and arrival airports, departure and arrival times, and the date of the flight"',
     ),
-    (data) => JSON.stringify(bookingInfo(data.booking_number, data.auth_token)),
+    (data) => {
+      if (data.booking_number === undefined) {
+        return JSON.stringify({ error: 'You forgot to input a booking_number!' });
+      }
+      if (data.auth_token === undefined) {
+        return JSON.stringify({ error: 'You forgot to input a auth_token!' });
+      }
+      return JSON.stringify(bookingInfo(data.booking_number, data.auth_token));
+    },
   ),
   checkAvailability: new RestAPITool(
     'Returns a list of available flight for a given new date for which an existing booking can be changed.',
@@ -57,6 +77,15 @@ const restApiTools: Record<string, RestAPITool> = {
     new APIResponse('List of available flights'),
     (data) => {
       let arrayResult: any[] = [];
+      if (data.booking_number === undefined) {
+        return JSON.stringify({ error: 'You forgot to input a booking_number!' });
+      }
+      if (data.auth_token === undefined) {
+        return JSON.stringify({ error: 'You forgot to input a auth_token!' });
+      }
+      if (data.new_date === undefined) {
+        return JSON.stringify({ error: 'You forgot to input a new_date!' });
+      }
 
       if (data.new_date !== undefined) {
         if (typeof data.new_date === 'string') {
@@ -94,13 +123,29 @@ const restApiTools: Record<string, RestAPITool> = {
       ),
     ]),
     new APIResponse('Success or Failure'),
-    (data) => JSON.stringify(changeFlightDate(data.booking_number, data.new_date, data.auth_token)),
+    (data) => {
+      if (data.booking_number === undefined) {
+        return JSON.stringify({ error: 'You forgot to input a booking_number!' });
+      }
+      if (data.auth_token === undefined) {
+        return JSON.stringify({ error: 'You forgot to input a auth_token!' });
+      }
+      if (data.new_date === undefined) {
+        return JSON.stringify({ error: 'You forgot to input a new_date!' });
+      }
+      return JSON.stringify(changeFlightDate(data.booking_number, data.new_date, data.auth_token));
+    },
   ),
   getAnswerFromFaq: new RestAPITool(
     'Get an answer from the FAQ for a question of the user.',
     new APIRequest([new APIParam('question', 'The question to ask from the FAQ', 'string')]),
     new APIResponse('Answer to the question or ANSWER_NOT_FOUND'),
-    async (data) => await getFaqAnswer(data.question),
+    async (data) => {
+      if (data.question === undefined) {
+        return `You forgot to provide a question in the action_input like this e.g.  { "question":"Your question here?"}`;
+      }
+      return await getFaqAnswer(data.question);
+    },
   ),
 };
 

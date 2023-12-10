@@ -1,39 +1,39 @@
-// Evaluation-specific functionality called by controllers or other services
+import { ConversationDocument, ConversationModel } from '@db/models/conversation.model';
+import { SimulationDocument, SimulationModel } from '@db/models/simulation.model';
+import { EvaluationDocument, EvaluationDocumentWithConversation, EvaluationModel } from '@db/models/evaluation.model';
+import { MetricDocument, MetricNameEnum } from '@db/models/metric.model';
+import { EvaluationRepository } from '@db/repositories/evaluation.repository';
+import { ConversationRepository } from '@db/repositories/conversation.repository';
+import { SimulationRepository } from '@db/repositories/simulation.repository';
 
-import { ConversationDocument, ConversationModel } from '@simulation/db/models/conversation.model';
-import { SimulationDocument, SimulationModel } from '@simulation/db/models/simulation.model';
-import {
-  EvaluationDocument,
-  EvaluationDocumentWithConversation,
-  EvaluationModel,
-} from 'evaluation/db/models/evaluation.model';
-import { EvaluationRepository } from 'evaluation/db/repositories/evaluation.repository';
-import { RunEvaluationRequest } from 'evaluation/model/request/run-evaluation.request';
-import metricService from './metric.service';
-import { MetricDocument, MetricNameEnum } from 'evaluation/db/models/metric.model';
+import { RunEvaluationRequest } from '@evaluation/model/request/run-evaluation.request';
+import { RunEvaluationResponse } from '@evaluation/model/response/run-evaluation.response';
 import {
   EvaluationExecuted,
   EvaluationResultForConversation,
   EvaluationResultForSimulation,
-  EvaluationStatus,
-} from 'evaluation/model/request/evaluation-result.response';
-import { ConversationRepository } from '@simulation/db/repositories/conversation.repository';
-import { SimulationRepository } from '@simulation/db/repositories/simulation.repository';
+} from '@evaluation/model/response/evaluation-result.response';
+import metricService from '@evaluation/service/metric.service';
+
+import { EvaluationStatus } from '@enums/evaluation-status.enum';
+
 import simulationService from '@simulation/service/simulation.service';
-import { RunEvaluationResponse } from 'evaluation/model/request/run-evaluation.response';
 
 const evaluationRepository = new EvaluationRepository(EvaluationModel);
 const conversationRepository = new ConversationRepository(ConversationModel);
 const simulationRepository = new SimulationRepository(SimulationModel);
 
 /**
- * Triggers the evaluation of one conversation
- * @param request - configuration object (type RunEvaluationRequest)
- * @returns an RunEvaluationResponse object including the created evaluation object
+ * Triggers the evaluation of one conversation.
+ * @param request - Configuration object (type RunEvaluationRequest).
+ * @throws Error -  When simulation with the given ID is not found.
+ * @throws Error - When conversation with given ID is not found.
+ * @throws Error - When a given conversation is not part of the given simulation.
+ * @returns RunEvaluationResponse - RunEvaluationResponse object including the created evaluation ID.
  */
 async function runEvaluation(request: RunEvaluationRequest): Promise<RunEvaluationResponse> {
-  const conversationID = request.conversation;
-  const simulationID = request.simulation;
+  const conversationID: string = request.conversation;
+  const simulationID: string = request.simulation;
   const conversation: ConversationDocument | null = await conversationRepository.getById(conversationID);
   if (!conversation) {
     throw new Error(`Conversation ${conversationID} not found!`);
@@ -57,12 +57,11 @@ async function runEvaluation(request: RunEvaluationRequest): Promise<RunEvaluati
 }
 
 /**
- * Creates an evaluation object and initiates the evaluation of the conversation
- * @param request - The evaluation configuration
- * @param conversation - The conversation which will be evaluated
+ * Creates an evaluation object and initiates the evaluation of the conversation.
+ * @param request - The evaluation configuration.
+ * @param conversation - The conversation which will be evaluated.
  * @param simulation - The simulation which the conversation belongs to.
- * @throws Throws an error if there is an issue with the MongoDB query.
- * @returns The created evaluation object
+ * @returns EvaluationDocument -  created evaluation object
  */
 async function initiate(
   request: RunEvaluationRequest,
@@ -89,7 +88,7 @@ async function initiate(
   console.log(evaluation);
   await conversationRepository.saveEvaluation(conversation.id, evaluation.id);
 
-  if (request.isLast === true) {
+  if (request.isLast) {
     const evaluationOfSimulation = await runEvaluationForSimulation(simulation);
     console.log(evaluationOfSimulation);
     await simulationRepository.saveEvaluation(simulation.id, evaluationOfSimulation.id);
@@ -100,8 +99,8 @@ async function initiate(
 
 /**
  * Runs the evaluation for a simulation and stores the result in the database
- * @param simulation - simulation which should be evaluated
- * @returns the created evaluation document
+ * @param simulation - Simulation which should be evaluated.
+ * @returns EvaluationDocument -  The created evaluation document.
  */
 async function runEvaluationForSimulation(simulation: SimulationDocument): Promise<EvaluationDocument> {
   const conversationEvaluations = await evaluationRepository.findConversationEvaluationsBySimulation(simulation.id);
@@ -126,9 +125,9 @@ async function runEvaluationForSimulation(simulation: SimulationDocument): Promi
 }
 
 /**
- * Retrieves the evaluation result for the specified conversation
- * @param conversation - conversation document
- * @returns the evaluation results
+ * Retrieves the evaluation result for the specified conversation.
+ * @param conversation - Conversation document.
+ * @returns EvaluationResultForConversation - Evaluation results for the given conversation.
  */
 async function getResultsForConversation(conversation: ConversationDocument): Promise<EvaluationResultForConversation> {
   let evaluation: EvaluationDocument | null = (await conversation.populate('evaluation'))
@@ -144,9 +143,9 @@ async function getResultsForConversation(conversation: ConversationDocument): Pr
 }
 
 /**
- * Retrieves the evaluation result for all conversations of the specified simulation
- * @param simulation - simulation document
- * @returns the evaluation results
+ * Retrieves the evaluation result for all conversations of the specified simulation.
+ * @param simulation - Simulation document.
+ * @returns EvaluationResultForSimulation -  Evaluation results for the given simulation.
  */
 async function getResultsForSimulation(simulation: SimulationDocument): Promise<EvaluationResultForSimulation> {
   const evaluations: EvaluationDocumentWithConversation[] =
@@ -182,9 +181,9 @@ async function getResultsForSimulation(simulation: SimulationDocument): Promise<
 }
 
 /**
- * retrieves the evaluation results for the specified evaluation
- * @param evaluation - evaluation document
- * @returns the evaluation results
+ * Retrieves the evaluation results for the specified evaluation.
+ * @param evaluation - Evaluation document.
+ * @returns EvaluationResultForConversation -  Evaluation results for the given evaluation document.
  */
 function getEvaluationResults(evaluation: EvaluationDocument): EvaluationResultForConversation {
   if (evaluation.metrics.length == 0) {
@@ -200,9 +199,9 @@ function getEvaluationResults(evaluation: EvaluationDocument): EvaluationResultF
 }
 
 /**
- * retrieves the evaluation results for the specified evaluation. The evaluation is known to already have been executed.
- * @param evaluation - evaluation document
- * @returns the evaluation results
+ * Retrieves the evaluation results for the specified evaluation. The evaluation is known to already have been executed.
+ * @param evaluation - Evaluation document.
+ * @returns EvaluationExecuted -  Evaluation results.
  */
 function getExecuteEvaluationResults(evaluation: EvaluationDocument): Omit<EvaluationExecuted, 'status'> {
   return {

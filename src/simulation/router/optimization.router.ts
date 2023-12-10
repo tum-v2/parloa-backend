@@ -1,16 +1,21 @@
-// Router that routes incoming requests to relevant controller function
 import express from 'express';
-const router = express.Router();
 
-import optimizationController from '../api/optimization.controller';
-import simulationValidator from '../validator/simulation.validator';
+import optimizationController from '@simulation/api/optimization.controller';
+import SimulationValidator from '@simulation/validator/simulation.validator';
+import { CustomValidationError } from '@utils/handle-validation-errors';
+const router = express.Router();
 
 // region POST //
 router.post(
   '/run',
-  simulationValidator.runValidation(),
-  simulationValidator.handleValidationErrors,
+  SimulationValidator.runValidation(),
+  CustomValidationError.handleValidationErrors,
   optimizationController.run,
 );
 // endregion POST //
+
+// region GET //
+router.get('/:id', optimizationController.get);
+// endregion GET //
+
 export default router;

@@ -9,11 +9,8 @@ Sumulation backend service is dedicated to crafting lifelike conversation simula
 ├── agents
 │   ├── Agents configurations, models, and related logic.
 │   └── ...
-├── API
+├── api
 │   ├── Backend API controllers.
-│   └── ...
-├── db
-│   ├── Database configurations, models and connection logic.
 │   └── ...
 ├── docs
 │   ├── Documentation files and API specifications.
@@ -26,9 +23,6 @@ Sumulation backend service is dedicated to crafting lifelike conversation simula
 │   └── ...
 ├── service
 │   ├── Business logic services and external integrations.
-│   └── ...
-├── util
-│   ├── Utility functions and helper modules.
 │   └── ...
 └── validator
     ├── Data validation schemas and validation logic.

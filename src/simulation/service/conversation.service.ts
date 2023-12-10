@@ -1,24 +1,27 @@
-/* eslint-disable require-jsdoc */
-/* eslint-disable @typescript-eslint/no-unused-vars */
-import { SimulationDocument } from '../db/models/simulation.model';
-import { CustomAgent } from '../agents/custom.agent';
-import { getSimConfig } from '../agents/user.agent';
-import { BaseChatModel, BaseChatModelParams } from 'langchain/chat_models/base';
-import { ChatOpenAI, OpenAIChatInput } from 'langchain/chat_models/openai';
-import { AzureOpenAIInput } from 'langchain/chat_models/openai';
+import { CustomAgent } from '@simulation/agents/custom.agent';
+import { getSimConfig } from '@simulation/agents/user.agent';
 import {
   flightBookingAgentConfig,
   fakeUserAgentResponses,
   fakeServiceAgentResponses,
-} from '../agents/service/service.agent.flight.booker';
-import { Types } from 'mongoose';
-import { MsgHistoryItem } from '../agents/custom.agent';
-import { AgentDocument, AgentModel } from '../db/models/agent.model';
+} from '@simulation/agents/service/service.agent.flight.booker';
+import { MsgHistoryItem } from '@simulation/agents/custom.agent';
+
+import { LLMModel } from '@enums/llm-model.enum';
+import { MsgSender } from '@enums/msg-sender.enum';
+import { MsgType } from '@enums/msg-type.enum';
+import { ConversationStatus } from '@enums/conversation-status.enum';
+
+import { BaseChatModel, BaseChatModelParams } from 'langchain/chat_models/base';
+import { ChatOpenAI, OpenAIChatInput } from 'langchain/chat_models/openai';
+import { AzureOpenAIInput } from 'langchain/chat_models/openai';
 import { FakeListChatModel } from 'langchain/chat_models/fake';
-import { LLMModel } from '../db/enum/enums';
-import repositoryFactory from '../db/repositories/factory';
-import { MessageDocument } from '../db/models/message.model';
-import { MsgSender, MsgTypes, ConversationStatus } from '../db/enum/enums';
+
+import { AgentDocument } from '@db/models/agent.model';
+import { MessageDocument } from '@db/models/message.model';
+import repositoryFactory from '@db/repositories/factory';
+
+import { Types } from 'mongoose';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -36,6 +39,22 @@ let gpt4azureApiInstanceName: string | undefined;
 let gpt4azureApiVersion: string | undefined;
 
 setup();
+
+/**
+ * Initializes the application by setting up the necessary environment variables for Azure OpenAI.
+ *
+ * The function reads the following environment variables:
+ * - AZURE_OPENAI_API_KEY
+ * - AZURE_OPENAI_API_INSTANCE_NAME
+ * - AZURE_OPENAI_API_VERSION
+ * - AZURE_OPENAI_4_API_KEY
+ * - AZURE_OPENAI_4_INSTANCE_NAME
+ * - AZURE_OPENAI_4_API_VERSION
+ *
+ * If any of these environment variables are not set, the function will throw an error.
+ *
+ * @throws Error If any of the required environment variables are not set.
+ */
 function setup() {
   gpt35openApiKey = process.env.AZURE_OPENAI_API_KEY;
   if (gpt35openApiKey === undefined) throw new Error('AZURE_OPENAI_API_KEY Needs to be specified');
@@ -67,6 +86,17 @@ const SERVICE_CHAT_LOG_FILE_PATH = path.join(logsDirectory, timeStamp + '-SIM-AG
 const USER_PROMPT_LOG_FILE_PATH = path.join(logsDirectory, timeStamp + '-SIM-HUMAN-PROMPTS.txt');
 const USER_CHAT_LOG_FILE_PATH = path.join(logsDirectory, timeStamp + '-SIM-HUMAN-CHAT.txt');
 
+/**
+ * Sets up the necessary files for logging.
+ *
+ * The function creates the following files:
+ * - SERVICE_PROMPT_LOG_FILE_PATH
+ * - SERVICE_CHAT_LOG_FILE_PATH
+ * - USER_PROMPT_LOG_FILE_PATH
+ * - USER_CHAT_LOG_FILE_PATH
+ *
+ * If the files are created successfully, a message is logged to the console.
+ */
 export function setupPath() {
   createFile(SERVICE_PROMPT_LOG_FILE_PATH);
   createFile(SERVICE_CHAT_LOG_FILE_PATH);
@@ -75,6 +105,14 @@ export function setupPath() {
   console.log('Files created successfully.');
 }
 
+/**
+ * Ensures that the directory for a given file path exists.
+ *
+ * The function checks if the directory for the provided file path exists.
+ * If the directory does not exist, the function creates it.
+ *
+ * @param filePath - The file path for which to ensure directory existence.
+ */
 function ensureDirectoryExistence(filePath: string) {
   const dirname = path.dirname(filePath);
   if (fs.existsSync(dirname)) {
@@ -84,11 +122,31 @@ function ensureDirectoryExistence(filePath: string) {
   fs.mkdirSync(dirname);
 }
 
+/**
+ * Creates a new file at the specified file path.
+ *
+ * The function first ensures that the directory for the file exists.
+ * If the directory does not exist, it is created.
+ * Then, an empty file is created at the specified file path.
+ *
+ * @param filePath - The path where the file should be created.
+ */
 function createFile(filePath: string) {
   ensureDirectoryExistence(filePath);
   fs.writeFileSync(filePath, ''); // Creates an empty file
 }
 
+/**
+ * Sets the configuration for a specific model.
+ *
+ * @param modelName - The name of the model.
+ * @param temperature - The temperature for the model.
+ * @param maxTokens - The maximum number of tokens for the model.
+ *
+ * @returns - An object containing the model configuration.
+ *
+ * @throws Error if the provided model name is not supported.
+ */
 function setModelConfig(
   modelName: string,
   temperature: number,
@@ -130,7 +188,17 @@ function setModelConfig(
   return azureOpenAIInput;
 }
 
-export async function configureServiceAgent(agentData: AgentDocument): Promise<CustomAgent> {
+/**
+ * Configures a service agent with the provided agent data and message history.
+ *
+ * @param agentData - The data for the agent.
+ * @param messageHistory - An optional array of message history items.
+ * @returns - A promise that resolves to a CustomAgent object.
+ */
+export async function configureServiceAgent(
+  agentData: AgentDocument,
+  messageHistory?: MsgHistoryItem[],
+): Promise<CustomAgent> {
   let modelName: string;
   let temperature: number;
   let maxTokens: number;
@@ -159,6 +227,14 @@ export async function configureServiceAgent(agentData: AgentDocument): Promise<C
     agentLLM = new ChatOpenAI(azureOpenAIInput);
   }
 
+  if (agentData.prompt !== 'default') {
+    flightBookingAgentConfig.persona = agentData.prompt;
+  } else {
+    flightBookingAgentConfig.persona = `- You should be empathetic, helpful, comprehensive and polite.
+    - Never use gender specific prefixes like Mr. or Mrs. when addressing the user unless they used it themselves.
+    `;
+  }
+
   const serviceAgent: CustomAgent = new CustomAgent(
     agentLLM,
     flightBookingAgentConfig,
@@ -166,12 +242,20 @@ export async function configureServiceAgent(agentData: AgentDocument): Promise<C
     SERVICE_CHAT_LOG_FILE_PATH,
     true,
     true,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     async (agent: CustomAgent, historyItem: MsgHistoryItem): Promise<void> => {},
+    messageHistory || [],
   );
 
   return serviceAgent;
 }
 
+/**
+ * Configures a user agent with the provided agent data.
+ *
+ * @param agentData - The data for the agent.
+ * @returns - A promise that resolves to a CustomAgent object.
+ */
 async function configureUserAgent(agentData: AgentDocument): Promise<CustomAgent> {
   let modelName: string;
   let temperature: number;
@@ -209,12 +293,21 @@ async function configureUserAgent(agentData: AgentDocument): Promise<CustomAgent
     USER_CHAT_LOG_FILE_PATH,
     false,
     false,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     async (agent: CustomAgent, historyItem: MsgHistoryItem): Promise<void> => {},
   );
 
   return userAgent;
 }
 
+/**
+ * Creates a message document from a message history item.
+ *
+ * @param msg - The message history item.
+ * @param welcomeMessage - The welcome message for the agent.
+ * @param usedEndpoints - An array of used endpoints.
+ * @returns - A promise that resolves to a MessageDocument object.
+ */
 export async function createMessageDocument(
   msg: MsgHistoryItem,
   welcomeMessage: string,
@@ -223,25 +316,25 @@ export async function createMessageDocument(
   let sender: MsgSender;
   let text: string;
 
-  if (msg.type === MsgTypes.SYSTEMPROMPT) {
+  if (msg.type === MsgType.SYSTEMPROMPT) {
     sender = MsgSender.AGENT;
     text = `AGENT: ${welcomeMessage}`;
-  } else if (msg.type === MsgTypes.HUMANINPUT) {
+  } else if (msg.type === MsgType.HUMANINPUT) {
     sender = MsgSender.USER;
     text = `USER: ${msg.userInput}`;
-  } else if (msg.type === MsgTypes.TOOLCALL) {
+  } else if (msg.type === MsgType.TOOLCALL) {
     sender = MsgSender.TOOL;
     text = `TOOL: [${msg.action}] call input: ${JSON.stringify(msg.toolInput)}`;
     if (msg.action !== null) {
       usedEndpoints.push(msg.action);
     }
-  } else if (msg.type === MsgTypes.TOOLOUTPUT) {
+  } else if (msg.type === MsgType.TOOLOUTPUT) {
     sender = MsgSender.TOOL;
     text = `TOOL: [${msg.action}] result: ${msg.toolOutput}`;
-  } else if (msg.type === MsgTypes.MSGTOUSER) {
+  } else if (msg.type === MsgType.MSGTOUSER) {
     sender = MsgSender.AGENT;
     text = `AGENT: ${msg.msgToUser}`;
-  } else if (msg.type === MsgTypes.ROUTE) {
+  } else if (msg.type === MsgType.ROUTE) {
     sender = MsgSender.AGENT;
     text = `TOOL: ${msg.action} ${msg.toolInput}`;
     if (msg.action !== null) {
@@ -259,10 +352,22 @@ export async function createMessageDocument(
     intermediateMsg: msg.intermediateMsg,
     action: msg.action,
     toolInput: msg.toolInput,
+    lcMsg: msg.lcMsg,
+    userInput: msg.userInput,
+    msgToUser: msg.type == MsgType.SYSTEMPROMPT ? welcomeMessage : msg.msgToUser,
+    toolOutput: msg.toolOutput,
+    parentId: msg.parentId,
   });
   return message;
 }
 
+/**
+ * Runs a conversation between a service agent and a user agent.
+ *
+ * @param serviceAgentData - The data for the service agent.
+ * @param userAgentData - The data for the user agent.
+ * @returns - The id of the conversation.
+ */
 export async function runConversation(serviceAgentData: AgentDocument, userAgentData: AgentDocument) {
   const startTime: Date = new Date();
   const conversation = await conversationRepository.create({
@@ -316,7 +421,7 @@ export async function runConversation(serviceAgentData: AgentDocument, userAgent
       const hangupMessage: MessageDocument = await messageRepository.create({
         sender: MsgSender.USER,
         text: '/hangup',
-        type: MsgTypes.HANGUP,
+        type: MsgType.HANGUP,
         timestamp: hangupMsgTimestamp!,
         intermediateMsg: undefined,
         action: undefined,
@@ -343,5 +448,5 @@ export async function runConversation(serviceAgentData: AgentDocument, userAgent
 }
 
 export default {
-  setModelConfig
+  setModelConfig,
 };

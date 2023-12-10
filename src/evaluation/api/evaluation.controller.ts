@@ -1,19 +1,22 @@
-// Controller that implements evaluation related endpoints
-import { ConversationDocument, ConversationModel } from '@simulation/db/models/conversation.model';
-import { SimulationDocument, SimulationModel } from '@simulation/db/models/simulation.model';
-import evaluationService from 'evaluation/service/evaluation.service';
-import { RunEvaluationRequest } from 'evaluation/model/request/run-evaluation.request';
-import { Request, Response } from 'express';
-import { INTERNAL_SERVER_ERROR } from 'simulation/utils/errors';
-import { validationResult } from 'express-validator';
-import { ConversationRepository } from '@simulation/db/repositories/conversation.repository';
+import { ConversationDocument, ConversationModel } from '@db/models/conversation.model';
+import { SimulationDocument, SimulationModel } from '@db/models/simulation.model';
+import { ConversationRepository } from '@db/repositories/conversation.repository';
+import { SimulationRepository } from '@db/repositories/simulation.repository';
+
+import evaluationService from '@evaluation/service/evaluation.service';
+import { RunEvaluationRequest } from '@evaluation/model/request/run-evaluation.request';
 import {
   EvaluationResultForConversation,
   EvaluationResultForSimulation,
-  EvaluationStatus,
-} from 'evaluation/model/request/evaluation-result.response';
-import { SimulationRepository } from '@simulation/db/repositories/simulation.repository';
-import { RunEvaluationResponse } from 'evaluation/model/request/run-evaluation.response';
+} from '@evaluation/model/response/evaluation-result.response';
+import { RunEvaluationResponse } from '@evaluation/model/response/run-evaluation.response';
+
+import { EvaluationStatus } from '@enums/evaluation-status.enum';
+
+import { INTERNAL_SERVER_ERROR } from '@utils/errors';
+
+import { validationResult } from 'express-validator';
+import { Request, Response } from 'express';
 
 const conversationRepository = new ConversationRepository(ConversationModel);
 const simulationRepository = new SimulationRepository(SimulationModel);

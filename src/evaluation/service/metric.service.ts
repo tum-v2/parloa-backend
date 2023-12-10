@@ -1,21 +1,25 @@
-import { MsgSender } from '@simulation/db/enum/enums';
-import { MessageDocument } from '@simulation/db/models/message.model';
-import { MetricRepository } from 'evaluation/db/repositories/metric.repository';
-import { MetricDocument, MetricModel } from 'evaluation/db/models/metric.model';
-import { MetricNameEnum, metricWeightMap } from 'evaluation/utils/metric.config';
+import { MsgSender } from '@enums/msg-sender.enum';
+import { MsgType } from '@enums/msg-type.enum';
+import { MetricNameEnum } from '@enums/metric-name.enum';
+
+import { MessageDocument } from '@db/models/message.model';
+import { MetricRepository } from '@db/repositories/metric.repository';
+import { MetricDocument, MetricModel } from '@db/models/metric.model';
+import { ConversationDocument } from '@db/models/conversation.model';
+import { similarityHandler, recoveryHandler, sentimentHandler } from '@evaluation/service/evaluation.python-wrapper';
+
+import { metricWeightMap } from '@evaluation/utils/metric.config';
+import { metricNormalizationFunctions } from '@evaluation/utils/data.normalization';
+
 import mongoose, { Types } from 'mongoose';
-import { ConversationDocument } from '@simulation/db/models/conversation.model';
-import { metricNormalizationFunctions } from 'evaluation/utils/data.normalization';
-import { similarityHandler, sentimentHandler, recoveryHandler } from './evaluation.python-wrapper';
 
 const metricRepository = new MetricRepository(MetricModel);
 
 /**
  * calculates all metrics
- * @param messages - messages of conversation which should be evaluated
- * @param usedEndpoints - used endpoints of conversation which should be evaluated
- * @throws if values are missing in one of the maps metricCalculationFunctions, metricNormalizationFunctions and metricWeightMap
- * @returns the generated metric documents
+ * @param conversation - Conversation document to be calculated.
+ * @throws Error - If values are missing in one of the maps metricCalculationFunctions, metricNormalizationFunctions and metricWeightMap.
+ * @returns MetricDocument[] -  Generated metric documents for the given conversation.
  */
 async function calculateAllMetrics(conversation: ConversationDocument): Promise<MetricDocument[]> {
   const messages = (await conversation.populate('messages')).messages as MessageDocument[];
@@ -37,10 +41,10 @@ async function calculateAllMetrics(conversation: ConversationDocument): Promise<
 }
 
 /**
- * Calculates the weighted average score
- * @param metrics - metric documents
- * @param useRawValue - whether to calculate average over rawValue or over normalized value
- * @returns weighted average over the scores of all metrics
+ * Calculates the weighted average score using given metric documents.
+ * @param metrics - Metric documents.
+ * @param useRawValue - Whether to calculate average over rawValue or over normalized value.
+ * @returns number -  Weighted average over the scores of all metrics provided in metric documents.
  */
 function calculateWeightedAverage(metrics: MetricDocument[], useRawValue: boolean = false): number {
   return metrics.reduce<number>((accumulator: number, metric: MetricDocument | Types.ObjectId) => {
@@ -50,10 +54,10 @@ function calculateWeightedAverage(metrics: MetricDocument[], useRawValue: boolea
 }
 
 /**
- * Calculates the equal (classical) average score
- * @param metrics - metric documents
- * @param useRawValue - whether to calculate average over rawValue or over normalized value
- * @returns equal overage over the scores of all metrics
+ * Calculates the equal (classical) average score.
+ * @param metrics - Metric documents.
+ * @param useRawValue - Whether to calculate average over rawValue or over normalized value.
+ * @returns number - Equal overage over the scores of all metrics.
  */
 function calculateEqualAverage(metrics: MetricDocument[], useRawValue: boolean = false): number {
   if (metrics.length == 0) return 0;
@@ -66,17 +70,17 @@ function calculateEqualAverage(metrics: MetricDocument[], useRawValue: boolean =
 }
 
 /**
- * Initializes a new metric document in the database
- * @param metricName - name of the metric which is initialized
- * @param score - score (between 0 and 1) that was achieved in the specified metric
- * @param rawValue - not normalized score that was achieved
- * @throws if a value is missing in metricWeightMap
- * @returns the created metric document
+ * Initializes a new metric document in the database.
+ * @param metricName - Name of the metric which is initialized.
+ * @param score - Score (between 0 and 1) that was achieved in the specified metric.
+ * @param rawValue - Not normalized score that was achieved.
+ * @throws Error - If a value is missing in metricWeightMap.
+ * @returns MetricDocument - Created metric document.
  */
-async function initialize(metricName: MetricNameEnum, score: number, rawValue: number) {
+async function initialize(metricName: MetricNameEnum, score: number, rawValue: number): Promise<MetricDocument> {
   const weight = metricWeightMap.get(metricName);
   if (!weight) {
-    throw new Error(`ERROR: metric: missing entry for ${metricName} in metricWeightMap`);
+    throw new Error(`Metric: missing entry for ${metricName} in metricWeightMap`);
   }
   return await metricRepository.create({
     name: metricName,
@@ -90,8 +94,7 @@ const metricCalculationFunctions = new Map<
   MetricNameEnum,
   (messages: MessageDocument[], usedEndpoints: string[]) => number
 >([
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  [MetricNameEnum.SUCCESS, (_messages: MessageDocument[], _usedEndpoints: string[]) => 1],
+  [MetricNameEnum.SUCCESS, goalFulfilled],
   [MetricNameEnum.RESPONSE_TIME, calculateAverageResponseTime],
   [MetricNameEnum.MESSAGE_COUNT, countSteps],
   [MetricNameEnum.SIMILARITY, calculateSimilarity],
@@ -100,22 +103,39 @@ const metricCalculationFunctions = new Map<
 ]);
 
 /**
- * Counts the number of messages in a conversation.
- * @param conversation - The conversation to count the messages of.
- * @returns Number of messages in the conversation.
+ * Evaluates whether the user's concern was fulfilled or not.
+ * @param messages - The messages of the conversation.
+ * @param _usedEndpoints - (unused) The endpoints that were called during the conversation
+ * @returns number -  If the user's concern was fulfilled and 0 otherwise.
  */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars, require-jsdoc
-function countSteps(messages: MessageDocument[], _usedEndpoints: string[]) {
-  return messages.length;
+function goalFulfilled(
+  messages: MessageDocument[],
+  _usedEndpoints: string[] /* eslint-disable-line @typescript-eslint/no-unused-vars*/,
+): number {
+  const result: boolean = messages.length > 0 && messages[messages.length - 1].type == MsgType.HANGUP;
+  return Number(result);
+}
+
+/**
+ * Calculates the number of steps per used endpoint.
+ * @param messages - The messages of the conversation.
+ * @param usedEndpoints - The endpoints that were called during the conversation.
+ * @returns number - Number of steps per used endpoint.
+ */
+function countSteps(messages: MessageDocument[], usedEndpoints: string[]): number {
+  return messages.length / usedEndpoints.length;
 }
 
 /**
  * Calculates the average response time of the agent in a conversation.
- * @param conversation - The conversation to calculate the average response time of.
- * @returns Average response time of the agent in the conversation.
+ * @param messages - The messages of the conversation.
+ * @param _usedEndpoints - (unused) The endpoints that were called during the conversation.
+ * @returns number - Average response time of the agent in the conversation.
  */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars, require-jsdoc
-function calculateAverageResponseTime(messages: MessageDocument[], _usedEndpoints: string[]) {
+function calculateAverageResponseTime(
+  messages: MessageDocument[],
+  _usedEndpoints: string[] /* eslint-disable-line @typescript-eslint/no-unused-vars*/,
+): number {
   if (messages.length < 2) {
     return 0;
   }
@@ -137,8 +157,7 @@ function calculateAverageResponseTime(messages: MessageDocument[], _usedEndpoint
     countAgentMessages++;
   }
 
-  const averageResponseTime = totalResponseTimeOfAgent / countAgentMessages;
-  return averageResponseTime;
+  return totalResponseTimeOfAgent / countAgentMessages;
 }
 
 /**
@@ -147,8 +166,10 @@ function calculateAverageResponseTime(messages: MessageDocument[], _usedEndpoint
  * @param _usedEndpoints - The used endpoints from the conversation.
  * @returns Similarity score of all agent messages.
  */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars, require-jsdoc
-function calculateSimilarity(messages: MessageDocument[], _usedEndpoints: string[]) {
+function calculateSimilarity(
+  messages: MessageDocument[],
+  _usedEndpoints: string[] /* eslint-disable-line @typescript-eslint/no-unused-vars*/,
+): number {
   return similarityHandler(messages);
 }
 
@@ -158,8 +179,10 @@ function calculateSimilarity(messages: MessageDocument[], _usedEndpoints: string
  * @param _usedEndpoints - The used endpoints from the conversation.
  * @returns Recovery rate of the agent.
  */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars, require-jsdoc
-function calculateRecoveryRate(messages: MessageDocument[], _usedEndpoints: string[]) {
+function calculateRecoveryRate(
+  messages: MessageDocument[],
+  _usedEndpoints: string[] /* eslint-disable-line @typescript-eslint/no-unused-vars*/,
+) {
   return recoveryHandler(messages);
 }
 
@@ -170,7 +193,10 @@ function calculateRecoveryRate(messages: MessageDocument[], _usedEndpoints: stri
  * @returns Sentiment polarity of the agent.
  */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars, require-jsdoc
-function calculateSentimentAnalysis(messages: MessageDocument[], _usedEndpoints: string[]) {
+function calculateSentimentAnalysis(
+  messages: MessageDocument[],
+  _usedEndpoints: string[] /* eslint-disable-line @typescript-eslint/no-unused-vars*/,
+) {
   return sentimentHandler(messages);
 }
 

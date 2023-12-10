@@ -1,7 +1,7 @@
-import { MetricNameEnum } from './metric.config';
+import { MetricNameEnum } from '@enums/metric-name.enum';
 
 const metricNormalizationFunctions: Map<MetricNameEnum, (score: number) => number> = new Map([
-  [MetricNameEnum.SUCCESS, normalizeSuccessScore],
+  [MetricNameEnum.SUCCESS, (score) => score],
   [MetricNameEnum.RESPONSE_TIME, normalizeResponseTime],
   [MetricNameEnum.MESSAGE_COUNT, normalizeMessageCount],
   [MetricNameEnum.SIMILARITY, (result) => result],
@@ -11,12 +11,12 @@ const metricNormalizationFunctions: Map<MetricNameEnum, (score: number) => numbe
 
 /**
  *
- * @param score - the (not normalized) score
- * @param minScore - the score which is considered the best (normalized score will be 1)
- * @param maxScore - the score which is considered the worst (normalized score will be 0)
- * @returns the normalized score (using the min-max-normalizer)
+ * @param score - The (not normalized) score.
+ * @param minScore - The score which is considered the best (normalized score will be 1).
+ * @param maxScore - The score which is considered the worst (normalized score will be 0).
+ * @returns number - The normalized score (using the min-max-normalizer).
  */
-function minMaxNormalize(score: number, minScore: number, maxScore: number) {
+function minMaxNormalize(score: number, minScore: number, maxScore: number): number {
   return (score - minScore) / (maxScore - minScore);
 }
 
@@ -30,30 +30,21 @@ function sigmoidNormalize(score: number) {
 }
 
 /**
- * Normalizes the success metric
- * @param success - C-style boolean whether conversation was successfull
- * @returns 1 if conversation was successfull, 0 if not
+ * Normalizes the response time.
+ * @param responseTime - response time.
+ * @returns number - Normalized response time (score between 0 and 1; the higher, the better).
  */
-function normalizeSuccessScore(success: number) {
-  return Number(success != 0);
-}
-
-/**
- * Normalizes the response time
- * @param responseTime - response time
- * @returns normalized response time (score between 0 and 1; the higher, the better)
- */
-function normalizeResponseTime(responseTime: number) {
+function normalizeResponseTime(responseTime: number): number {
   return minMaxNormalize(responseTime, 60_000, 0);
 }
 
 /**
- * Normalizes the message count metric
- * @param numberOfMessages - number of messages
- * @returns normalized message count score (between 0 and 1; the higher, the better)
+ * Normalizes the message count metric.
+ * @param numberOfMessages - Number of messages.
+ * @returns number - Normalized message count score (between 0 and 1; the higher, the better).
  */
-function normalizeMessageCount(numberOfMessages: number) {
-  return minMaxNormalize(numberOfMessages, 50, 0);
+function normalizeMessageCount(numberOfMessages: number): number {
+  return minMaxNormalize(numberOfMessages, 10, 0);
 }
 
 /**

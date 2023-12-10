@@ -1,51 +1,48 @@
-// Router that routes incoming requests to relevant controller function
 import express from 'express';
-const router = express.Router();
 
-import simulationController from '../api/simulation.controller';
-import simulationValidator from '../validator/simulation.validator';
+import simulationController from '@simulation/api/simulation.controller';
+import SimulationValidator from '@simulation/validator/simulation.validator';
+import { CustomValidationError } from '@utils/handle-validation-errors';
+
+const router = express.Router();
 
 // region POST //
 router.post(
   '/run',
-  simulationValidator.runValidation(),
-  simulationValidator.handleValidationErrors,
+  SimulationValidator.runValidation(),
+  CustomValidationError.handleValidationErrors,
   simulationController.run,
 );
+
+router.post('/abtesting/run', simulationController.runABTesting);
 // endregion POST //
 
 // region GET //
+router.get('/all', simulationController.getAll);
 router.get(
-  '/:id/poll',
-  simulationValidator.idValidation(),
-  simulationValidator.handleValidationErrors,
+  '/:id',
+  SimulationValidator.idValidation(),
+  CustomValidationError.handleValidationErrors,
   simulationController.poll,
 );
-router.get(
-  '/:id/conversations',
-  simulationValidator.idValidation(),
-  simulationValidator.handleValidationErrors,
-  simulationController.getConversations,
-);
-router.get('/all', simulationController.getAll);
 router.get('/conversation/:id', simulationController.getConversation);
-// region GET //
+// endregion GET //
 
-// region PATCH //
+// region PUT//
 router.patch(
   '/:id',
-  simulationValidator.runValidation(),
-  simulationValidator.idValidation(),
-  simulationValidator.handleValidationErrors,
+  // SimulationValidator.idValidation(),
+  // SimulationValidator.runValidation(),
+  // CustomValidationError.handleValidationErrors,
   simulationController.update,
 );
-// endregion PATCH //
+// endregion PUT //
 
 // region DELETE //
 router.delete(
   '/:id',
-  simulationValidator.idValidation(),
-  simulationValidator.handleValidationErrors,
+  SimulationValidator.idValidation(),
+  CustomValidationError.handleValidationErrors,
   simulationController.del,
 );
 // endregion DELETE //

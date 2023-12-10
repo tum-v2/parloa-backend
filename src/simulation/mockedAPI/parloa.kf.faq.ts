@@ -30,10 +30,6 @@ interface ChoiceResponse {
 }
 // eslint-disable-next-line require-jsdoc, @typescript-eslint/no-unused-vars
 export async function getFaqAnswer(question: string): Promise<string> {
-  if (question === undefined) {
-    return `You forgot to provide a question in the action_input like this e.g.  { "question":"Your question here?"}`;
-  }
-
   const request: FAQRequest = {
     context: context,
     input: {

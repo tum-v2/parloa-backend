@@ -1,5 +1,5 @@
 import { execSync } from 'child_process';
-import { MessageDocument } from '@simulation/db/models/message.model';
+import { MessageDocument } from '@db/models/message.model';
 
 /**
  * Calls the python script to calculate the average similarity of the agent messages in a conversation.

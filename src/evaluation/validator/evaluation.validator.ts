@@ -1,21 +1,9 @@
-import { Request, Response, NextFunction } from 'express';
-import { body, param, ValidationChain, ValidationError, validationResult } from 'express-validator';
-import { logger } from '@simulation/service/logging.service';
-
-class CustomValidationError extends Error {
-  errors: string[];
-
-  constructor(errors: string[]) {
-    super('API Input Validation failed');
-    this.name = 'CustomValidationError';
-    this.errors = errors;
-  }
-}
+import { body, param, ValidationChain } from 'express-validator';
 
 class EvaluationValidator {
   /**
-   * Validate the request body for /run endpoint
-   * @returns Validation chain array that checks evaluation run request
+   * Validate the request body for /run endpoint.
+   * @returns ValidationChain[] - ValidationChain array that checks evaluation run request.
    */
   static runValidation(): ValidationChain[] {
     return [
@@ -39,45 +27,19 @@ class EvaluationValidator {
   }
 
   /**
-   * Validate the parmeter for the /results-for-conversation endpoint
-   * @returns Validation chain array that checks the request parameter
+   * Validate the parameter for the /results-for-conversation endpoint.
+   * @returns ValidationChain[] - ValidationChain array that checks the request parameter.
    */
   static resultsForConversationValidation(): ValidationChain[] {
     return [param('conversationId').isMongoId().withMessage('Invalid conversation ID.')];
   }
 
   /**
-   * Validate the parmeter for the /results-for-simulation endpoint
-   * @returns Validation chain array that checks the request parameter
+   * Validate the parameter for the /results-for-simulation endpoint.
+   * @returns ValidationChain[] - ValidationChain array that checks the request parameter.
    */
   static resultsForSimulationValidation(): ValidationChain[] {
     return [param('simulationId').isMongoId().withMessage('Invalid simulation ID')];
-  }
-
-  /**
-   * Middleware to handle validation errors
-   * @param req - Request
-   * @param res - Response
-   * @param next - Next function
-   */
-  static handleValidationErrors(req: Request, res: Response, next: NextFunction): void {
-    const errors = validationResult(req);
-
-    if (!errors.isEmpty()) {
-      const errorMessages = errors.array().map((error: ValidationError) => error.msg);
-      const customError = new CustomValidationError(errorMessages);
-      res.status(400).json({
-        error: {
-          code: 'VALIDATION_ERROR',
-          message: customError.message,
-          errors: customError.errors,
-        },
-      });
-      logger.error(`${customError.message}: ${customError.errors}`);
-      return;
-    }
-
-    next();
   }
 }
 
