@@ -132,22 +132,24 @@ function calculateAverageResponseTime(
   messages: MessageDocument[],
   _usedEndpoints: string[] /* eslint-disable-line @typescript-eslint/no-unused-vars*/,
 ): number {
-  if (messages.length < 2) {
+  const filteredMessages = messages.filter((message) => message.sender !== MsgSender.TOOL); // Filter out api call messages
+
+  if (filteredMessages.length < 2) {
     return 0;
   }
 
   let totalResponseTimeOfAgent = 0;
   let countAgentMessages = 0;
 
-  for (let i = 1; i < messages.length; i++) {
-    const currentMessage = messages[i];
+  for (let i = 1; i < filteredMessages.length; i++) {
+    const currentMessage = filteredMessages[i];
 
     // Only calculate response time for agent messages
     if (!(currentMessage instanceof mongoose.Types.ObjectId) && currentMessage.sender === MsgSender.USER) {
       continue;
     }
 
-    const prevMessage = messages[i - 1];
+    const prevMessage = filteredMessages[i - 1];
     const responseTime = currentMessage.timestamp.getTime() - prevMessage.timestamp.getTime();
     totalResponseTimeOfAgent += responseTime;
     countAgentMessages++;
