@@ -176,12 +176,27 @@ async function run(
   simulation.status = SimulationStatus.RUNNING;
   await simulationRepository.updateById(simulation._id, simulation);
   const simulationStart = new Date();
-  for (let i = 0; i < numConversations; i++) {
-    const conversation: any = await runConversation(serviceAgent, userAgent);
-    conversations.push(conversation);
-    simulation.conversations = conversations;
+  try {
+    for (let i = 0; i < numConversations; i++) {
+      const conversation: any = await runConversation(serviceAgent, userAgent);
+      conversations.push(conversation);
+      simulation.conversations = conversations;
+      await simulationRepository.updateById(simulation._id, simulation);
+    }
+  } catch (error) {
+    const simulationEnd = new Date();
+    simulation.duration = (simulationEnd.getTime() - simulationStart.getTime()) / 1000;
+    simulation.status = SimulationStatus.FAILED;
     await simulationRepository.updateById(simulation._id, simulation);
+
+    if (error instanceof Error) {
+      const er = error as Error;
+      console.log('Catched an Error: ' + er.message + ' ' + er.stack);
+    }
+
+    return;
   }
+
   const simulationEnd = new Date();
   simulation.duration = (simulationEnd.getTime() - simulationStart.getTime()) / 1000;
   simulation.status = SimulationStatus.FINISHED;
