@@ -21,6 +21,7 @@ interface SimulationDocument extends Document {
   optimization: Types.ObjectId | OptimizationDocument | null;
   //in seconds
   duration: number;
+  totalNumberOfInteractions: number;
 }
 
 const SimulationSchema: Schema = new Schema(
@@ -37,6 +38,7 @@ const SimulationSchema: Schema = new Schema(
     evaluation: { type: Schema.Types.ObjectId, ref: 'Evaluation' },
     optimization: { type: Schema.Types.ObjectId, ref: 'Optimization', default: null },
     duration: { type: Number, default: 0 },
+    totalNumberOfInteractions: { type: Number, default: 0 },
   },
   {
     timestamps: true,

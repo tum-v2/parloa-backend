@@ -8,6 +8,7 @@ import { MsgHistoryItem } from '@simulation/agents/custom.agent';
 import { AIMessage, BaseMessage, HumanMessage, SystemMessage } from 'langchain/schema';
 import { ConversationStatus } from '@enums/conversation-status.enum';
 import { SimulationType } from '@enums/simulation-type.enum';
+import { MsgSender } from '@enums/msg-sender.enum';
 
 class ChatRepository extends SimulationRepository {
   private messageModel: Model<MessageDocument>;
@@ -63,7 +64,14 @@ class ChatRepository extends SimulationRepository {
 
       const updatedChat: SimulationDocument | null = await this.model.findOneAndUpdate(
         { _id: chatId }, // find a simulation with this conversation
-        { $set: { 'conversations[0]': updatedConversation } }, // update the conversation in the conversations array
+        {
+          $set: {
+            'conversations[0]': updatedConversation,
+          },
+          $inc: {
+            totalNumberOfInteractions: message.sender !== MsgSender.TOOL ? 1 : 0,
+          },
+        }, // update the conversation in the conversations array
         { new: true }, // option to return the updated document
       );
 
