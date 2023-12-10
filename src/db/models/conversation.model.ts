@@ -1,7 +1,7 @@
-import { Schema, Document, model, Types } from 'mongoose';
-import { MessageDocument } from '@db/models/message.model';
+import { Schema, Document, model, Types, CallbackError } from 'mongoose';
+import { MessageDocument, MessageModel } from '@db/models/message.model';
 import { ConversationStatus } from '@enums/conversation-status.enum';
-import { EvaluationDocument } from '@db/models/evaluation.model';
+import { EvaluationDocument, EvaluationModel } from '@db/models/evaluation.model';
 
 interface ConversationDocument extends Document {
   messages: Types.ObjectId[] | MessageDocument[];
@@ -19,6 +19,20 @@ const conversationSchema: Schema = new Schema({
   status: { type: String, enum: Object.values(ConversationStatus), required: true },
   usedEndpoints: { type: [String], default: [] },
   evaluation: { type: Schema.Types.ObjectId, ref: 'Evaluation' },
+});
+
+conversationSchema.pre<ConversationDocument>('deleteMany', async function (next) {
+  try {
+    const conversation = await ConversationModel.findOne(this.getFilter()).exec();
+    await MessageModel.deleteMany({ _id: { $in: conversation?.messages } }).exec();
+    if (conversation?.evaluation) {
+      await EvaluationModel.findByIdAndDelete(conversation.evaluation).exec();
+    }
+    next();
+  } catch (error) {
+    console.log(error);
+    next(error as CallbackError);
+  }
 });
 
 const ConversationModel = model<ConversationDocument>('Conversation', conversationSchema);
