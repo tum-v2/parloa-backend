@@ -119,7 +119,8 @@ function goalFulfilled(
  * @returns number - Number of steps per used endpoint.
  */
 function countSteps(messages: MessageDocument[], usedEndpoints: string[]): number {
-  return messages.length / usedEndpoints.length;
+  const filteredMessages = messages.filter((message) => message.sender !== MsgSender.TOOL); // Filter out api call messages
+  return filteredMessages.length / usedEndpoints.length;
 }
 
 /**
