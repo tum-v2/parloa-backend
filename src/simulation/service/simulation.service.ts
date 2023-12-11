@@ -42,11 +42,13 @@ async function initiate(
   let serviceAgent: AgentDocument | null = null;
   console.log('Creating simulation object...');
   if (request.serviceAgentConfig !== undefined) {
+    request.serviceAgentConfig.temporary = true;
     serviceAgent = await agentRepository.create(request.serviceAgentConfig!);
   } else if (request.serviceAgentId !== undefined) {
     serviceAgent = await agentRepository.getById(request.serviceAgentId!);
   }
   if (request.userAgentConfig !== undefined) {
+    request.userAgentConfig.temporary = true;
     userAgent = await agentRepository.create(request.userAgentConfig!);
   } else if (request.userAgentId !== undefined) {
     userAgent = await agentRepository.getById(request.userAgentId!);
@@ -94,16 +96,21 @@ async function initiateAB(request: RunABTestingRequest): Promise<SimulationDocum
   console.log('Creating simulation object...');
 
   if (request.serviceAgentAConfig !== undefined) {
+    request.serviceAgentAConfig.temporary = true;
     serviceAgentA = await agentRepository.create(request.serviceAgentAConfig!);
   } else if (request.serviceAgentAId !== undefined) {
     serviceAgentA = await agentRepository.getById(request.serviceAgentAId!);
   }
+  
   if (request.serviceAgentBConfig !== undefined) {
+    request.serviceAgentBConfig.temporary = true;
     serviceAgentB = await agentRepository.create(request.serviceAgentBConfig!);
   } else if (request.serviceAgentBId !== undefined) {
     serviceAgentB = await agentRepository.getById(request.serviceAgentBId!);
   }
+  
   if (request.userAgentConfig !== undefined) {
+    request.userAgentConfig.temporary = true;
     userAgent = await agentRepository.create(request.userAgentConfig!);
   } else if (request.userAgentId !== undefined) {
     userAgent = await agentRepository.getById(request.userAgentId!);
