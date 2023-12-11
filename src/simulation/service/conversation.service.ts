@@ -310,8 +310,8 @@ async function configureUserAgent(agentData: AgentDocument): Promise<CustomAgent
  */
 export async function createMessageDocument(
   msg: MsgHistoryItem,
-  welcomeMessage: string,
   usedEndpoints: string[],
+  welcomeMessage?: string,
 ): Promise<MessageDocument> {
   let sender: MsgSender;
   let text: string;
@@ -417,7 +417,7 @@ export async function runConversation(
     const messages: MessageDocument[] = [];
     for (let i = 0; i < serviceAgent.messageHistory.length; i++) {
       messages.push(
-        await createMessageDocument(serviceAgent.messageHistory[i], serviceAgent.config.welcomeMessage, usedEndpoints),
+        await createMessageDocument(serviceAgent.messageHistory[i], usedEndpoints, serviceAgent.config.welcomeMessage),
       );
     }
     if (conversationSuccess) {
