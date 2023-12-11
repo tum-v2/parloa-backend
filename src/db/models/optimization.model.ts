@@ -16,9 +16,9 @@ const optimizationSchema = new Schema({
   ],
 });
 
-optimizationSchema.pre<OptimizationDocument>('findOneAndDelete', async function (next) {
+optimizationSchema.pre('findOneAndDelete', async function (next) {
   try {
-    const optimization = await OptimizationModel.findOne(this.getFilter()).exec();
+    const optimization = await OptimizationModel.findById(this.getFilter()['_id']).exec();
     await SimulationModel.deleteMany({ _id: { $in: optimization?.simulations } }).exec();
     next();
   } catch (error) {
