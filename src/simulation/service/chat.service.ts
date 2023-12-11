@@ -47,18 +47,19 @@ async function start(config: StartChatRequest): Promise<SimulationDocument> {
   if (serviceAgentModel) {
     const chat: SimulationDocument = await chatRepository.create(simulation);
 
+    const conversationId = chat.conversations[0].toString();
+
     const usedEndpoints: string[] = [];
 
-    // Create a new agent for the chat and associate it with the current simulation
-    await agentManager.createAgent(chat._id.toString(), serviceAgentModel);
-    agentManager.setCurrentAgent(chat._id.toString());
+    // Create a new agent for the chat
+    await agentManager.createAgent(conversationId, serviceAgentModel);
 
     // Retrieve the current agent and start the conversation
-    const agent = agentManager.getCurrentAgent();
+    const agent = agentManager.getCurrentAgent(conversationId);
     if (agent) {
       const agentResponse: string = await agent.startAgent();
 
-      const messageCount = agentManager.getMessageCountForCurrentAgent();
+      const messageCount = agentManager.getMessageCountForCurrentAgent(conversationId);
 
       const newMessage: MessageDocument = await createMessageDocument(
         agent.messageHistory[messageCount],
@@ -67,7 +68,7 @@ async function start(config: StartChatRequest): Promise<SimulationDocument> {
       );
       await chatRepository.send(chat._id, newMessage);
 
-      agentManager.incrementMessageCountForCurrentAgent();
+      agentManager.incrementMessageCountForCurrentAgent(conversationId);
     } else {
       console.error('No current agent available.');
     }
@@ -85,29 +86,36 @@ async function start(config: StartChatRequest): Promise<SimulationDocument> {
 async function sendMessage(chatId: string, message: string): Promise<ChatMessage> {
   const usedEndpoints: string[] = [];
 
+  // Get conversation id from simulation
+  const chat: SimulationDocument | null = await chatRepository.findById(chatId);
+  if (!chat) {
+    throw new Error(`Conversation not found by id: ${chatId}`);
+  }
+
+  const conversationId = chat.conversations[0].toString();
+
   // Set the current agent for processing the message
-  agentManager.setCurrentAgent(chatId);
-  const agent = agentManager.getAgentBySimulation(chatId);
+  const agent = agentManager.getAgentByConversation(conversationId);
 
   if (agent) {
     const agentResponse = await agent.processHumanInput(message);
 
-    let messageCount = agentManager.getMessageCountForCurrentAgent();
+    let messageCount = agentManager.getMessageCountForCurrentAgent(conversationId);
     const userMessage: MessageDocument = await createMessageDocument(
       agent.messageHistory[messageCount],
       usedEndpoints,
       message,
     );
     await chatRepository.send(chatId, userMessage);
-    agentManager.incrementMessageCountForCurrentAgent();
+    agentManager.incrementMessageCountForCurrentAgent(conversationId);
 
     let agentMessage: MessageDocument = {} as MessageDocument;
-    messageCount = agentManager.getMessageCountForCurrentAgent();
+    messageCount = agentManager.getMessageCountForCurrentAgent(conversationId);
     while (messageCount < agent.messageHistory.length) {
       agentMessage = await createMessageDocument(agent.messageHistory[messageCount], usedEndpoints, agentResponse);
       await chatRepository.send(chatId, agentMessage);
-      agentManager.incrementMessageCountForCurrentAgent();
-      messageCount = agentManager.getMessageCountForCurrentAgent();
+      agentManager.incrementMessageCountForCurrentAgent(conversationId);
+      messageCount = agentManager.getMessageCountForCurrentAgent(conversationId);
     }
 
     const response: ChatMessage = {
@@ -130,6 +138,14 @@ async function sendMessage(chatId: string, message: string): Promise<ChatMessage
  * @returns A promise that resolves to the chat simulation object.
  */
 async function load(chatId: string): Promise<ChatMessage[]> {
+  // Get conversation id from simulation
+  const chat: SimulationDocument | null = await chatRepository.findById(chatId);
+  if (!chat) {
+    throw new Error(`Conversation not found by id: ${chatId}`);
+  }
+
+  const conversationId = chat.conversations[0].toString();
+
   const messages: ChatMessage[] = [];
 
   const [agentId, msgHistory] = await chatRepository.loadChat(chatId);
@@ -141,11 +157,10 @@ async function load(chatId: string): Promise<ChatMessage[]> {
 
   if (serviceAgentModel) {
     // Create a new agent for the loaded chat and associate it with the current simulation
-    await agentManager.createAgent(chatId, serviceAgentModel, msgHistory);
-    agentManager.setCurrentAgent(chatId);
+    await agentManager.createAgent(conversationId, serviceAgentModel, msgHistory);
 
     // Retrieve the current agent and load the chat history
-    const agent = agentManager.getCurrentAgent();
+    const agent = agentManager.getCurrentAgent(conversationId);
     if (agent) {
       for (let i = 0; i < agent.messageHistory.length; i++) {
         if (agent.messageHistory[i].type === MsgType.HUMANINPUT) {
@@ -165,7 +180,7 @@ async function load(chatId: string): Promise<ChatMessage[]> {
     } else {
       console.error('No current agent available.');
     }
-    agentManager.loadMessageCountForCurrentAgent();
+    agentManager.loadMessageCountForCurrentAgent(conversationId);
   }
 
   return messages;
