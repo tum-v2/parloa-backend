@@ -10,7 +10,7 @@ import { ConversationDocument } from '@db/models/conversation.model';
 import { metricWeightMap } from '@evaluation/utils/metric.config';
 import { metricNormalizationFunctions } from '@evaluation/utils/data.normalization';
 
-import mongoose, { Types } from 'mongoose';
+import { Types } from 'mongoose';
 
 const metricRepository = new MetricRepository(MetricModel);
 
@@ -146,7 +146,7 @@ function calculateAverageResponseTime(
     const currentMessage = filteredMessages[i];
 
     // Only calculate response time for agent messages
-    if (!(currentMessage instanceof mongoose.Types.ObjectId) && currentMessage.sender === MsgSender.USER) {
+    if (currentMessage.sender === MsgSender.USER) {
       continue;
     }
 
