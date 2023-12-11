@@ -23,7 +23,14 @@ function minMaxNormalize(score: number, minScore: number, maxScore: number): num
  * @returns number - Normalized response time (score between 0 and 1; the higher, the better).
  */
 function normalizeResponseTime(responseTime: number): number {
-  return minMaxNormalize(responseTime, 60_000, 0);
+  const maxThreshold = 180_000; // 3 minutes
+  const minThreshold = 0;
+
+  if (responseTime > maxThreshold) {
+    return 0;
+  }
+
+  return minMaxNormalize(responseTime, maxThreshold, minThreshold);
 }
 
 /**
