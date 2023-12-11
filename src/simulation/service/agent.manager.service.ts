@@ -3,87 +3,87 @@ import { CustomAgent, MsgHistoryItem } from '@simulation/agents/custom.agent';
 import { configureServiceAgent, setupPath } from '@simulation/service/conversation.service';
 
 /**
- * Manages agents for different conversations, allowing multiple chats with different agents.
+ * Manages agents for different simulations, allowing multiple chats with different agents.
  */
 class AgentManager {
-  // Map to store agents with conversationId as the key
+  // Map to store agents with chatId as the key
   public agents: Map<string, CustomAgent> = new Map();
 
   // Map to store message count for each agent
   public messageCounts: Map<string, number> = new Map();
 
   /**
-   * Create a new agent for a conversation or return the existing agent if already created.
-   * @param conversationId - ID of the chat.
+   * Create a new agent for a simulation or return the existing agent if already created.
+   * @param chatId - ID of the chat.
    * @param serviceAgentModel - Agent model used for creating the agent.
    * @param messageHistory - Optional message history for initializing the agent.
    * @returns A Promise that resolves to the created or existing agent.
    */
   async createAgent(
-    conversationId: string,
+    chatId: string,
     serviceAgentModel: AgentDocument,
     messageHistory?: MsgHistoryItem[],
   ): Promise<CustomAgent> {
     setupPath();
 
-    if (!this.agents.has(conversationId)) {
+    if (!this.agents.has(chatId)) {
       const newAgent = await configureServiceAgent(serviceAgentModel, messageHistory);
-      this.agents.set(conversationId, newAgent);
-      this.messageCounts.set(conversationId, 0);
+      this.agents.set(chatId, newAgent);
+      this.messageCounts.set(chatId, 0);
     }
 
-    return this.agents.get(conversationId)!;
+    return this.agents.get(chatId)!;
   }
 
   /**
-   * Get the agent associated with the current conversation.
-   * @param conversationId - ID of the chat.
-   * @returns The agent for the current conversation or null if none found.
+   * Get the agent associated with the current simulation.
+   * @param chatId - ID of the chat.
+   * @returns The agent for the current simulation or null if none found.
    */
-  getCurrentAgent(conversationId: string): CustomAgent | null {
-    return this.agents.get(conversationId) || null;
+  getCurrentAgent(chatId: string): CustomAgent | null {
+    return this.agents.get(chatId) || null;
   }
 
   /**
-   * Get the agent associated with a specific conversation.
-   * @param conversationId - ID of the chat.
-   * @returns The agent for the specified conversation or null if none found.
+   * Get the agent associated with a specific simulation.
+   * @param chatId - ID of the chat.
+   * @returns The agent for the specified simulation or null if none found.
    */
-  getAgentByConversation(conversationId: string): CustomAgent | null {
-    return this.agents.get(conversationId) || null;
+  getAgentByConversation(chatId: string): CustomAgent | null {
+    return this.agents.get(chatId) || null;
   }
 
   /**
    * Increment the message count for the current agent
-   * @param conversationId - ID of the chat.
+   * @param chatId - ID of the chat.
    */
-  incrementMessageCountForCurrentAgent(conversationId: string) {
-    if (this.agents.has(conversationId)) {
-      const currentCount = this.messageCounts.get(conversationId) || 0;
-      this.messageCounts.set(conversationId, currentCount + 1);
+  incrementMessageCountForCurrentAgent(chatId: string) {
+    if (this.agents.has(chatId)) {
+      const currentCount = this.messageCounts.get(chatId) || 0;
+      this.messageCounts.set(chatId, currentCount + 1);
     }
   }
 
   /**
    * Load the message count for the current agent based on its message history.
-   * @param conversationId - ID of the chat.
+   * @param chatId - ID of the chat.
    */
-  loadMessageCountForCurrentAgent(conversationId: string) {
-    const agent = this.getCurrentAgent(conversationId);
-    if (this.agents.has(conversationId)) {
+  loadMessageCountForCurrentAgent(chatId: string) {
+    const agent = this.getCurrentAgent(chatId);
+    if (this.agents.has(chatId)) {
       if (agent) {
-        this.messageCounts.set(conversationId, agent.messageHistory.length);
+        this.messageCounts.set(chatId, agent.messageHistory.length);
       }
     }
   }
 
   /**
-   * Get the message count for the current agent's conversation.
-   * @param conversationId - ID of the chat.
-   * @returns The message count for the current agent's conversation.
+   * Get the message count for the current agent's simulation.
+   * @param chatId - ID of the chat.
+   * @returns The message count for the current agent's simulation.
    */
-  getMessageCountForCurrentAgent(conversationId: string): number {
-    return this.messageCounts.get(conversationId) || 0;
+  getMessageCountForCurrentAgent(chatId: string): number {
+    return this.messageCounts.get(chatId) || 0;
   }
 }
 
