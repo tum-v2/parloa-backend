@@ -8,16 +8,16 @@ import { SimulationRepository } from '@db/repositories/simulation.repository';
 
 import { RunEvaluationRequest } from '@evaluation/model/request/run-evaluation.request';
 import { RunEvaluationResponse } from '@evaluation/model/response/run-evaluation.response';
-import {
-  EvaluationExecuted,
-  EvaluationResultForConversation,
-  EvaluationResultForSimulation,
-} from '@evaluation/model/response/evaluation-result.response';
+
 import metricService from '@evaluation/service/metric.service';
 
 import { EvaluationStatus } from '@enums/evaluation-status.enum';
 
 import simulationService from '@simulation/service/simulation.service';
+import EvaluationResultForConversation, {
+  EvaluationExecuted,
+} from '@evaluation/model/response/results-for-conversation.response';
+import EvaluationResultForSimulation from '@evaluation/model/response/results-for-simulation.response';
 
 const evaluationRepository = new EvaluationRepository(EvaluationModel);
 const conversationRepository = new ConversationRepository(ConversationModel);
@@ -49,7 +49,7 @@ async function runEvaluation(request: RunEvaluationRequest): Promise<RunEvaluati
 
   const evaluation: EvaluationDocument = await initiate(request, conversation, simulation);
   const responseObject: RunEvaluationResponse = {
-    optimization: request.optimization,
+    optimization: request.optimization || null,
     simulation: simulationID,
     evaluation: evaluation.id,
   };

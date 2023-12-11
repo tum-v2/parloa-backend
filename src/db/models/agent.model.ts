@@ -9,6 +9,7 @@ interface AgentDocument extends Document {
   maxTokens: number;
   domain: ConversationDomain;
   prompt: string;
+  temporary?: boolean;
 }
 
 const agentSchema: Schema = new Schema(
@@ -19,6 +20,7 @@ const agentSchema: Schema = new Schema(
     maxTokens: { type: Number, required: true },
     domain: { type: String, enum: Object.values(ConversationDomain), required: true },
     prompt: { type: String, required: true },
+    temporary: { type: Boolean, default: false },
   },
   { timestamps: true },
 );
