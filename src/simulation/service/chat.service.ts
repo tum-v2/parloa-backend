@@ -32,14 +32,21 @@ async function start(config: StartChatRequest): Promise<SimulationDocument> {
   const simulation: SimulationDocument = new SimulationModel();
 
   simulation.name = config.name;
-  simulation.serviceAgent = config.agent;
   simulation.status = SimulationStatus.RUNNING;
   simulation.type = SimulationType.CHAT;
 
   let serviceAgentModel: AgentDocument | null = null;
-  if (config.agent) {
-    serviceAgentModel = await agentRepository.getById(config.agent.toString());
+  if (config.agentConfig !== undefined) {
+    serviceAgentModel = await agentRepository.create(config.agentConfig!);
+  } else if (config.agentId !== undefined) {
+    serviceAgentModel = await agentRepository.getById(config.agentId!.toString());
   }
+
+  if (serviceAgentModel === null) {
+    throw new Error('Agent id not found');
+  }
+
+  simulation.serviceAgent = serviceAgentModel;
 
   if (serviceAgentModel) {
     serviceAgent = await configureServiceAgent(serviceAgentModel);

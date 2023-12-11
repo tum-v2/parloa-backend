@@ -8,10 +8,23 @@ class ChatValidator {
   static runValidation(): ValidationChain[] {
     return [
       body('name').isString().withMessage('Name must be a valid string.'),
-      body('agent').isMongoId().withMessage('Service agent id must be a valid Mongo id.'),
+      body('agentId').optional().isMongoId().withMessage('Agent id must be a valid Mongo id.'),
+      body('agentConfig').optional().isObject().withMessage('Agent config must be a valid object.'),
+
+      body().custom((value) => {
+        if (value.agentId && value.agentConfig) {
+          throw new Error('Cannot have agentConfig and agentId at the same time.');
+        }
+
+        if (!value.agentId && !value.agentConfig) {
+          throw new Error('Must have agentConfig or agentId.');
+        }
+
+        return true;
+      }),
 
       body().custom((value, { req }) => {
-        const allowedFields = ['name', 'agent'];
+        const allowedFields = ['name', 'agentId', 'agentConfig'];
 
         const extraFields = Object.keys(req.body).filter((field) => !allowedFields.includes(field));
 

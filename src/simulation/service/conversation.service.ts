@@ -21,9 +21,9 @@ import { AgentDocument } from '@db/models/agent.model';
 import { MessageDocument } from '@db/models/message.model';
 import repositoryFactory from '@db/repositories/factory';
 
-import { Types } from 'mongoose';
 import * as fs from 'fs';
 import * as path from 'path';
+import { ConversationDocument } from '@db/models/conversation.model';
 
 const isDev = process.env.IS_DEVELOPER;
 if (isDev === undefined) throw new Error('IS_DEVELOPER Needs to be specified');
@@ -368,7 +368,10 @@ export async function createMessageDocument(
  * @param userAgentData - The data for the user agent.
  * @returns - The id of the conversation.
  */
-export async function runConversation(serviceAgentData: AgentDocument, userAgentData: AgentDocument) {
+export async function runConversation(
+  serviceAgentData: AgentDocument,
+  userAgentData: AgentDocument,
+): Promise<ConversationDocument> {
   const startTime: Date = new Date();
   const conversation = await conversationRepository.create({
     messages: undefined,
@@ -435,16 +438,16 @@ export async function runConversation(serviceAgentData: AgentDocument, userAgent
     conversation.status = ConversationStatus.FINISHED;
     conversation.usedEndpoints = usedEndpoints;
     await conversationRepository.updateById(conversation._id, conversation);
-    return conversation._id;
+    return conversation;
   } catch (error) {
     if (error instanceof Error) {
       const er = error as Error;
       console.log('Errors / this : ' + er.message + ' ' + er.stack);
       console.log(`\n👋👋👋 STOPPED by user. Turn count: ${turnCount} 👋👋👋\n`);
-      return new Types.ObjectId();
+      throw error;
     }
   }
-  return new Types.ObjectId();
+  throw new Error('Conversation could not be finished');
 }
 
 export default {
