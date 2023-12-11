@@ -1,0 +1,257 @@
+openapi: 3.0.0
+info:
+  title: API
+  version: 1.0.0
+tags:
+  - name: Evaluation
+paths:
+  /api/v1/evaluation/run:
+    post:
+      summary: Start the evaluation of a conversation
+      tags: [Evaluation]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RunEvaluationRequest"
+      responses:
+        200:
+          description: Evaluation successfully executed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RunEvaluationResponse"
+        404:
+          description: Conversation or Simulation not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Conversation 6569177d47be6ae122cc8aa5 not found!"
+        500:
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: string
+                    example: INTERNAL_SERVER_ERROR
+                  message:
+                    type: string
+                    example: Internal server error occurred
+                  details:
+                    type: string
+                    example: Error
+  /api/v1/evaluation/results-for-conversation/{conversationId}:
+    get:
+      summary: Retrieve evaluation results for conversation
+      tags: [Evaluation]
+      parameters:
+        - in: path
+          name: conversationId
+          required: true
+          schema:
+            type: string
+            example: 6553a127fcad73273655d634
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EvaluationResultForConversation"
+        404:
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Conversation 6553a127fcad73273655d634 not found!"
+        500:
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: string
+                    example: INTERNAL_SERVER_ERROR
+                  message:
+                    type: string
+                    example: Internal server error occurred
+                  details:
+                    type: string
+                    example: Error
+  /api/v1/evaluation/results-for-simulation/{simulationId}:
+    get:
+      summary: Retrieve evaluation results for simulation
+      tags: [Evaluation]
+      parameters:
+        - in: path
+          name: simulationId
+          required: true
+          schema:
+            type: string
+            example: 6553a127fcad73273655d634
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EvaluationResultForSimulation"
+        404:
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Simulation 6553a127fcad73273655d634 not found!"
+        500:
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: string
+                    example: INTERNAL_SERVER_ERROR
+                  message:
+                    type: string
+                    example: Internal server error occurred
+                  details:
+                    type: string
+                    example: Error
+components: 
+  schemas:
+    RunEvaluationRequest:
+      type: object
+      properties:
+        conversation:
+          type: string
+          example: 656499ee83e3e06db0309f25
+        simulation:
+          type: string
+          example: 656499ee83e3e06db0309f25
+        isLast:
+          type: boolean
+        optimization:
+          type: string
+          example: 656499ee83e3e06db0309f25
+    RunEvaluationResponse:
+      type: object
+      properties:
+        optimization:
+          type: string
+          example: 656499ee83e3e06db0309f25
+        simulation:
+          type: string
+          example: 656499ee83e3e06db0309f25
+        evaluation:
+          type: string
+          example: 656499ee83e3e06db0309f25
+    EvaluationResultForConversation:
+      type: object
+      properties:
+        status:
+          type: string
+          enum:
+            - evaluated
+            - in_progress
+            - not_evaluated
+        score:
+          type: number
+        metrics:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+                enum:
+                  - success
+                  - response_time
+                  - message_count
+              value:
+                type: number
+                example: 0.72
+              rawValue:
+                type: number
+                example: 20
+              weight:
+                type: number
+    EvaluationResultForSimulation:
+      type: object
+      properties:
+        status:
+          type: string
+          enum:
+            - evaluated
+            - not_evaluated
+        averageScore:
+          type: object
+          properties:
+            score:
+              type: number
+            metrics:
+              type: array
+              items:
+                type: object
+                properties:
+                  name:
+                    type: string
+                    enum:
+                      - success
+                      - response_time
+                      - message_count
+                  value:
+                    type: number
+                    example: 0.72
+                  rawValue:
+                    type: number
+                    example: 20
+                  weight:
+                    type: number
+        conversations:
+          type: array
+          items:
+            type: object
+            properties:
+              conversation:
+                type: string
+                example: 656499ee83e3e06db0309f25
+              score:
+                type: number
+              metrics:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                      enum:
+                        - success
+                        - response_time
+                        - message_count
+                    value:
+                      type: number
+                      example: 0.72
+                    rawValue:
+                      type: number
+                      example: 20
+                    weight:
+                      type: number
