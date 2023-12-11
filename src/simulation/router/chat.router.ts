@@ -13,12 +13,6 @@ router.post(
   CustomValidationError.handleValidationErrors,
   chatController.start,
 );
-router.get(
-  '/:id/load',
-  ChatValidator.idValidation(),
-  CustomValidationError.handleValidationErrors,
-  chatController.load,
-);
 router.post(
   '/:id/send-message',
   ChatValidator.idValidation(),
@@ -28,6 +22,12 @@ router.post(
 );
 
 // GET //
+router.get(
+  '/:id/load',
+  ChatValidator.idValidation(),
+  CustomValidationError.handleValidationErrors,
+  chatController.load,
+);
 router.get('/all', chatController.getAll);
 
 export default router;
