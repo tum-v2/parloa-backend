@@ -95,6 +95,7 @@ async function initiate(request: RunSimulationRequest): Promise<OptimizationDocu
       temperature: request.serviceAgentConfig.temperature,
       maxTokens: request.serviceAgentConfig.maxTokens,
       prompt: prompt,
+      temporary: true,
     };
 
     const simulationConfig = {
@@ -119,7 +120,7 @@ async function initiate(request: RunSimulationRequest): Promise<OptimizationDocu
 }
 
 /**
- * This function gets called by the Simulation team whenever a simulation is completed.
+ * This function gets called by the simulation service whenever a simulation is completed.
  * @param optimization - The ID of the optimization session that the simulation belongs to.
  */
 async function handleSimulationOver(optimization: string) {

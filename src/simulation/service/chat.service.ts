@@ -37,6 +37,7 @@ async function start(config: StartChatRequest): Promise<SimulationDocument> {
 
   let serviceAgentModel: AgentDocument | null = null;
   if (config.agentConfig !== undefined) {
+    config.agentConfig.temporary = true;
     serviceAgentModel = await agentRepository.create(config.agentConfig!);
   } else if (config.agentId !== undefined) {
     serviceAgentModel = await agentRepository.getById(config.agentId!.toString());
