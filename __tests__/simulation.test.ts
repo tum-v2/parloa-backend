@@ -1,49 +1,54 @@
 import request, { Response } from 'supertest';
 import { app, server } from '../src/index';
 import { disconnectFromDatabase } from '@db/config/db.config';
-import { ConversationDomain } from '@enums/conversation-domain.enum';
 
 let validSimulationId = '';
 let deleteValidSimulationId = '';
 const invalidSimulationId = '000000000000000000000000';
 
 const validInput = {
-  scenario: 'SLOT_FILLING',
   type: 'AUTOMATED',
-  domain: 'FLIGHT',
-  name: '3',
-  numConversations: 100,
+  name: 'GENERATED2',
+  description: 'Second Simulation run by me',
+  numConversations: 1,
   serviceAgentConfig: {
-    llm: 'LLAMA2',
+    domain: 'FLIGHT',
+    name: 'TEST SERVICE AGENT',
+    llm: 'FAKE',
     temperature: 0,
     maxTokens: 256,
-    prompt: 'you are a helpful bot',
+    prompt: 'concise',
   },
   userAgentConfig: {
-    llm: 'GPT4',
+    domain: 'FLIGHT',
+    name: 'TEST USER AGENT',
+    llm: 'FAKE',
     temperature: 0,
     maxTokens: 256,
-    prompt: 'you are an angry customer',
+    prompt: 'sarcastic',
   },
 };
 
 const invalidInput = {
-  scenario: 'SLOT_FILLING',
   type: 'AUTOMATED',
-  domain: 'ECOMMERCE',
   name: '3',
-  numConversations: 100,
+  description: 'Second Simulation run by me',
+  numConversations: 1,
   serviceAgentConfig: {
-    llm: 'LLAMA2',
+    domain: 'FLIGHT',
+    name: 'TEST SERVICE AGENT',
+    llm: 'FAKE',
     temperature: 0,
     maxTokens: 256,
-    prompt: 'you are a helpful bot',
+    prompt: 'concise',
   },
   userAgentConfig: {
-    llm: 'GPT4',
+    domain: 'FLIGHT',
+    name: 'TEST USER AGENT',
+    llm: 'FAKE',
     temperature: 0,
     maxTokens: 256,
-    prompt: 'you are an angry customer',
+    prompt: 'sarcastic',
   },
 };
 
@@ -144,9 +149,7 @@ describe('PATCH /api/v1/simulation/:id', () => {
     validResponse = await request(app).patch(`/api/v1/simulation/${validSimulationId}`).send(validInput);
 
     // was failing because the domain type couldn't pass the validation check
-    invalidInput.domain = ConversationDomain.FLIGHT;
     invalidResponse = await request(app).patch(`/api/v1/simulation/${invalidSimulationId}`).send(invalidInput);
-    invalidInput.domain = 'ECOMMERCE';
   });
 
   afterEach(() => {
