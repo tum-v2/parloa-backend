@@ -21,9 +21,9 @@ const conversationSchema: Schema = new Schema({
   evaluation: { type: Schema.Types.ObjectId, ref: 'Evaluation' },
 });
 
-conversationSchema.pre<ConversationDocument>('deleteMany', async function (next) {
+conversationSchema.pre('deleteMany', async function (next) {
   try {
-    const conversation = await ConversationModel.findOne(this.getFilter()).exec();
+    const conversation = await ConversationModel.findById(this.getFilter()['_id']).exec();
     await MessageModel.deleteMany({ _id: { $in: conversation?.messages } }).exec();
     if (conversation?.evaluation) {
       await EvaluationModel.findByIdAndDelete(conversation.evaluation).exec();

@@ -45,9 +45,9 @@ const SimulationSchema: Schema = new Schema(
   },
 );
 
-SimulationSchema.pre<SimulationDocument>('findOneAndDelete', async function (next) {
+SimulationSchema.pre('findOneAndDelete', async function (next) {
   try {
-    const simulation = await SimulationModel.findOne(this.getFilter()).exec();
+    const simulation = await SimulationModel.findById(this.getFilter()['_id']).exec();
     if (simulation) {
       deleteSimulation(simulation);
     }
@@ -58,9 +58,9 @@ SimulationSchema.pre<SimulationDocument>('findOneAndDelete', async function (nex
   }
 });
 
-SimulationSchema.pre<SimulationDocument>('deleteMany', async function (next) {
+SimulationSchema.pre('deleteMany', async function (next) {
   try {
-    const simulation = await SimulationModel.findOne(this.getFilter()).exec();
+    const simulation = await SimulationModel.findById(this.getFilter()['_id']).exec();
     if (simulation) {
       deleteSimulation(simulation);
     }
