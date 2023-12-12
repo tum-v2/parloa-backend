@@ -183,7 +183,12 @@ async function run(
       simulation.conversations = conversations;
       await simulationRepository.updateById(simulation._id, simulation);
     }
+    const simulationEnd = new Date();
+    simulation.duration = (simulationEnd.getTime() - simulationStart.getTime()) / 1000;
+    simulation.status = SimulationStatus.FINISHED;
+    await simulationRepository.updateById(simulation._id, simulation);
   } catch (error) {
+    // SimulationStatus Failed
     const simulationEnd = new Date();
     simulation.duration = (simulationEnd.getTime() - simulationStart.getTime()) / 1000;
     simulation.status = SimulationStatus.FAILED;
@@ -191,16 +196,11 @@ async function run(
 
     if (error instanceof Error) {
       const er = error as Error;
-      console.log('Catched an Error: ' + er.message + ' ' + er.stack);
+      console.log('Catched an Error: ' + er.message + ' ' + er.stack + '\n SIMULATION FAILED!!!');
     }
 
     return;
   }
-
-  const simulationEnd = new Date();
-  simulation.duration = (simulationEnd.getTime() - simulationStart.getTime()) / 1000;
-  simulation.status = SimulationStatus.FINISHED;
-  await simulationRepository.updateById(simulation._id, simulation);
 
   for (let i = 0; i < conversations.length; i++) {
     const evaluationRequest: RunEvaluationRequest = {
