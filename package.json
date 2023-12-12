@@ -10,7 +10,7 @@
     "start:dev": "tsx watch src",
     "build": "rimraf ./build && tsc && tsc-alias",
     "start": "npm run build && node build/src/index.js",
-    "test": "jest",
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
     "test:watch": "jest --watch",
     "prepare": "husky install"
   },
