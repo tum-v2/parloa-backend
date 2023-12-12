@@ -12,12 +12,14 @@ def sentimentAnalysis(text):
 
 
 def messages_from_user(user, messages):
-    return [m['message']['text']
-            for m in messages if (m['message']['sender'].lower() == user.lower())]
+    return [m['text']
+            for m in messages if (m['sender'].lower() == user.lower())]
 
 
-def run_eval(data):
-    json_data = json.loads(data)
+def run_eval(path):
+    file = open(path, "r")
+    json_data = json.load(file)
+    file.close()
 
     text = ' '.join(messages_from_user('AGENT', json_data))
     result = sentimentAnalysis(text)

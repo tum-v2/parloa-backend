@@ -1,5 +1,6 @@
 import { execSync } from 'child_process';
 import { MessageDocument } from '@db/models/message.model';
+import * as fs from 'fs';
 
 /**
  * Calls the python script to calculate the average similarity of the agent messages in a conversation.
@@ -7,8 +8,11 @@ import { MessageDocument } from '@db/models/message.model';
  * @returns Similarity score of all agent messages.
  */
 function similarityHandler(messages: MessageDocument[]) {
-  const jsonMessages: string = JSON.stringify(messages);
-  return parseFloat(execSync(`python3 evaluation.similarity.py ${jsonMessages} 1`).toString());
+  const path = 'messages.json';
+  fs.writeFileSync(path, JSON.stringify(messages));
+  const result: number = parseFloat(execSync(`python3 evaluation.similarity.py ${path} 1`).toString());
+  fs.unlinkSync(path);
+  return result;
 }
 
 /**
@@ -17,8 +21,11 @@ function similarityHandler(messages: MessageDocument[]) {
  * @returns Recovery rate of the agent.
  */
 function recoveryHandler(messages: MessageDocument[]) {
-  const jsonMessages: string = JSON.stringify(messages);
-  return parseFloat(execSync(`python3 evaluation.recovery.py ${jsonMessages}`).toString());
+  const path = 'messages.json';
+  fs.writeFileSync(path, JSON.stringify(messages));
+  const result: number = parseFloat(execSync(`python3 evaluation.recovery.py ${path}`).toString());
+  fs.unlinkSync(path);
+  return result;
 }
 
 /**
@@ -27,8 +34,11 @@ function recoveryHandler(messages: MessageDocument[]) {
  * @returns Non-normalized sentiment polarity of the agent.
  */
 function sentimentHandler(messages: MessageDocument[]) {
-  const jsonMessages: string = JSON.stringify(messages);
-  return parseFloat(execSync(`python3 evaluation.sentiment.py ${jsonMessages}`).toString());
+  const path = 'messages.json';
+  fs.writeFileSync(path, JSON.stringify(messages));
+  const result: number = parseFloat(execSync(`python3 evaluation.sentiment.py ${path}`).toString());
+  fs.unlinkSync(path);
+  return result;
 }
 
 export { similarityHandler, recoveryHandler, sentimentHandler };

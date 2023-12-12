@@ -23,7 +23,7 @@ def recovery_counter(texts, delta):
     recovering = False
     recoveries = 0
     for m in texts:
-        if m['user'].lower() == 'USER'.lower() and not find_response(texts, delta, m['timestamp']):
+        if m['sender'].lower() == 'USER'.lower() and not find_response(texts, delta, m['timestamp']):
             timeouts += 1
             recovering = True
         else:
@@ -40,8 +40,10 @@ def recovery_rate(rec):
         return rec[1]/rec[0]
 
 
-def run_eval(data):
-    json_data = json.loads(data)
+def run_eval(path):
+    file = open(path, "r")
+    json_data = json.load(file)
+    file.close()
 
     rec = recovery_counter(json_data, 30000)
     print(recovery_rate(rec))
