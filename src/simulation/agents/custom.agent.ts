@@ -198,7 +198,6 @@ export class CustomAgent {
             id!,
           ),
         );
-
         const toolOutput: string = await apiToolConfig.executeTool(actionInput);
 
         const lcMsg = await this.getToolOutputPrompt(action, toolOutput);

@@ -188,7 +188,6 @@ async function run(
     simulation.status = SimulationStatus.FINISHED;
     await simulationRepository.updateById(simulation._id, simulation);
   } catch (error) {
-    // SimulationStatus Failed
     const simulationEnd = new Date();
     simulation.duration = (simulationEnd.getTime() - simulationStart.getTime()) / 1000;
     simulation.status = SimulationStatus.FAILED;
