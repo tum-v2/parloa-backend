@@ -8,6 +8,7 @@ import { MsgHistoryItem } from '@simulation/agents/custom.agent';
 import { AIMessage, BaseMessage, HumanMessage, SystemMessage } from 'langchain/schema';
 import { ConversationStatus } from '@enums/conversation-status.enum';
 import { SimulationType } from '@enums/simulation-type.enum';
+import { MsgSender } from '@enums/msg-sender.enum';
 
 class ChatRepository extends SimulationRepository {
   private messageModel: Model<MessageDocument>;
@@ -23,6 +24,11 @@ class ChatRepository extends SimulationRepository {
     this.conversationModel = conversationModel;
   }
 
+  /**
+   * Creates a new chat
+   * @param config - Partial chat document
+   * @returns New chat document
+   */
   async create(config: Partial<SimulationDocument>): Promise<SimulationDocument> {
     try {
       const conversation = await this.conversationModel.create({
@@ -39,6 +45,12 @@ class ChatRepository extends SimulationRepository {
     }
   }
 
+  /**
+   * Sends a message to a chat
+   * @param chatId - Chat id
+   * @param message - Message document
+   * @returns Updated chat document
+   */
   async send(chatId: string, message: MessageDocument): Promise<SimulationDocument> {
     try {
       // get conversation id from chatId
@@ -63,7 +75,16 @@ class ChatRepository extends SimulationRepository {
 
       const updatedChat: SimulationDocument | null = await this.model.findOneAndUpdate(
         { _id: chatId }, // find a simulation with this conversation
-        { $set: { 'conversations[0]': updatedConversation } }, // update the conversation in the conversations array
+        {
+          $set: {
+            'conversations[0]': updatedConversation,
+          },
+
+          // increment the total number of interactions if the message is not from the tool
+          $inc: {
+            totalNumberOfInteractions: message.sender !== MsgSender.TOOL ? 1 : 0,
+          },
+        },
         { new: true }, // option to return the updated document
       );
 
@@ -78,6 +99,11 @@ class ChatRepository extends SimulationRepository {
     }
   }
 
+  /**
+   * Loads a chat
+   * @param chatId - Chat id
+   * @returns Agent id and message history
+   */
   async loadChat(chatId: string): Promise<[Types.ObjectId, MsgHistoryItem[]]> {
     try {
       // Get conversation ID from chatId
@@ -99,7 +125,8 @@ class ChatRepository extends SimulationRepository {
 
       const messages = await this.messageModel.find({ _id: { $in: messageIds } });
 
-      const msgHistory: MsgHistoryItem[] = this.createMsgHistoryItems(messages);
+      // Create message history items from messages to feed the agent
+      const msgHistory: MsgHistoryItem[] = this._createMsgHistoryItems(messages);
 
       return [agentId, msgHistory];
     } catch (error) {
@@ -108,7 +135,12 @@ class ChatRepository extends SimulationRepository {
     }
   }
 
-  createMsgHistoryItems(messages: MessageDocument[]): MsgHistoryItem[] {
+  /**
+   * Creates message history items from messages
+   * @param messages - Message documents
+   * @returns Message history items
+   */
+  _createMsgHistoryItems(messages: MessageDocument[]): MsgHistoryItem[] {
     return messages.map((message) => {
       const userInput: string | undefined = message.userInput !== null ? message.userInput : undefined;
       const msgToUser: string | undefined = message.msgToUser !== null ? message.msgToUser : undefined;
@@ -144,6 +176,10 @@ class ChatRepository extends SimulationRepository {
     });
   }
 
+  /**
+   * Finds all chats
+   * @returns Chat documents
+   */
   async findAll(): Promise<SimulationDocument[]> {
     try {
       const result: SimulationDocument[] = await this.model.find({ type: SimulationType.CHAT });

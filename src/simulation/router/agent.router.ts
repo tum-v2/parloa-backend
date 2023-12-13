@@ -6,27 +6,23 @@ import AgentValidator from '@simulation/validator/agent.validator';
 
 const router: Router = express.Router();
 
-// region POST //
+// POST //
 router.post('/', AgentValidator.runValidation(), CustomValidationError.handleValidationErrors, agentController.create);
-// endregion POST //
 
-// region GET //
+// GET //
 router.get('/all', agentController.getAll);
 router.get('/:id', AgentValidator.idValidation(), CustomValidationError.handleValidationErrors, agentController.get);
-// region GET //
 
-// region PUT //
+// PUT //
 router.put(
   '/:id',
-  // AgentValidator.idValidation(),
-  // AgentValidator.runValidation(),
-  // CustomValidationError.handleValidationErrors,
+  AgentValidator.idValidation(),
+  AgentValidator.updateValidation(),
+  CustomValidationError.handleValidationErrors,
   agentController.update,
 );
-// endregion PUT //
 
-// region DELETE //
+// DELETE //
 router.delete('/:id', AgentValidator.idValidation(), CustomValidationError.handleValidationErrors, agentController.del);
-// endregion DELETE //
 
 export default router;

@@ -6,18 +6,12 @@ import { CustomValidationError } from '@utils/handle-validation-errors';
 
 const router = express.Router();
 
-// region POST //
+// POST //
 router.post(
   '/start',
   ChatValidator.runValidation(),
   CustomValidationError.handleValidationErrors,
   chatController.start,
-);
-router.get(
-  '/:id/load',
-  ChatValidator.idValidation(),
-  CustomValidationError.handleValidationErrors,
-  chatController.load,
 );
 router.post(
   '/:id/send-message',
@@ -26,10 +20,14 @@ router.post(
   CustomValidationError.handleValidationErrors,
   chatController.sendMessage,
 );
-// endregion POST //
 
-// region GET //
+// GET //
+router.get(
+  '/:id/load',
+  ChatValidator.idValidation(),
+  CustomValidationError.handleValidationErrors,
+  chatController.load,
+);
 router.get('/all', chatController.getAll);
-// region GET //
 
 export default router;

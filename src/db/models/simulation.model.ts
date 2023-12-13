@@ -4,12 +4,10 @@ import { ConversationDocument, ConversationModel } from '@db/models/conversation
 import { SimulationType } from '@enums/simulation-type.enum';
 import { EvaluationDocument, EvaluationModel } from '@db/models/evaluation.model';
 import { OptimizationDocument, OptimizationModel } from '@db/models/optimization.model';
-import { SimulationScenario } from '@enums/simulation-scenario.enum';
 import { SimulationStatus } from '@enums/simulation-status.enum';
 import { CallbackError } from 'mongoose';
 
 interface SimulationDocument extends Document {
-  scenario: SimulationScenario;
   type: SimulationType;
   name: string;
   description: string;
@@ -23,11 +21,11 @@ interface SimulationDocument extends Document {
   optimization: Types.ObjectId | OptimizationDocument | null;
   //in seconds
   duration: number;
+  totalNumberOfInteractions: number;
 }
 
 const SimulationSchema: Schema = new Schema(
   {
-    scenario: { type: String, enum: Object.values(SimulationScenario) },
     type: { type: String, enum: Object.values(SimulationType), required: true },
     name: { type: String, required: true },
     description: { type: String },
@@ -40,15 +38,16 @@ const SimulationSchema: Schema = new Schema(
     evaluation: { type: Schema.Types.ObjectId, ref: 'Evaluation' },
     optimization: { type: Schema.Types.ObjectId, ref: 'Optimization', default: null },
     duration: { type: Number, default: 0 },
+    totalNumberOfInteractions: { type: Number, default: 0 },
   },
   {
     timestamps: true,
   },
 );
 
-SimulationSchema.pre<SimulationDocument>('findOneAndDelete', async function (next) {
+SimulationSchema.pre('findOneAndDelete', async function (next) {
   try {
-    const simulation = await SimulationModel.findOne(this.getFilter()).exec();
+    const simulation = await SimulationModel.findById(this.getFilter()['_id']).exec();
     if (simulation) {
       deleteSimulation(simulation);
     }
@@ -59,9 +58,9 @@ SimulationSchema.pre<SimulationDocument>('findOneAndDelete', async function (nex
   }
 });
 
-SimulationSchema.pre<SimulationDocument>('deleteMany', async function (next) {
+SimulationSchema.pre('deleteMany', async function (next) {
   try {
-    const simulation = await SimulationModel.findOne(this.getFilter()).exec();
+    const simulation = await SimulationModel.findById(this.getFilter()['_id']).exec();
     if (simulation) {
       deleteSimulation(simulation);
     }

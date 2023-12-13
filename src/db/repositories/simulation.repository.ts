@@ -11,8 +11,14 @@ class SimulationRepository extends BaseRepository<SimulationDocument> {
     super(model);
   }
 
-  // region WRITE //
+  // WRITE //
 
+  /**
+   * Updates a simulation by id
+   * @param id - simulation id
+   * @param data - data to update
+   * @returns Updated simulation
+   */
   async updateById(id: string, data: Partial<SimulationDocument>): Promise<SimulationDocument | null> {
     const result: SimulationDocument | null = await super.updateById(id, data);
     if (result) {
@@ -21,14 +27,32 @@ class SimulationRepository extends BaseRepository<SimulationDocument> {
     return result;
   }
 
+  /**
+   * Saves an evaluation to a simulation
+   * @param simulationId - simulation id
+   * @param evaluationId - evaluation id
+   * @returns Updated simulation
+   */
   async saveEvaluation(simulationId: string, evaluationId: string): Promise<SimulationDocument | null> {
     return await this.updateById(simulationId, { evaluation: new Types.ObjectId(evaluationId) });
   }
 
-  // endregion WRITE //
+  /**
+   * Increases the total number of interactions of a simulation by 'by'
+   * @param simulationId - simulation id
+   * @param by - number to increase by
+   */
+  async increaseTotalNumberOfInteractions(simulationId: string, by: number): Promise<void> {
+    await this.model.updateOne({ _id: simulationId }, { $inc: { totalNumberOfInteractions: by } });
+  }
 
-  // region GET_ATTRIBUTE //
+  // GET ATTRIBUTE //
 
+  /**
+   * Gets all conversations of a simulation
+   * @param id - simulation id
+   * @returns Array of conversations
+   */
   async getConversationsById(id: string): Promise<ConversationDocument[] | null> {
     try {
       const simulation: SimulationDocument | null = await this.model.findById(id).populate('conversations');
@@ -43,10 +67,12 @@ class SimulationRepository extends BaseRepository<SimulationDocument> {
     }
   }
 
-  // endegion GET_ATTRIBUTE //
+  // FIND //
 
-  // region FIND //
-
+  /**
+   * Finds all simulations
+   * @returns Array of all simulations
+   */
   async findAll(): Promise<SimulationDocument[]> {
     try {
       const result = await this.model.find();
@@ -57,6 +83,11 @@ class SimulationRepository extends BaseRepository<SimulationDocument> {
     }
   }
 
+  /**
+   * Finds simulation by id
+   * @param id - simulation id
+   * @returns SimulationDocument of given id
+   */
   async findById(id: string): Promise<SimulationDocument | null> {
     try {
       const result: SimulationDocument | null = await super.getById(id);
@@ -70,6 +101,10 @@ class SimulationRepository extends BaseRepository<SimulationDocument> {
     }
   }
 
+  /**
+   * Finds all simulations that are not of child simulations of type 'optimization'
+   * @returns Array of parent simulations
+   */
   async findAllParentSimulations(): Promise<SimulationDocument[]> {
     try {
       const result = await this.model
@@ -87,47 +122,33 @@ class SimulationRepository extends BaseRepository<SimulationDocument> {
     }
   }
 
-  // endregion FIND //
+  // AGGREGATE //
 
-  // region AGGREGATE //
-
+  /**
+   * Counts the number of messages in each conversation in each simulation in the last 'days' days
+   * @param days - number of days to look back
+   * @returns the number of total interactions
+   */
   async getTotalInteractions(days: number): Promise<number> {
     try {
-      // Counts the number of messages in each conversation in each simulation in the last 'days' days
       const result = await this.model.aggregate([
         {
+          // filters simulations by date, type, and status
           $match: {
             createdAt: {
-              $gte: new Date(new Date().getTime() - days * 24 * 60 * 60 * 1000),
+              $gte: this._daysAgo(days),
             },
             type: { $ne: SimulationType.CHAT },
             status: { $eq: SimulationStatus.FINISHED },
           },
         },
+
+        // sums the number of messages in each conversation
         {
-          $lookup: {
-            from: 'conversations',
-            localField: 'conversations',
-            foreignField: '_id',
-            as: 'conversations',
+          $group: {
+            _id: null,
+            interactions: { $sum: '$totalNumberOfInteractions' },
           },
-        },
-        {
-          $unwind: '$conversations',
-        },
-        {
-          $lookup: {
-            from: 'messages',
-            localField: 'conversations.messages',
-            foreignField: '_id',
-            as: 'conversations.messages',
-          },
-        },
-        {
-          $unwind: '$conversations.messages',
-        },
-        {
-          $count: 'interactions',
         },
       ]);
 
@@ -144,22 +165,27 @@ class SimulationRepository extends BaseRepository<SimulationDocument> {
     }
   }
 
+  /**
+   * Counts the number of simulations in the last 'days' days
+   * @param days - number of days to look back
+   * @returns the number of simulation runs
+   */
   async getSimulationRuns(days: number): Promise<number> {
     try {
-      // Counts the number of simulations in the last 'days' days
       const result = await this.model.aggregate([
         {
+          // filters simulations by date, type, and status
           $match: {
             createdAt: {
-              $gte: new Date(new Date().getTime() - days * 24 * 60 * 60 * 1000),
+              $gte: this._daysAgo(days),
             },
             type: { $ne: SimulationType.CHAT },
             status: { $eq: SimulationStatus.FINISHED },
           },
         },
-        {
-          $count: 'simulationRuns',
-        },
+
+        // counts the number of simulations into a new field called 'simulationRuns'
+        { $count: 'simulationRuns' },
       ]);
 
       if (result.length > 0) {
@@ -175,19 +201,26 @@ class SimulationRepository extends BaseRepository<SimulationDocument> {
     }
   }
 
+  /**
+   * Gets simulation.evaluation.successRate and averages them
+   * @param days - number of days to look back
+   * @returns Average success rate
+   */
   async getAverageSuccessRate(days: number): Promise<number> {
-    // get simulation.evaluation.successRate and average them
     try {
       const result = await this.model.aggregate([
         {
+          // filters simulations by date, type, and status
           $match: {
             createdAt: {
-              $gte: new Date(new Date().getTime() - days * 24 * 60 * 60 * 1000),
+              $gte: this._daysAgo(days),
             },
             type: { $ne: SimulationType.CHAT },
             status: { $eq: SimulationStatus.FINISHED },
           },
         },
+
+        // joins simulations with evaluations on evaluation id
         {
           $lookup: {
             from: 'evaluations',
@@ -199,6 +232,8 @@ class SimulationRepository extends BaseRepository<SimulationDocument> {
         {
           $unwind: '$evaluation',
         },
+
+        // averages the success rate of each simulation
         {
           $group: {
             _id: null,
@@ -220,21 +255,26 @@ class SimulationRepository extends BaseRepository<SimulationDocument> {
     }
   }
 
+  /**
+   * Returns simulation.evaluation.successRate for each simulation in the last 'days' days
+   * @param days - number of days to look back
+   * @returns Array of ids and success rates
+   */
   async getSimulationSuccessGraph(days: number): Promise<Partial<SimulationDocument>[]> {
-    // return simulation.evaluation.successRate for each simulation in the last 'days' days
-    // return only _id and successRate
-
     try {
       const result = await this.model.aggregate([
         {
+          // filters simulations by date, type, and status
           $match: {
             createdAt: {
-              $gte: new Date(new Date().getTime() - days * 24 * 60 * 60 * 1000),
+              $gte: this._daysAgo(days),
             },
             type: { $ne: SimulationType.CHAT },
             status: { $eq: SimulationStatus.FINISHED },
           },
         },
+
+        // joins simulations with evaluations on evaluation id
         {
           $lookup: {
             from: 'evaluations',
@@ -246,12 +286,16 @@ class SimulationRepository extends BaseRepository<SimulationDocument> {
         {
           $unwind: '$evaluation',
         },
+
+        // returns only the _id and successRate fields
         {
           $project: {
             _id: 1,
             successRate: '$evaluation.successRate',
           },
         },
+
+        // sorts by createdAt date
         {
           $sort: {
             createdAt: 1,
@@ -272,21 +316,26 @@ class SimulationRepository extends BaseRepository<SimulationDocument> {
     }
   }
 
+  /**
+   * return simulation.evaluation.successRate for each simulation in the last 'days' days
+   * @param days - number of days to look back
+   * @returns Array of _id, name, createdAt, successRate, and (agent.domain as domain)
+   */
   async getTop10Simulations(days: number): Promise<Partial<SimulationDocument>[]> {
-    // return simulation.evaluation.successRate for each simulation in the last 'days' days
-    // return only _id, name, createdAt, successRate, and (agent.domain as domain)
-
     try {
       const result = await this.model.aggregate([
         {
+          // filters simulations by date, type, and status
           $match: {
             createdAt: {
-              $gte: new Date(new Date().getTime() - days * 24 * 60 * 60 * 1000),
+              $gte: this._daysAgo(days),
             },
             type: { $ne: SimulationType.CHAT },
             status: { $eq: SimulationStatus.FINISHED },
           },
         },
+
+        // joins simulations with evaluations on evaluation id
         {
           $lookup: {
             from: 'evaluations',
@@ -298,6 +347,8 @@ class SimulationRepository extends BaseRepository<SimulationDocument> {
         {
           $unwind: '$evaluation',
         },
+
+        // joins simulations with agents on serviceAgent id
         {
           $lookup: {
             from: 'agents',
@@ -309,6 +360,8 @@ class SimulationRepository extends BaseRepository<SimulationDocument> {
         {
           $unwind: '$serviceAgent',
         },
+
+        // returns only the _id, name, createdAt, successRate, and (agent.domain as domain) fields
         {
           $project: {
             _id: 1,
@@ -318,11 +371,15 @@ class SimulationRepository extends BaseRepository<SimulationDocument> {
             domain: '$serviceAgent.domain',
           },
         },
+
+        // sorts by successRate descending
         {
           $sort: {
             successRate: -1,
           },
         },
+
+        // limits the result to 10
         {
           $limit: 10,
         },
@@ -341,15 +398,21 @@ class SimulationRepository extends BaseRepository<SimulationDocument> {
     }
   }
 
-  // endregion AGGREGATE //
+  // UTIL //
 
-  // region UTIL //
+  /**
+   * Returns a date object for 'days' days ago
+   * @param days - number of days to look back
+   * @returns Date object
+   */
+  _daysAgo(days: number): Date {
+    const DAYS_IN_MILLISECONDS = 24 * 60 * 60 * 1000;
+    return new Date(new Date().getTime() - days * DAYS_IN_MILLISECONDS);
+  }
 
   async _populate(result: SimulationDocument): Promise<SimulationDocument> {
     return result;
   }
-
-  // endregion UTIL //
 }
 
 export { SimulationRepository };

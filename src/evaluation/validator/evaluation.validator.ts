@@ -10,7 +10,7 @@ class EvaluationValidator {
       body('conversation').isMongoId().withMessage('Invalid conversation ID'),
       body('simulation').isMongoId().withMessage('Invalid simulation ID'),
       body('isLast').isBoolean().withMessage('isLast must be a valid boolean'),
-      body('optimization').isMongoId().withMessage('Invalid optimization ID'),
+      body('optimization').optional({ values: 'null' }).isMongoId().withMessage('Invalid optimization ID'),
 
       body().custom((value, { req }) => {
         const allowedFields = ['conversation', 'simulation', 'isLast', 'optimization'];

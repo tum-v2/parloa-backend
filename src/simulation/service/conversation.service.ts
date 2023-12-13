@@ -23,6 +23,7 @@ import repositoryFactory from '@db/repositories/factory';
 
 import * as fs from 'fs';
 import * as path from 'path';
+import { ConversationDocument } from '@db/models/conversation.model';
 
 const isDev = process.env.IS_DEVELOPER;
 if (isDev === undefined) throw new Error('IS_DEVELOPER Needs to be specified');
@@ -226,6 +227,14 @@ export async function configureServiceAgent(
     agentLLM = new ChatOpenAI(azureOpenAIInput);
   }
 
+  if (agentData.prompt !== 'default') {
+    flightBookingAgentConfig.persona = agentData.prompt;
+  } else {
+    flightBookingAgentConfig.persona = `- You should be empathetic, helpful, comprehensive and polite.
+    - Never use gender specific prefixes like Mr. or Mrs. when addressing the user unless they used it themselves.
+    `;
+  }
+
   const serviceAgent: CustomAgent = new CustomAgent(
     agentLLM,
     flightBookingAgentConfig,
@@ -301,8 +310,8 @@ async function configureUserAgent(agentData: AgentDocument): Promise<CustomAgent
  */
 export async function createMessageDocument(
   msg: MsgHistoryItem,
-  welcomeMessage: string,
   usedEndpoints: string[],
+  welcomeMessage?: string,
 ): Promise<MessageDocument> {
   let sender: MsgSender;
   let text: string;
@@ -359,7 +368,10 @@ export async function createMessageDocument(
  * @param userAgentData - The data for the user agent.
  * @returns - The id of the conversation.
  */
-export async function runConversation(serviceAgentData: AgentDocument, userAgentData: AgentDocument) {
+export async function runConversation(
+  serviceAgentData: AgentDocument,
+  userAgentData: AgentDocument,
+): Promise<ConversationDocument> {
   const startTime: Date = new Date();
   const conversation = await conversationRepository.create({
     messages: undefined,
@@ -425,7 +437,7 @@ export async function runConversation(serviceAgentData: AgentDocument, userAgent
   conversation.status = ConversationStatus.FINISHED;
   conversation.usedEndpoints = usedEndpoints;
   await conversationRepository.updateById(conversation._id, conversation);
-  return conversation._id;
+  return conversation;
 }
 
 export default {
