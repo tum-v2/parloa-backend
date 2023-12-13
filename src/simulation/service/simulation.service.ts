@@ -179,17 +179,33 @@ async function run(
   simulation.status = SimulationStatus.RUNNING;
   await simulationRepository.updateById(simulation._id, simulation);
   const simulationStart = new Date();
-  for (let i = 0; i < numConversations; i++) {
-    const conversation: ConversationDocument = await runConversation(serviceAgent, userAgent);
-    conversations.push(conversation._id);
-    simulation.conversations = conversations;
-    simulation.totalNumberOfInteractions += await _increaseTotalNumberOfInteractions(simulation._id, conversation._id);
+
+  try {
+    for (let i = 0; i < numConversations; i++) {
+      const conversation: ConversationDocument = await runConversation(serviceAgent, userAgent);
+      conversations.push(conversation._id);
+      simulation.conversations = conversations;
+      simulation.totalNumberOfInteractions += await _increaseTotalNumberOfInteractions(simulation._id, conversation._id);
+      await simulationRepository.updateById(simulation._id, simulation);
+    }
+    const simulationEnd = new Date();
+    simulation.duration = (simulationEnd.getTime() - simulationStart.getTime()) / 1000;
+    simulation.status = SimulationStatus.FINISHED;
     await simulationRepository.updateById(simulation._id, simulation);
+  } catch (error) {
+    const simulationEnd = new Date();
+    simulation.duration = (simulationEnd.getTime() - simulationStart.getTime()) / 1000;
+    simulation.status = SimulationStatus.FAILED;
+
+    await simulationRepository.updateById(simulation._id, simulation);
+
+    if (error instanceof Error) {
+      const er = error as Error;
+      console.log('Catched an Error: ' + er.message + ' ' + er.stack + '\n SIMULATION FAILED!!!');
+    }
+
+    return;
   }
-  const simulationEnd = new Date();
-  simulation.duration = (simulationEnd.getTime() - simulationStart.getTime()) / 1000;
-  simulation.status = SimulationStatus.FINISHED;
-  await simulationRepository.updateById(simulation._id, simulation);
 
   for (let i = 0; i < conversations.length; i++) {
     const evaluationRequest: RunEvaluationRequest = {
