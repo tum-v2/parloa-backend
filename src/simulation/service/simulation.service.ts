@@ -1,6 +1,7 @@
 import { SimulationDocument } from '@db/models/simulation.model';
 import { ConversationDocument } from '@db/models/conversation.model';
 import { AgentDocument } from '@db/models/agent.model';
+import { EvaluationDocument } from '@db/models/evaluation.model';
 import repositoryFactory from '@db/repositories/factory';
 
 import { SimulationType } from '@enums/simulation-type.enum';
@@ -18,7 +19,6 @@ import optimizationService from '@simulation/service/optimization.service';
 import evaluationService from '@evaluation/service/evaluation.service';
 
 import { Types } from 'mongoose';
-import { EvaluationDocument } from '@db/models/evaluation.model';
 
 const agentRepository = repositoryFactory.agentRepository;
 const simulationRepository = repositoryFactory.simulationRepository;
