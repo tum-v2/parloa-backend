@@ -6,6 +6,8 @@ import repositoryFactory from '@db/repositories/factory';
 import { SimulationType } from '@enums/simulation-type.enum';
 import { SimulationStatus } from '@enums/simulation-status.enum';
 
+import { SimulationSuccessGraphItem } from '@simulation/model/type/simulation-success-graph-item';
+
 import { RunSimulationRequest } from '@simulation/model/request/simulation.request';
 import { RunEvaluationRequest } from '@evaluation/model/request/run-evaluation.request';
 import { RunABTestingRequest } from '@simulation/model/request/ab-testing.request';
@@ -16,6 +18,7 @@ import optimizationService from '@simulation/service/optimization.service';
 import evaluationService from '@evaluation/service/evaluation.service';
 
 import { Types } from 'mongoose';
+import { EvaluationDocument } from '@db/models/evaluation.model';
 
 const agentRepository = repositoryFactory.agentRepository;
 const simulationRepository = repositoryFactory.simulationRepository;
@@ -101,14 +104,14 @@ async function initiateAB(request: RunABTestingRequest): Promise<SimulationDocum
   } else if (request.serviceAgentAId !== undefined) {
     serviceAgentA = await agentRepository.getById(request.serviceAgentAId!);
   }
-  
+
   if (request.serviceAgentBConfig !== undefined) {
     request.serviceAgentBConfig.temporary = true;
     serviceAgentB = await agentRepository.create(request.serviceAgentBConfig!);
   } else if (request.serviceAgentBId !== undefined) {
     serviceAgentB = await agentRepository.getById(request.serviceAgentBId!);
   }
-  
+
   if (request.userAgentConfig !== undefined) {
     request.userAgentConfig.temporary = true;
     userAgent = await agentRepository.create(request.userAgentConfig!);
@@ -185,7 +188,10 @@ async function run(
       const conversation: ConversationDocument = await runConversation(serviceAgent, userAgent);
       conversations.push(conversation._id);
       simulation.conversations = conversations;
-      simulation.totalNumberOfInteractions += await _increaseTotalNumberOfInteractions(simulation._id, conversation._id);
+      simulation.totalNumberOfInteractions += await _increaseTotalNumberOfInteractions(
+        simulation._id,
+        conversation._id,
+      );
       await simulationRepository.updateById(simulation._id, simulation);
     }
     const simulationEnd = new Date();
@@ -401,8 +407,24 @@ async function _getAverageSuccessRate(days: number): Promise<number> {
  * @returns A promise that resolves to the success rate.
  * @throws Throws an error if there is an issue with the MongoDB query.
  */
-async function _getSimulationSuccessGraph(days: number): Promise<Partial<SimulationDocument>[]> {
-  return await simulationRepository.getSimulationSuccessGraph(days);
+async function _getSimulationSuccessGraph(days: number): Promise<SimulationSuccessGraphItem[]> {
+  // return raw success graph data (partial simulation document)
+  // with id (ObjectId), evaluation (EvaluationDocument), and createdAt (ISODate)
+  const successGraphRaw: Partial<SimulationDocument>[] = await simulationRepository.getSimulationSuccessGraph(days);
+
+  // then, map the raw data to the SimulationSuccessGraphItem type
+  // with id (ObjectId), successRate (number), and date (UNIX timestamp)
+  const successGraph = successGraphRaw.map((item) => {
+    return {
+      id: item._id,
+      // directly projecting success rate from the query is possible,
+      // but then it cannot be accessed via item.successRate since item is a Partial<SimulationDocument>
+      // therefore, we project evaluation and access success rate via item.evaluation.successRate
+      successRate: (item.evaluation as EvaluationDocument)?.successRate,
+      date: item.createdAt?.getTime(),
+    } as SimulationSuccessGraphItem;
+  });
+  return successGraph;
 }
 
 /**

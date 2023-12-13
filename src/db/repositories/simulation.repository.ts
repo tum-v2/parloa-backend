@@ -291,7 +291,8 @@ class SimulationRepository extends BaseRepository<SimulationDocument> {
         {
           $project: {
             _id: 1,
-            successRate: '$evaluation.successRate',
+            evaluation: 1,
+            createdAt: 1,
           },
         },
 
