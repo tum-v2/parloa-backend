@@ -9,7 +9,7 @@
     "format": "eslint src/**/*.ts --fix",
     "start:dev": "tsx watch src",
     "build": "tsc && tsc-alias",
-    "start": "npm run build && node build/src/index.js",
+    "start": "node build/src/index.js",
     "test": "jest",
     "test:watch": "jest --watch",
     "prepare": "husky install"
