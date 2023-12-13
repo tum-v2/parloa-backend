@@ -26,7 +26,7 @@ import optimizationRouter from '@simulation/router/optimization.router';
 // Evaluation routers
 import evaluationRouter from '@evaluation/router/evaluation.router';
 
-const port = process.env.NODE_DOCKER_PORT || 3000;
+// const port = process.env.NODE_DOCKER_PORT || 3000;
 const app = express();
 
 app.use(
@@ -65,7 +65,8 @@ app.get('/', (req: Request, res: Response) => {
 // Start server and connect to database
 const server = app.listen(port, async () => {
   await connectToDatabase();
-  logger.info(`Server running at http://localhost:${port}`);
+  //logger.info(`Server running at http://localhost:${port}`);
+  logger.info(`Server running...`);
 });
 
 export { app, server };

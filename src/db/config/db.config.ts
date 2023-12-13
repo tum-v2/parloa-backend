@@ -13,7 +13,6 @@ if (process.env.NODE_ENV === 'development') {
   dbOptions = {
     uri: `${process.env.AZURE_COSMOS_CONNECTIONSTRING}`,
   };
-  console.log('uri', dbOptions.uri);
 }
 
 let database: Database;
