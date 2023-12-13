@@ -359,7 +359,7 @@ async function getDashboardData(days: number): Promise<DashboardData> {
   const totalInteractions: number = await _getTotalInteractions(days);
   const simulationRuns: number = await _getSimulationRuns(days);
   const avgSuccessRate: number = await _getAverageSuccessRate(days);
-  const simulationSuccessGraph: Partial<SimulationDocument>[] = await _getSimulationSuccessGraph(days);
+  const simulationSuccessGraph: SimulationSuccessGraphItem[] = await _getSimulationSuccessGraph(days);
   const top10Simulations: Partial<SimulationDocument>[] = await _getTop10Simulations(days);
   const data: DashboardData = {
     interactions: totalInteractions,
