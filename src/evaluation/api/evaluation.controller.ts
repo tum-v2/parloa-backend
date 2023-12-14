@@ -14,9 +14,11 @@ import { INTERNAL_SERVER_ERROR } from '@utils/errors';
 import { validationResult } from 'express-validator';
 import { Request, Response } from 'express';
 import EvaluationResultForConversation from '@evaluation/model/response/results-for-conversation.response';
-import EvaluationResultForSimulation from '@evaluation/model/response/results-for-simulation.response';
+import EvaluationResultForSimulation, {
+  EvaluationExecutedWithConversation,
+} from '@evaluation/model/response/results-for-simulation.response';
 import RunMultipleEvaluationsRequest from '@evaluation/model/request/run-multiple-evaluations.request';
-import RunMultipleEvaluationsResponse from '@evaluation/model/response/run-multiple-evaluations.response';
+import evaluationResultsToCsv from '@evaluation/utils/results-to-csv';
 
 const conversationRepository = new ConversationRepository(ConversationModel);
 const simulationRepository = new SimulationRepository(SimulationModel);
@@ -58,9 +60,10 @@ async function runMultiple(req: Request, res: Response): Promise<void> {
     }
 
     const evaluationConfig: RunMultipleEvaluationsRequest = req.body as RunMultipleEvaluationsRequest;
-    const responseObject: RunMultipleEvaluationsResponse =
+    const evaluationResults: EvaluationExecutedWithConversation[] =
       await evaluationService.runMultipleEvaluations(evaluationConfig);
-    res.status(200).send(responseObject);
+    const csvFile = evaluationResultsToCsv(evaluationResults);
+    res.download(...csvFile);
   } catch (error) {
     res.status(500).json(INTERNAL_SERVER_ERROR(error));
   }

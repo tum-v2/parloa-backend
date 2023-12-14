@@ -1,7 +1,7 @@
 enum MetricNameEnum {
   SUCCESS = 'success',
-  RESPONSE_TIME = 'response_time',
   MESSAGE_COUNT = 'message_count',
+  RESPONSE_TIME = 'response_time',
 }
 
 export { MetricNameEnum };

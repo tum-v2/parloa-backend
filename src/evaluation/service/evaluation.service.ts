@@ -21,7 +21,6 @@ import EvaluationResultForSimulation, {
   EvaluationExecutedWithConversation,
 } from '@evaluation/model/response/results-for-simulation.response';
 import RunMultipleEvaluationsRequest from '@evaluation/model/request/run-multiple-evaluations.request';
-import RunMultipleEvaluationsResponse from '@evaluation/model/response/run-multiple-evaluations.response';
 
 const evaluationRepository = new EvaluationRepository(EvaluationModel);
 const conversationRepository = new ConversationRepository(ConversationModel);
@@ -64,9 +63,11 @@ async function runEvaluation(request: RunEvaluationRequest): Promise<RunEvaluati
  * Runs the evaluation for multiple simulations and directly returns the results
  * @param request - Configuration object (type RunMultipleEvaluationsRequest)
  * @throws Error - if simulation with the given ID is not found.
- * @returns RunMultipleEvaluationsResponse object (with the evaluated conversations and the corresponding results)
+ * @returns results of the evaluated conversations (including the conversation ID)
  */
-async function runMultipleEvaluations(request: RunMultipleEvaluationsRequest): Promise<RunMultipleEvaluationsResponse> {
+async function runMultipleEvaluations(
+  request: RunMultipleEvaluationsRequest,
+): Promise<EvaluationExecutedWithConversation[]> {
   const promises: Promise<Promise<EvaluationExecutedWithConversation>[]>[] = request.simulations.map(
     async (simulationID) => {
       const simulation: SimulationDocument | null = await simulationService.poll(simulationID);
