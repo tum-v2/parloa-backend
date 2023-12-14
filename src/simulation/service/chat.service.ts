@@ -170,7 +170,12 @@ async function load(chatId: string): Promise<{ messages: ChatMessage[]; agent: C
           const userInput = agent.messageHistory[i].userInput;
           const timestamp = agent.messageHistory[i].timestamp;
           if (userInput !== null) {
-            messages.push({ sender: MsgSender.USER, text: userInput, timestamp: timestamp, userCanReply: true });
+            messages.push({
+              sender: MsgSender.USER,
+              text: userInput,
+              timestamp: timestamp,
+              userCanReply: false,
+            });
           }
         }
 
@@ -181,7 +186,12 @@ async function load(chatId: string): Promise<{ messages: ChatMessage[]; agent: C
           messages.push({ sender: MsgSender.AGENT, text: intermediateMsg, timestamp: timestamp, userCanReply: true });
         }
         if (msgToUser !== null) {
-          messages.push({ sender: MsgSender.AGENT, text: msgToUser, timestamp: timestamp, userCanReply: true });
+          messages.push({
+            sender: MsgSender.AGENT,
+            text: msgToUser,
+            timestamp: timestamp,
+            userCanReply: true,
+          });
         }
       }
     } else {
