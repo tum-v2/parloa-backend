@@ -85,7 +85,8 @@ async function runMultipleEvaluations(request: RunMultipleEvaluationsRequest): P
           optimization: null,
         };
 
-        const evaluation = await initiate(runRequest, conversation, simulation);
+        let evaluation = await initiate(runRequest, conversation, simulation);
+        evaluation = await evaluation.populate('metrics');
 
         return {
           ...getExecuteEvaluationResults(evaluation),
