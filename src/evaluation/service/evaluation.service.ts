@@ -146,7 +146,7 @@ async function initiate(
  * @returns EvaluationDocument -  The created evaluation document.
  */
 async function runEvaluationForSimulation(simulation: SimulationDocument): Promise<EvaluationDocument> {
-  const conversationEvaluations = await evaluationRepository.findConversationEvaluationsBySimulation(simulation.id);
+  const conversationEvaluations = await evaluationRepository.findConversationEvaluationsBySimulation(simulation);
   const allMetrics: MetricDocument[] = conversationEvaluations.map((c) => c.metrics).flat() as MetricDocument[];
 
   const promises: Promise<MetricDocument>[] = Object.values(MetricNameEnum).map((metricName) => {
@@ -192,7 +192,7 @@ async function getResultsForConversation(conversation: ConversationDocument): Pr
  */
 async function getResultsForSimulation(simulation: SimulationDocument): Promise<EvaluationResultForSimulation> {
   const evaluations: EvaluationDocumentWithConversation[] =
-    await evaluationRepository.findConversationEvaluationsBySimulation(simulation.id);
+    await evaluationRepository.findConversationEvaluationsBySimulation(simulation);
   const conversationScores = evaluations
     .map((evaluation) => {
       return {
