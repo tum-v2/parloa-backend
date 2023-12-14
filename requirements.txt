@@ -1,0 +1,4 @@
+spacy
+spacytextblob
+nltk
+python-dateutil
