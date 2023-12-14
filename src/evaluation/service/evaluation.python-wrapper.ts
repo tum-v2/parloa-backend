@@ -10,7 +10,9 @@ import * as fs from 'fs';
 function similarityHandler(messages: MessageDocument[]) {
   const path = 'messages.json';
   fs.writeFileSync(path, JSON.stringify(messages));
-  const result: number = parseFloat(execSync(`python3 evaluation.similarity.py ${path} 1`).toString());
+  const result: number = parseFloat(
+    execSync(`python3 src/evaluation/service/evaluation.similarity.py ${path} 1`).toString(),
+  );
   fs.unlinkSync(path);
   return result;
 }
@@ -23,7 +25,9 @@ function similarityHandler(messages: MessageDocument[]) {
 function recoveryHandler(messages: MessageDocument[]) {
   const path = 'messages.json';
   fs.writeFileSync(path, JSON.stringify(messages));
-  const result: number = parseFloat(execSync(`python3 evaluation.recovery.py ${path}`).toString());
+  const result: number = parseFloat(
+    execSync(`python3 src/evaluation/service/evaluation.recovery.py ${path}`).toString(),
+  );
   fs.unlinkSync(path);
   return result;
 }
@@ -36,7 +40,9 @@ function recoveryHandler(messages: MessageDocument[]) {
 function sentimentHandler(messages: MessageDocument[]) {
   const path = 'messages.json';
   fs.writeFileSync(path, JSON.stringify(messages));
-  const result: number = parseFloat(execSync(`python3 evaluation.sentiment.py ${path}`).toString());
+  const result: number = parseFloat(
+    execSync(`python3 src/evaluation/service/evaluation.sentiment.py ${path}`).toString(),
+  );
   fs.unlinkSync(path);
   return result;
 }
