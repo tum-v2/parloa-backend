@@ -304,7 +304,7 @@ async function getConversation(id: string): Promise<any | null> {
       }
       const modifiedMessage: any = {};
       modifiedMessage.sender = message.sender;
-      modifiedMessage.text = message.text;
+      modifiedMessage.text = message.text.replace(`${message.sender}: `, '');
       modifiedMessage.timestamp = message.timestamp;
       modifiedMessage.userCanReply = message.sender === MsgSender.AGENT;
       messages.push(modifiedMessage);
