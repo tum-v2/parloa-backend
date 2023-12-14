@@ -335,7 +335,7 @@ export async function createMessageDocument(
     sender = MsgSender.AGENT;
     text = `AGENT: ${msg.msgToUser}`;
   } else if (msg.type === MsgType.ROUTE) {
-    sender = MsgSender.AGENT;
+    sender = MsgSender.TOOL;
     text = `TOOL: ${msg.action} ${msg.toolInput}`;
     if (msg.action !== null) {
       usedEndpoints.push(msg.action);
