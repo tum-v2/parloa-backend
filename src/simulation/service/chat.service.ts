@@ -150,14 +150,24 @@ async function load(chatId: string): Promise<ChatMessage[]> {
           const userInput = agent.messageHistory[i].userInput;
           const timestamp = agent.messageHistory[i].timestamp;
           if (userInput !== null) {
-            messages.push({ sender: MsgSender.USER, text: userInput, timestamp: timestamp, userCanReply: true });
+            messages.push({
+              sender: MsgSender.USER,
+              text: userInput,
+              timestamp: timestamp,
+              userCanReply: false,
+            });
           }
         }
 
         const msgToUser = agent.messageHistory[i].msgToUser;
         const timestamp = agent.messageHistory[i].timestamp;
         if (msgToUser !== null) {
-          messages.push({ sender: MsgSender.AGENT, text: msgToUser, timestamp: timestamp, userCanReply: true });
+          messages.push({
+            sender: MsgSender.AGENT,
+            text: msgToUser,
+            timestamp: timestamp,
+            userCanReply: true,
+          });
         }
       }
     } else {
