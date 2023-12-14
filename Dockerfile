@@ -21,7 +21,8 @@ RUN apt-get update && apt-get install -y \
 COPY requirements.txt ./
 
 # Install Python dependencies
-RUN pip3 install -r requirements.txt
+RUN pip3 install -r requirements.txt && \
+    python3 -m spacy download en_core_web_sm
 
 # Copy the rest of your app's source code
 COPY . .
