@@ -6,6 +6,10 @@ class AgentRepository extends BaseRepository<AgentDocument> {
   constructor(model: Model<AgentDocument>) {
     super(model);
   }
+
+  public async findAll(): Promise<AgentDocument[]> {
+    return this.model.find({ temporary: { $ne: true } });
+  }
 }
 
 export { AgentRepository };

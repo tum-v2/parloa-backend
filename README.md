@@ -75,7 +75,7 @@ This is a Node.js project built in TypeScript.
   distributed database.
 - [![ESLint][Eslint]][Eslint-url] [![Prettier][Prettier]][Prettier-url]: Enforces code quality and style with ESLint and
   Prettier.
-- [![Nodemon][Nodemon]][Nodemon-url]: Auto-reloads the server during development for a seamless development experience.
+- [![Tsx][Tsx]][Tsx-url]: Auto-reloads the server during development for a seamless development experience.
 - [![Husky][Husky]][Husky-url]: Enforces code quality and formatting checks as part of the development workflow.
 - [![TSDoc][Tsdoc]][Tsdoc-url]: Utilizes TSDoc to generate meaningful API documentation for TypeScript code.
 
@@ -138,7 +138,7 @@ To get a local copy up and running follow these simple example steps.
    ```
    This will install all the dependencies listed in package.json.
 
-3. Start the development server with Nodemon:
+3. Start the development server with Tsx:
    ```sh
    npm run start:dev
    ```
@@ -354,9 +354,9 @@ understand.
 
 [Prettier-url]: https://prettier.io/
 
-[Nodemon]: https://img.shields.io/badge/nodemon-000000?style=for-the-badge&logo=nodemon
+[Tsx]: https://img.shields.io/badge/tsx-000000?style=for-the-badge&logo=tsx
 
-[Nodemon-url]: https://www.npmjs.com/package/nodemon
+[Tsx-url]: https://www.npmjs.com/package/tsx
 
 [Husky]: https://img.shields.io/badge/husky-000000?style=for-the-badge&logo=husky
 

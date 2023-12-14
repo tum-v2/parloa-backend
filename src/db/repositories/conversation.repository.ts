@@ -9,6 +9,11 @@ class ConversationRepository extends BaseRepository<ConversationDocument> {
     super(model);
   }
 
+  /**
+   * Gets messages from a conversation
+   * @param conversationId - Conversation id
+   * @returns Conversation document with populated messages
+   */
   async getMessages(conversationId: string): Promise<ConversationDocument | null> {
     try {
       const conversation: ConversationDocument | null = await this.model.findById(conversationId).populate('messages');
@@ -19,6 +24,12 @@ class ConversationRepository extends BaseRepository<ConversationDocument> {
     }
   }
 
+  /**
+   * Saves an evaluation to a conversation
+   * @param conversationId - Conversation id
+   * @param evaluationId - Evaluation id
+   * @returns Updated conversation document
+   */
   async saveEvaluation(conversationId: string, evaluationId: string): Promise<ConversationDocument | null> {
     return await super.updateById(conversationId, { evaluation: new Types.ObjectId(evaluationId) });
   }

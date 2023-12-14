@@ -8,16 +8,16 @@ import { SimulationStatus } from '@enums/simulation-status.enum';
 import { MsgType } from '@enums/msg-type.enum';
 import { MsgSender } from '@enums/msg-sender.enum';
 
-import { CustomAgent } from '@simulation/agents/custom.agent';
-import { configureServiceAgent, createMessageDocument, setupPath } from '@simulation/service/conversation.service';
+import { createMessageDocument } from '@simulation/service/conversation.service';
 import ChatMessage from '@simulation/model/response/chat.response';
 import { StartChatRequest } from '@simulation/model/request/chat.request';
+import AgentManager from '@simulation/service/agent.manager.service';
 
 const agentRepository = repositoryFactory.agentRepository;
 const chatRepository = repositoryFactory.chatRepository;
 
-let serviceAgent: CustomAgent | null = null;
-let count = 0;
+// Create a new AgentManager instance to manage multiple agents for different chats
+const agentManager = new AgentManager();
 
 /**
  * Start a chat with the service agent
@@ -25,42 +25,55 @@ let count = 0;
  * @returns A promise that resolves to the chat simulation object.
  */
 async function start(config: StartChatRequest): Promise<SimulationDocument> {
-  setupPath();
-
-  count = 0;
-
   const simulation: SimulationDocument = new SimulationModel();
 
   simulation.name = config.name;
-  simulation.serviceAgent = config.agent;
   simulation.status = SimulationStatus.RUNNING;
   simulation.type = SimulationType.CHAT;
 
   let serviceAgentModel: AgentDocument | null = null;
-  if (config.agent) {
-    serviceAgentModel = await agentRepository.getById(config.agent.toString());
+  if (config.agentConfig !== undefined) {
+    config.agentConfig.temporary = true;
+    serviceAgentModel = await agentRepository.create(config.agentConfig!);
+  } else if (config.agentId !== undefined) {
+    serviceAgentModel = await agentRepository.getById(config.agentId!.toString());
   }
 
+  if (serviceAgentModel === null) {
+    throw new Error('Agent id not found');
+  }
+
+  simulation.serviceAgent = serviceAgentModel;
+
   if (serviceAgentModel) {
-    serviceAgent = await configureServiceAgent(serviceAgentModel);
-
-    const agentResponse: string = await serviceAgent.startAgent();
-
     const chat: SimulationDocument = await chatRepository.create(simulation);
 
     const usedEndpoints: string[] = [];
 
-    const newMessage: MessageDocument = await createMessageDocument(
-      serviceAgent.messageHistory[count++],
-      agentResponse,
-      usedEndpoints,
-    );
-    await chatRepository.send(chat._id, newMessage);
+    // Create a new agent for the chat
+    await agentManager.createAgent(chat._id.toString(), serviceAgentModel);
 
+    // Retrieve the current agent and start the conversation
+    const agent = agentManager.getCurrentAgent(chat._id.toString());
+    if (agent) {
+      const agentResponse: string = await agent.startAgent();
+
+      const messageCount = agentManager.getMessageCountForCurrentAgent(chat._id.toString());
+
+      const newMessage: MessageDocument = await createMessageDocument(
+        agent.messageHistory[messageCount],
+        usedEndpoints,
+        agentResponse,
+      );
+      await chatRepository.send(chat._id, newMessage);
+
+      agentManager.incrementMessageCountForCurrentAgent(chat._id.toString());
+    } else {
+      console.error('No current agent available.');
+    }
     return chat;
   }
-
-  throw new Error('Service agent not found!');
+  throw new Error('Agent not found!');
 }
 
 /**
@@ -70,47 +83,44 @@ async function start(config: StartChatRequest): Promise<SimulationDocument> {
  * @returns A promise that resolves to the message response of service agents.
  */
 async function sendMessage(chatId: string, message: string): Promise<ChatMessage> {
-  if (!serviceAgent) {
-    throw new Error('Service agent not found!');
-  }
   const usedEndpoints: string[] = [];
 
-  const agentResponse: string = await forwardMessageToAgentAndWaitResponse(message);
+  // Set the current agent for processing the message
+  const agent = agentManager.getAgentByConversation(chatId);
 
-  const userMessage: MessageDocument = await createMessageDocument(
-    serviceAgent.messageHistory[count++],
-    message,
-    usedEndpoints,
-  );
-  await chatRepository.send(chatId, userMessage);
+  if (agent) {
+    const agentResponse = await agent.processHumanInput(message);
 
-  let agentMessage: MessageDocument = {} as MessageDocument;
-  while (count < serviceAgent.messageHistory.length) {
-    agentMessage = await createMessageDocument(serviceAgent.messageHistory[count++], agentResponse, usedEndpoints);
-    await chatRepository.send(chatId, agentMessage);
+    let messageCount = agentManager.getMessageCountForCurrentAgent(chatId);
+    const userMessage: MessageDocument = await createMessageDocument(
+      agent.messageHistory[messageCount],
+      usedEndpoints,
+      message,
+    );
+    await chatRepository.send(chatId, userMessage);
+    agentManager.incrementMessageCountForCurrentAgent(chatId);
+
+    let agentMessage: MessageDocument = {} as MessageDocument;
+    messageCount = agentManager.getMessageCountForCurrentAgent(chatId);
+    while (messageCount < agent.messageHistory.length) {
+      agentMessage = await createMessageDocument(agent.messageHistory[messageCount], usedEndpoints, agentResponse);
+      await chatRepository.send(chatId, agentMessage);
+      agentManager.incrementMessageCountForCurrentAgent(chatId);
+      messageCount = agentManager.getMessageCountForCurrentAgent(chatId);
+    }
+
+    const response: ChatMessage = {
+      sender: agentMessage.sender,
+      // text: agentMessage.msgToUser ? agentMessage.msgToUser : '',
+      text: agentMessage.msgToUser ?? agentMessage.intermediateMsg ?? '',
+      timestamp: agentMessage.timestamp,
+      userCanReply: true,
+    };
+
+    return response;
+  } else {
+    throw new Error('Agent not found in available agents!');
   }
-
-  const response: ChatMessage = {
-    sender: agentMessage.sender,
-    text: agentMessage.msgToUser ? agentMessage.msgToUser : '',
-    timestamp: agentMessage.timestamp,
-    userCanReply: true,
-  };
-
-  return response;
-}
-
-/**
- * Forward a message to the service agent and wait for the response.
- * @param message - The message to be forwarded.
- * @returns A promise that resolves to the response from the service agent.
- */
-async function forwardMessageToAgentAndWaitResponse(message: string): Promise<string> {
-  if (!serviceAgent) {
-    throw new Error('Service agent not found!');
-  }
-  const agentResponse = await serviceAgent.processHumanInput(message);
-  return agentResponse;
 }
 
 /**
@@ -119,8 +129,6 @@ async function forwardMessageToAgentAndWaitResponse(message: string): Promise<st
  * @returns A promise that resolves to the chat simulation object.
  */
 async function load(chatId: string): Promise<ChatMessage[]> {
-  setupPath();
-
   const messages: ChatMessage[] = [];
 
   const [agentId, msgHistory] = await chatRepository.loadChat(chatId);
@@ -131,26 +139,31 @@ async function load(chatId: string): Promise<ChatMessage[]> {
   }
 
   if (serviceAgentModel) {
-    serviceAgent = await configureServiceAgent(serviceAgentModel, msgHistory);
-    console.log('Agent configs: ', serviceAgent);
+    // Create a new agent for the loaded chat and associate it with the current simulation
+    await agentManager.createAgent(chatId, serviceAgentModel, msgHistory);
 
-    for (let i = 0; i < serviceAgent.messageHistory.length; i++) {
-      if (serviceAgent.messageHistory[i].type === MsgType.HUMANINPUT) {
-        const userInput = serviceAgent.messageHistory[i].userInput;
-        const timestamp = serviceAgent.messageHistory[i].timestamp;
-        if (userInput !== null) {
-          messages.push({ sender: MsgSender.USER, text: userInput, timestamp: timestamp, userCanReply: true });
+    // Retrieve the current agent and load the chat history
+    const agent = agentManager.getCurrentAgent(chatId);
+    if (agent) {
+      for (let i = 0; i < agent.messageHistory.length; i++) {
+        if (agent.messageHistory[i].type === MsgType.HUMANINPUT) {
+          const userInput = agent.messageHistory[i].userInput;
+          const timestamp = agent.messageHistory[i].timestamp;
+          if (userInput !== null) {
+            messages.push({ sender: MsgSender.USER, text: userInput, timestamp: timestamp, userCanReply: true });
+          }
+        }
+
+        const msgToUser = agent.messageHistory[i].msgToUser;
+        const timestamp = agent.messageHistory[i].timestamp;
+        if (msgToUser !== null) {
+          messages.push({ sender: MsgSender.AGENT, text: msgToUser, timestamp: timestamp, userCanReply: true });
         }
       }
-
-      const msgToUser = serviceAgent.messageHistory[i].msgToUser;
-      const timestamp = serviceAgent.messageHistory[i].timestamp;
-      if (msgToUser !== null) {
-        messages.push({ sender: MsgSender.AGENT, text: msgToUser, timestamp: timestamp, userCanReply: true });
-      }
+    } else {
+      console.error('No current agent available.');
     }
-
-    count = serviceAgent.messageHistory.length;
+    agentManager.loadMessageCountForCurrentAgent(chatId);
   }
 
   return messages;

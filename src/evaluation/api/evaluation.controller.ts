@@ -5,10 +5,6 @@ import { SimulationRepository } from '@db/repositories/simulation.repository';
 
 import evaluationService from '@evaluation/service/evaluation.service';
 import { RunEvaluationRequest } from '@evaluation/model/request/run-evaluation.request';
-import {
-  EvaluationResultForConversation,
-  EvaluationResultForSimulation,
-} from '@evaluation/model/response/evaluation-result.response';
 import { RunEvaluationResponse } from '@evaluation/model/response/run-evaluation.response';
 
 import { EvaluationStatus } from '@enums/evaluation-status.enum';
@@ -17,6 +13,8 @@ import { INTERNAL_SERVER_ERROR } from '@utils/errors';
 
 import { validationResult } from 'express-validator';
 import { Request, Response } from 'express';
+import EvaluationResultForConversation from '@evaluation/model/response/results-for-conversation.response';
+import EvaluationResultForSimulation from '@evaluation/model/response/results-for-simulation.response';
 
 const conversationRepository = new ConversationRepository(ConversationModel);
 const simulationRepository = new SimulationRepository(SimulationModel);

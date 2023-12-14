@@ -5,17 +5,20 @@ import SimulationValidator from '@simulation/validator/simulation.validator';
 import { CustomValidationError } from '@utils/handle-validation-errors';
 const router = express.Router();
 
-// region POST //
+// POST //
 router.post(
   '/run',
   SimulationValidator.runValidation(),
   CustomValidationError.handleValidationErrors,
   optimizationController.run,
 );
-// endregion POST //
 
-// region GET //
-router.get('/:id', optimizationController.get);
-// endregion GET //
+// GET //
+router.get(
+  '/:id',
+  SimulationValidator.idValidation(),
+  CustomValidationError.handleValidationErrors,
+  optimizationController.get,
+);
 
 export default router;

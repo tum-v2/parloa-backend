@@ -36,6 +36,39 @@ class AgentValidator {
   }
 
   /**
+   * Validate the request body for the update agent endpoint
+   * @returns Validation chain array that checks simulation run request
+   */
+  static updateValidation(): ValidationChain[] {
+    return [
+      body('name').optional().isString().withMessage('Name must be a valid string.'),
+      body('llm')
+        .optional()
+        .isIn(Object.values(LLMModel))
+        .withMessage(`Invalid model type. Must be one of: ${Object.values(LLMModel).join(', ')}`),
+      body('temperature').optional().isFloat().withMessage('Temperature must be a valid integer.'),
+      body('maxTokens').optional().isInt().withMessage('Max tokens must be a valid integer.'),
+      body('domain')
+        .optional()
+        .isIn(Object.values(ConversationDomain))
+        .withMessage(`Invalid domain type. Must be one of: ${Object.values(ConversationDomain).join(', ')}`),
+      body('prompt').optional().isString().withMessage('Prompt must be a valid string.'),
+
+      body().custom((value, { req }) => {
+        const allowedFields = ['name', 'llm', 'temperature', 'maxTokens', 'domain', 'prompt'];
+
+        const extraFields = Object.keys(req.body).filter((field) => !allowedFields.includes(field));
+
+        if (extraFields.length > 0) {
+          throw new Error(`Unexpected fields: ${extraFields.join(', ')}`);
+        }
+
+        return true;
+      }),
+    ];
+  }
+
+  /**
    * Validate the request parameter /:id for get, update and delete endpoints
    * @returns Validation chain array that checks simulation run request
    */

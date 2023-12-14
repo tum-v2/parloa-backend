@@ -1,7 +1,6 @@
 import { Request, Response } from 'express';
-import { validationResult } from 'express-validator';
 
-import { RunABTestingRequest } from '@simulation/model/request/run-ab-testing.request';
+import { RunABTestingRequest } from '@simulation/model/request/ab-testing.request';
 import { RunSimulationRequest } from '@simulation/model/request/simulation.request';
 import simulationService from '@simulation/service/simulation.service';
 
@@ -19,12 +18,6 @@ import { INTERNAL_SERVER_ERROR } from '@utils/errors';
  */
 async function run(req: Request, res: Response): Promise<void> {
   try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      res.status(400).send({ error: errors });
-      return;
-    }
-
     const simulationConfig: RunSimulationRequest = req.body as RunSimulationRequest;
     const simulation: SimulationDocument = await simulationService.initiate(simulationConfig);
     res.status(201).send(simulation);
@@ -41,12 +34,6 @@ async function run(req: Request, res: Response): Promise<void> {
  */
 async function runABTesting(req: Request, res: Response): Promise<void> {
   try {
-    /* const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      res.status(400).send({ error: errors });
-      return;
-    }*/
-
     const simulationConfig: RunABTestingRequest = req.body as RunABTestingRequest;
     const simulations: SimulationDocument[] = await simulationService.initiateAB(simulationConfig);
     res.status(201).send(simulations);
@@ -64,12 +51,6 @@ async function runABTesting(req: Request, res: Response): Promise<void> {
  */
 async function poll(req: Request, res: Response): Promise<void> {
   try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      res.status(400).send({ error: errors });
-      return;
-    }
-
     const id: string = req.params.id;
     const simulation: SimulationDocument | null = await simulationService.poll(id);
     if (simulation) {
@@ -79,33 +60,6 @@ async function poll(req: Request, res: Response): Promise<void> {
     }
   } catch (error) {
     logger.error(`Simulation poll failed! ${error}`);
-    res.status(500).json(INTERNAL_SERVER_ERROR(error));
-  }
-}
-
-/**
- * Gets the conversations of the simulation.
- * @param req - Request object
- * @param res - Response object (returns the conversations of the simulation)
- * @throws Throws an internal server error if there is an issue with the operation.
- */
-async function getConversations(req: Request, res: Response): Promise<void> {
-  try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      res.status(400).send({ error: errors });
-      return;
-    }
-
-    const id: string = req.params.id;
-    const conversations: ConversationDocument[] | null = await simulationService.getConversations(id);
-    if (conversations) {
-      res.status(200).send(conversations);
-    } else {
-      res.status(404).send({ error: `Simulation ${id} not found!` });
-    }
-  } catch (error) {
-    logger.error(`Simulation fetch conversations failed! ${error}`);
     res.status(500).json(INTERNAL_SERVER_ERROR(error));
   }
 }
@@ -153,12 +107,6 @@ async function getConversation(req: Request, res: Response): Promise<void> {
  */
 async function update(req: Request, res: Response): Promise<void> {
   try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      res.status(400).send({ error: errors });
-      return;
-    }
-
     const id: string = req.params.id;
     const updates: Partial<SimulationDocument> = req.body as Partial<SimulationDocument>;
     const updated: SimulationDocument | null = await simulationService.update(id, updates);
@@ -180,12 +128,6 @@ async function update(req: Request, res: Response): Promise<void> {
  */
 async function del(req: Request, res: Response): Promise<void> {
   try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      res.status(400).send({ error: errors });
-      return;
-    }
-
     const id: string = req.params.id;
     const success: boolean = await simulationService.del(id);
     if (success) {
@@ -202,7 +144,6 @@ export default {
   run,
   runABTesting,
   poll,
-  getConversations,
   getAll,
   getConversation,
   update,

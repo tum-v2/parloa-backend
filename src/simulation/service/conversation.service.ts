@@ -21,9 +21,9 @@ import { AgentDocument } from '@db/models/agent.model';
 import { MessageDocument } from '@db/models/message.model';
 import repositoryFactory from '@db/repositories/factory';
 
-import { Types } from 'mongoose';
 import * as fs from 'fs';
 import * as path from 'path';
+import { ConversationDocument } from '@db/models/conversation.model';
 
 const isDev = process.env.IS_DEVELOPER;
 if (isDev === undefined) throw new Error('IS_DEVELOPER Needs to be specified');
@@ -310,8 +310,8 @@ async function configureUserAgent(agentData: AgentDocument): Promise<CustomAgent
  */
 export async function createMessageDocument(
   msg: MsgHistoryItem,
-  welcomeMessage: string,
   usedEndpoints: string[],
+  welcomeMessage?: string,
 ): Promise<MessageDocument> {
   let sender: MsgSender;
   let text: string;
@@ -368,7 +368,10 @@ export async function createMessageDocument(
  * @param userAgentData - The data for the user agent.
  * @returns - The id of the conversation.
  */
-export async function runConversation(serviceAgentData: AgentDocument, userAgentData: AgentDocument) {
+export async function runConversation(
+  serviceAgentData: AgentDocument,
+  userAgentData: AgentDocument,
+): Promise<ConversationDocument> {
   const startTime: Date = new Date();
   const conversation = await conversationRepository.create({
     messages: undefined,
@@ -389,62 +392,52 @@ export async function runConversation(serviceAgentData: AgentDocument, userAgent
   const maxTurnCount = 15;
   let turnCount = 0;
 
-  try {
-    let conversationSuccess: boolean = false;
-    let hangupMsgTimestamp: Date;
-    while (turnCount < maxTurnCount) {
-      const userInput: string = await userAgent.processHumanInput(agentResponse);
+  let conversationSuccess: boolean = false;
+  let hangupMsgTimestamp: Date;
+  while (turnCount < maxTurnCount) {
+    const userInput: string = await userAgent.processHumanInput(agentResponse);
 
-      if (userInput.indexOf('/hangup') >= 0) {
-        console.log(userInput);
-        console.log(`\n👋👋👋 HANGUP by human_sim agent. Turn count: ${turnCount} 👋👋👋\n`);
-        conversationSuccess = true;
-        hangupMsgTimestamp = new Date();
-        break;
-      }
-
-      agentResponse = await serviceAgent.processHumanInput(userInput);
-
-      turnCount++;
+    if (userInput.indexOf('/hangup') >= 0) {
+      console.log(userInput);
+      console.log(`\n👋👋👋 HANGUP by human_sim agent. Turn count: ${turnCount} 👋👋👋\n`);
+      conversationSuccess = true;
+      hangupMsgTimestamp = new Date();
+      break;
     }
 
-    const endTime: Date = new Date();
+    agentResponse = await serviceAgent.processHumanInput(userInput);
 
-    const usedEndpoints: string[] = [];
-    const messages: MessageDocument[] = [];
-    for (let i = 0; i < serviceAgent.messageHistory.length; i++) {
-      messages.push(
-        await createMessageDocument(serviceAgent.messageHistory[i], serviceAgent.config.welcomeMessage, usedEndpoints),
-      );
-    }
-    if (conversationSuccess) {
-      const hangupMessage: MessageDocument = await messageRepository.create({
-        sender: MsgSender.USER,
-        text: '/hangup',
-        type: MsgType.HANGUP,
-        timestamp: hangupMsgTimestamp!,
-        intermediateMsg: undefined,
-        action: undefined,
-        toolInput: undefined,
-      });
-      messages.push(hangupMessage);
-    }
-
-    conversation.messages = messages.map((msg: MessageDocument) => msg._id);
-    conversation.endTime = endTime;
-    conversation.status = ConversationStatus.FINISHED;
-    conversation.usedEndpoints = usedEndpoints;
-    await conversationRepository.updateById(conversation._id, conversation);
-    return conversation._id;
-  } catch (error) {
-    if (error instanceof Error) {
-      const er = error as Error;
-      console.log('Errors / this : ' + er.message + ' ' + er.stack);
-      console.log(`\n👋👋👋 STOPPED by user. Turn count: ${turnCount} 👋👋👋\n`);
-      return new Types.ObjectId();
-    }
+    turnCount++;
   }
-  return new Types.ObjectId();
+
+  const endTime: Date = new Date();
+
+  const usedEndpoints: string[] = [];
+  const messages: MessageDocument[] = [];
+  for (let i = 0; i < serviceAgent.messageHistory.length; i++) {
+    messages.push(
+      await createMessageDocument(serviceAgent.messageHistory[i], usedEndpoints, serviceAgent.config.welcomeMessage),
+    );
+  }
+  if (conversationSuccess) {
+    const hangupMessage: MessageDocument = await messageRepository.create({
+      sender: MsgSender.USER,
+      text: '/hangup',
+      type: MsgType.HANGUP,
+      timestamp: hangupMsgTimestamp!,
+      intermediateMsg: undefined,
+      action: undefined,
+      toolInput: undefined,
+    });
+    messages.push(hangupMessage);
+  }
+
+  conversation.messages = messages.map((msg: MessageDocument) => msg._id);
+  conversation.endTime = endTime;
+  conversation.status = ConversationStatus.FINISHED;
+  conversation.usedEndpoints = usedEndpoints;
+  await conversationRepository.updateById(conversation._id, conversation);
+  return conversation;
 }
 
 export default {

@@ -6,7 +6,7 @@ import { CustomValidationError } from '@utils/handle-validation-errors';
 
 const router = express.Router();
 
-// region POST //
+// POST //
 router.post(
   '/run',
   SimulationValidator.runValidation(),
@@ -14,10 +14,14 @@ router.post(
   simulationController.run,
 );
 
-router.post('/abtesting/run', simulationController.runABTesting);
-// endregion POST //
+router.post(
+  '/abtesting/run',
+  SimulationValidator.abValidation(),
+  CustomValidationError.handleValidationErrors,
+  simulationController.runABTesting,
+);
 
-// region GET //
+// GET //
 router.get('/all', simulationController.getAll);
 router.get(
   '/:id',
@@ -25,26 +29,27 @@ router.get(
   CustomValidationError.handleValidationErrors,
   simulationController.poll,
 );
-router.get('/conversation/:id', simulationController.getConversation);
-// endregion GET //
+router.get(
+  '/conversation/:id',
+  SimulationValidator.idValidation(),
+  CustomValidationError.handleValidationErrors,
+  simulationController.getConversation,
+);
 
-// region PUT//
-router.patch(
+// PUT //
+router.put(
   '/:id',
-  // SimulationValidator.idValidation(),
-  // SimulationValidator.runValidation(),
-  // CustomValidationError.handleValidationErrors,
+  SimulationValidator.updateValidation(),
+  CustomValidationError.handleValidationErrors,
   simulationController.update,
 );
-// endregion PUT //
 
-// region DELETE //
+// DELETE //
 router.delete(
   '/:id',
   SimulationValidator.idValidation(),
   CustomValidationError.handleValidationErrors,
   simulationController.del,
 );
-// endregion DELETE //
 
 export default router;
