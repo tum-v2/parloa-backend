@@ -46,7 +46,7 @@ async function start(config: StartChatRequest): Promise<SimulationDocument> {
   simulation.serviceAgent = serviceAgentModel;
 
   if (serviceAgentModel) {
-    const chat: SimulationDocument = await chatRepository.create(simulation);
+    let chat: SimulationDocument = await chatRepository.create(simulation);
 
     const usedEndpoints: string[] = [];
 
@@ -65,7 +65,7 @@ async function start(config: StartChatRequest): Promise<SimulationDocument> {
         usedEndpoints,
         agentResponse,
       );
-      await chatRepository.send(chat._id, newMessage);
+      chat = await chatRepository.send(chat._id, newMessage);
 
       agentManager.incrementMessageCountForCurrentAgent(chat._id.toString());
     } else {
