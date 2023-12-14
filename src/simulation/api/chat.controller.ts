@@ -38,7 +38,7 @@ async function load(req: Request, res: Response): Promise<void> {
     const chat: SimulationDocument | null = await simulationService.poll(chatId);
     if (chat) {
       console.log('Loading chat...');
-      const messages: ChatMessage[] = await chatService.load(chatId);
+      const { messages } = await chatService.load(chatId);
       res.status(200).send(messages);
     } else {
       res.status(404).send({ error: `Chat ${chatId} not found!` });

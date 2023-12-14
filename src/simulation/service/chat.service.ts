@@ -12,6 +12,7 @@ import { createMessageDocument } from '@simulation/service/conversation.service'
 import ChatMessage from '@simulation/model/response/chat.response';
 import { StartChatRequest } from '@simulation/model/request/chat.request';
 import AgentManager from '@simulation/service/agent.manager.service';
+import { CustomAgent } from '@simulation/agents/custom.agent';
 
 const agentRepository = repositoryFactory.agentRepository;
 const chatRepository = repositoryFactory.chatRepository;
@@ -25,12 +26,13 @@ const agentManager = new AgentManager();
  * @returns A promise that resolves to the chat simulation object.
  */
 async function start(config: StartChatRequest): Promise<SimulationDocument> {
+  // Create a new simulation
   const simulation: SimulationDocument = new SimulationModel();
-
   simulation.name = config.name;
   simulation.status = SimulationStatus.RUNNING;
   simulation.type = SimulationType.CHAT;
 
+  // Get or create the service agent document
   let serviceAgentModel: AgentDocument | null = null;
   if (config.agentConfig !== undefined) {
     config.agentConfig.temporary = true;
@@ -46,6 +48,7 @@ async function start(config: StartChatRequest): Promise<SimulationDocument> {
   simulation.serviceAgent = serviceAgentModel;
 
   if (serviceAgentModel) {
+    // Create a new agent for the chat
     const chat: SimulationDocument = await chatRepository.create(simulation);
 
     const usedEndpoints: string[] = [];
@@ -85,10 +88,23 @@ async function start(config: StartChatRequest): Promise<SimulationDocument> {
 async function sendMessage(chatId: string, message: string): Promise<ChatMessage> {
   const usedEndpoints: string[] = [];
 
-  // Set the current agent for processing the message
-  const agent = agentManager.getAgentByConversation(chatId);
+  // Get the agent
+  let agent = agentManager.getAgentBySimulation(chatId);
+
+  // If the agent doesn't exist, load/initialize it
+  if (!agent) {
+    const { agent: loadedAgent } = await load(chatId);
+
+    // Use the loaded agent
+    if (loadedAgent) {
+      agent = loadedAgent;
+    } else {
+      throw new Error(`Failed to load the agent for chatId: ${chatId}`);
+    }
+  }
 
   if (agent) {
+    // Process the user's message and update the conversation
     const agentResponse = await agent.processHumanInput(message);
 
     let messageCount = agentManager.getMessageCountForCurrentAgent(chatId);
@@ -100,6 +116,7 @@ async function sendMessage(chatId: string, message: string): Promise<ChatMessage
     await chatRepository.send(chatId, userMessage);
     agentManager.incrementMessageCountForCurrentAgent(chatId);
 
+    // Process agent responses and update the conversation
     let agentMessage: MessageDocument = {} as MessageDocument;
     messageCount = agentManager.getMessageCountForCurrentAgent(chatId);
     while (messageCount < agent.messageHistory.length) {
@@ -109,6 +126,7 @@ async function sendMessage(chatId: string, message: string): Promise<ChatMessage
       messageCount = agentManager.getMessageCountForCurrentAgent(chatId);
     }
 
+    // Prepare the response message to be sent to the user
     const response: ChatMessage = {
       sender: agentMessage.sender,
       // text: agentMessage.msgToUser ? agentMessage.msgToUser : '',
@@ -128,9 +146,11 @@ async function sendMessage(chatId: string, message: string): Promise<ChatMessage
  * @param id - Simulation id
  * @returns A promise that resolves to the chat simulation object.
  */
-async function load(chatId: string): Promise<ChatMessage[]> {
+async function load(chatId: string): Promise<{ messages: ChatMessage[]; agent: CustomAgent | null }> {
   const messages: ChatMessage[] = [];
+  let agent: CustomAgent | null = null;
 
+  // Load chat history from the database
   const [agentId, msgHistory] = await chatRepository.loadChat(chatId);
 
   let serviceAgentModel: AgentDocument | null = null;
@@ -143,7 +163,7 @@ async function load(chatId: string): Promise<ChatMessage[]> {
     await agentManager.createAgent(chatId, serviceAgentModel, msgHistory);
 
     // Retrieve the current agent and load the chat history
-    const agent = agentManager.getCurrentAgent(chatId);
+    agent = agentManager.getCurrentAgent(chatId);
     if (agent) {
       for (let i = 0; i < agent.messageHistory.length; i++) {
         if (agent.messageHistory[i].type === MsgType.HUMANINPUT) {
@@ -160,7 +180,11 @@ async function load(chatId: string): Promise<ChatMessage[]> {
         }
 
         const msgToUser = agent.messageHistory[i].msgToUser;
+        const intermediateMsg = agent.messageHistory[i].intermediateMsg;
         const timestamp = agent.messageHistory[i].timestamp;
+        if (intermediateMsg !== null) {
+          messages.push({ sender: MsgSender.AGENT, text: intermediateMsg, timestamp: timestamp, userCanReply: true });
+        }
         if (msgToUser !== null) {
           messages.push({
             sender: MsgSender.AGENT,
@@ -176,7 +200,7 @@ async function load(chatId: string): Promise<ChatMessage[]> {
     agentManager.loadMessageCountForCurrentAgent(chatId);
   }
 
-  return messages;
+  return { messages, agent };
 }
 
 /**

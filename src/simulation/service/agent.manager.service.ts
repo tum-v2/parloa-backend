@@ -49,7 +49,7 @@ class AgentManager {
    * @param chatId - ID of the chat.
    * @returns The agent for the specified simulation or null if none found.
    */
-  getAgentByConversation(chatId: string): CustomAgent | null {
+  getAgentBySimulation(chatId: string): CustomAgent | null {
     return this.agents.get(chatId) || null;
   }
 
