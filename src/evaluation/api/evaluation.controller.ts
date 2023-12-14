@@ -15,6 +15,8 @@ import { validationResult } from 'express-validator';
 import { Request, Response } from 'express';
 import EvaluationResultForConversation from '@evaluation/model/response/results-for-conversation.response';
 import EvaluationResultForSimulation from '@evaluation/model/response/results-for-simulation.response';
+import RunMultipleEvaluationsRequest from '@evaluation/model/request/run-multiple-evaluations.request';
+import RunMultipleEvaluationsResponse from '@evaluation/model/response/run-multiple-evaluations.response';
 
 const conversationRepository = new ConversationRepository(ConversationModel);
 const simulationRepository = new SimulationRepository(SimulationModel);
@@ -35,6 +37,29 @@ async function run(req: Request, res: Response): Promise<void> {
 
     const evaluationConfig: RunEvaluationRequest = req.body as RunEvaluationRequest;
     const responseObject: RunEvaluationResponse = await evaluationService.runEvaluation(evaluationConfig);
+    res.status(200).send(responseObject);
+  } catch (error) {
+    res.status(500).json(INTERNAL_SERVER_ERROR(error));
+  }
+}
+
+/**
+ * Triggers the evaluation of multiple simulations and directly returns the results
+ * @param req - Request object (type RunMultipleEvaluationsRequest)
+ * @param res - Response object (type RunMultipleEvaluationsResponse)
+ * @throws Throws an internal server error if there is an issue with the operation.
+ */
+async function runMultiple(req: Request, res: Response): Promise<void> {
+  try {
+    const validationErrors = validationResult(req);
+    if (!validationErrors.isEmpty()) {
+      res.status(400).send({ error: validationErrors });
+      return;
+    }
+
+    const evaluationConfig: RunMultipleEvaluationsRequest = req.body as RunMultipleEvaluationsRequest;
+    const responseObject: RunMultipleEvaluationsResponse =
+      await evaluationService.runMultipleEvaluations(evaluationConfig);
     res.status(200).send(responseObject);
   } catch (error) {
     res.status(500).json(INTERNAL_SERVER_ERROR(error));
@@ -94,4 +119,4 @@ async function resultsForSimulation(req: Request, res: Response): Promise<void> 
   }
 }
 
-export default { run, resultsForConversation, resultsForSimulation };
+export default { run, resultsForConversation, resultsForSimulation, runMultiple };
