@@ -5,6 +5,7 @@ import repositoryFactory from '@db/repositories/factory';
 
 import { SimulationType } from '@enums/simulation-type.enum';
 import { SimulationStatus } from '@enums/simulation-status.enum';
+import { MsgSender } from '@enums/msg-sender.enum';
 
 import { SimulationSuccessGraphItem } from '@simulation/model/type/simulation-success-graph-item';
 
@@ -305,7 +306,7 @@ async function getConversation(id: string): Promise<any | null> {
       modifiedMessage.sender = message.sender;
       modifiedMessage.text = message.text;
       modifiedMessage.timestamp = message.timestamp;
-      modifiedMessage.userCanReply = true;
+      modifiedMessage.userCanReply = message.sender === MsgSender.AGENT;
       messages.push(modifiedMessage);
     }
     modifiedConversation._id = conversation.id;
