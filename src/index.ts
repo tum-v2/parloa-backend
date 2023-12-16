@@ -31,7 +31,7 @@ const app = express();
 
 app.use(
   cors({
-    origin: process.env.NODE_ENV === 'development' ? '*' : process.env.FRONTEND_URL,
+    origin: '*',
   }),
 );
 
@@ -65,7 +65,8 @@ app.get('/', (req: Request, res: Response) => {
 // Start server and connect to database
 const server = app.listen(port, async () => {
   await connectToDatabase();
-  logger.info(`Server running at http://localhost:${port}`);
+  //logger.info(`Server running at http://localhost:${port}`);
+  logger.info(`Server running...`);
 });
 
 export { app, server };

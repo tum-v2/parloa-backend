@@ -32,4 +32,3 @@ RUN npm run build
 
 # The application's port
 EXPOSE 3000
-
