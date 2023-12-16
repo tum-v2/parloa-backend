@@ -13,7 +13,9 @@ class SimulationValidator {
       body('type')
         .isIn(Object.values(SimulationType))
         .withMessage(`Invalid simulation type. Must be one of: ${Object.values(SimulationType).join(', ')}`),
-      body('numConversations').isInt().withMessage('Number of conversations must be a valid integer.'),
+      body('numConversations')
+        .isInt({ min: 1, max: 1 })
+        .withMessage('Number of conversations must be a valid integer between 1 and 100.'),
 
       // these are not required, but if they are present, they must be valid mongo IDs
       body('serviceAgentId').optional().isMongoId().withMessage('Service agent ID must be a valid ID.'),
