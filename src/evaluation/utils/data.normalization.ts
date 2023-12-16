@@ -4,6 +4,9 @@ const metricNormalizationFunctions: Map<MetricNameEnum, (score: number) => numbe
   [MetricNameEnum.SUCCESS, (score) => score],
   [MetricNameEnum.RESPONSE_TIME, normalizeResponseTime],
   [MetricNameEnum.MESSAGE_COUNT, normalizeMessageCount],
+  [MetricNameEnum.SIMILARITY, (result) => result],
+  [MetricNameEnum.RECOVERY_RATE, (result) => result],
+  [MetricNameEnum.SENTIMENT_ANALYSIS, normalizeSentimentAnalysis],
 ]);
 
 /**
@@ -15,6 +18,15 @@ const metricNormalizationFunctions: Map<MetricNameEnum, (score: number) => numbe
  */
 function minMaxNormalize(score: number, minScore: number, maxScore: number): number {
   return (score - minScore) / (maxScore - minScore);
+}
+
+/**
+ *
+ * @param score - the (not normalized) score
+ * @returns the normalized score in the interval [0,1] (using the sigmoid function)
+ */
+function sigmoidNormalize(score: number) {
+  return 1 / (1 + Math.exp(-score));
 }
 
 /**
@@ -40,6 +52,15 @@ function normalizeResponseTime(responseTime: number): number {
  */
 function normalizeMessageCount(numberOfMessages: number): number {
   return minMaxNormalize(numberOfMessages, 10, 0);
+}
+
+/**
+ * Normalizes the sentiment analysis metric
+ * @param score - non-normalized sentiment polarity
+ * @returns normalized sentiment polarity (between 0 and 1; the higher, the more positive)
+ */
+function normalizeSentimentAnalysis(score: number) {
+  return sigmoidNormalize(score);
 }
 
 export { metricNormalizationFunctions };
