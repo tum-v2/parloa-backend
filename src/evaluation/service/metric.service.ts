@@ -6,6 +6,7 @@ import { MessageDocument } from '@db/models/message.model';
 import { MetricRepository } from '@db/repositories/metric.repository';
 import { MetricDocument, MetricModel } from '@db/models/metric.model';
 import { ConversationDocument } from '@db/models/conversation.model';
+import { similarityHandler, recoveryHandler, sentimentHandler } from '@evaluation/service/evaluation.python-wrapper';
 
 import { metricWeightMap } from '@evaluation/utils/metric.config';
 import { metricNormalizationFunctions } from '@evaluation/utils/data.normalization';
@@ -96,6 +97,9 @@ const metricCalculationFunctions = new Map<
   [MetricNameEnum.SUCCESS, goalFulfilled],
   [MetricNameEnum.RESPONSE_TIME, calculateAverageResponseTime],
   [MetricNameEnum.MESSAGE_COUNT, countSteps],
+  [MetricNameEnum.SIMILARITY, calculateSimilarity],
+  [MetricNameEnum.RECOVERY_RATE, calculateRecoveryRate],
+  [MetricNameEnum.SENTIMENT_ANALYSIS, calculateSentimentAnalysis],
 ]);
 
 /**
@@ -157,6 +161,46 @@ function calculateAverageResponseTime(
   }
 
   return totalResponseTimeOfAgent / countAgentMessages;
+}
+
+/**
+ * Calculates the average similarity of the agent messages in a conversation.
+ * @param messages - The messages to calculate the similarity for.
+ * @param _usedEndpoints - The used endpoints from the conversation.
+ * @returns Similarity score of all agent messages.
+ */
+function calculateSimilarity(
+  messages: MessageDocument[],
+  _usedEndpoints: string[] /* eslint-disable-line @typescript-eslint/no-unused-vars*/,
+): number {
+  return similarityHandler(messages);
+}
+
+/**
+ * Calculates the average recovery rate after response timeouts of the agent in a conversation.
+ * @param messages - The messages to calculate the recovery rate for.
+ * @param _usedEndpoints - The used endpoints from the conversation.
+ * @returns Recovery rate of the agent.
+ */
+function calculateRecoveryRate(
+  messages: MessageDocument[],
+  _usedEndpoints: string[] /* eslint-disable-line @typescript-eslint/no-unused-vars*/,
+) {
+  return recoveryHandler(messages);
+}
+
+/**
+ * Calculates the average polarity of the agent in a conversation (negative or positive tone)
+ * @param messages - The messages to calculate the sentiment for.
+ * @param _usedEndpoints - The used endpoints from the conversation.
+ * @returns Sentiment polarity of the agent.
+ */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars, require-jsdoc
+function calculateSentimentAnalysis(
+  messages: MessageDocument[],
+  _usedEndpoints: string[] /* eslint-disable-line @typescript-eslint/no-unused-vars*/,
+) {
+  return sentimentHandler(messages);
 }
 
 export default { initialize, calculateAllMetrics, calculateWeightedAverage, calculateEqualAverage };
