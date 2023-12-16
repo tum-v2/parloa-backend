@@ -1,5 +1,8 @@
 import request, { Response } from 'supertest';
+import dotenv from 'dotenv';
+dotenv.config();
 
+const HOSTNAME = `http://localhost:${process.env.NODE_DOCKER_PORT}`;
 
 let validSimulationId = '';
 let deleteValidSimulationId = '';
@@ -168,9 +171,9 @@ describe('POST /api/v1/simulation/run', () => {
   let invalidResponse2: Response;
 
   beforeEach(async () => {
-    validResponse = await request('http://localhost:3000').post('/api/v1/simulation/run').send(validInputRun);
-    invalidResponse = await request('http://localhost:3000').post('/api/v1/simulation/run').send(invalidInputRun);
-    invalidResponse2 = await request('http://localhost:3000').post('/api/v1/simulation/run').send(invalidInput2Run);
+    validResponse = await request(HOSTNAME).post('/api/v1/simulation/run').send(validInputRun);
+    invalidResponse = await request(HOSTNAME).post('/api/v1/simulation/run').send(invalidInputRun);
+    invalidResponse2 = await request(HOSTNAME).post('/api/v1/simulation/run').send(invalidInput2Run);
   });
 
   afterEach(() => {
@@ -198,13 +201,9 @@ describe('POST /api/v1/simulation/abtesting/run', () => {
   let invalidResponse2: Response;
 
   beforeEach(async () => {
-    validResponse = await request('http://localhost:3000').post('/api/v1/simulation/abtesting/run').send(validInputAB);
-    invalidResponse = await request('http://localhost:3000')
-      .post('/api/v1/simulation/abtesting/run')
-      .send(invalidInputAB);
-    invalidResponse2 = await request('http://localhost:3000')
-      .post('/api/v1/simulation/abtesting/run')
-      .send(invalidInputAB2);
+    validResponse = await request(HOSTNAME).post('/api/v1/simulation/abtesting/run').send(validInputAB);
+    invalidResponse = await request(HOSTNAME).post('/api/v1/simulation/abtesting/run').send(invalidInputAB);
+    invalidResponse2 = await request(HOSTNAME).post('/api/v1/simulation/abtesting/run').send(invalidInputAB2);
   });
 
   afterEach(() => {
@@ -230,7 +229,7 @@ describe('GET /api/v1/simulation/all', () => {
   let validResponse: Response;
 
   beforeEach(async () => {
-    validResponse = await request('http://localhost:3000').get(`/api/v1/simulation/all`);
+    validResponse = await request(HOSTNAME).get(`/api/v1/simulation/all`);
     validSimulationId = validResponse.body[0]._id;
     deleteValidSimulationId = validResponse.body[1]._id;
 
@@ -257,8 +256,8 @@ describe('GET /api/v1/simulation/:id', () => {
   let invalidResponse: Response;
 
   beforeEach(async () => {
-    validResponse = await request('http://localhost:3000').get(`/api/v1/simulation/${validSimulationId}`);
-    invalidResponse = await request('http://localhost:3000').get(`/api/v1/simulation/${invalidSimulationId}`);
+    validResponse = await request(HOSTNAME).get(`/api/v1/simulation/${validSimulationId}`);
+    invalidResponse = await request(HOSTNAME).get(`/api/v1/simulation/${invalidSimulationId}`);
   });
 
   afterEach(() => {
@@ -280,10 +279,8 @@ describe('GET /api/v1/simulation/conversation/:id', () => {
   let invalidResponse: Response;
 
   beforeEach(async () => {
-    validResponse = await request('http://localhost:3000').get(`/api/v1/simulation/conversation/${validConversation}`);
-    invalidResponse = await request('http://localhost:3000').get(
-      `/api/v1/simulation/conversation/${invalidSimulationId}`,
-    );
+    validResponse = await request(HOSTNAME).get(`/api/v1/simulation/conversation/${validConversation}`);
+    invalidResponse = await request(HOSTNAME).get(`/api/v1/simulation/conversation/${invalidSimulationId}`);
   });
 
   afterEach(() => {
@@ -308,10 +305,10 @@ describe('PUT /api/v1/simulation/:id', () => {
     const obj = {
       name: 'test',
     };
-    validResponse = await request('http://localhost:3000').put(`/api/v1/simulation/${validSimulationId}`).send(obj);
+    validResponse = await request(HOSTNAME).put(`/api/v1/simulation/${validSimulationId}`).send(obj);
 
     // was failing because the domain type couldn't pass the validation check
-    invalidResponse = await request('http://localhost:3000').put(`/api/v1/simulation/${invalidSimulationId}`).send(obj);
+    invalidResponse = await request(HOSTNAME).put(`/api/v1/simulation/${invalidSimulationId}`).send(obj);
   });
 
   afterEach(() => {
@@ -333,8 +330,8 @@ describe('DELETE /api/v1/simulation/:id', () => {
   let invalidResponse: Response;
 
   beforeEach(async () => {
-    validResponse = await request('http://localhost:3000').delete(`/api/v1/simulation/${deleteValidSimulationId}`);
-    invalidResponse = await request('http://localhost:3000').delete(`/api/v1/simulation/${invalidSimulationId}`);
+    validResponse = await request(HOSTNAME).delete(`/api/v1/simulation/${deleteValidSimulationId}`);
+    invalidResponse = await request(HOSTNAME).delete(`/api/v1/simulation/${invalidSimulationId}`);
   });
 
   afterEach(() => {
