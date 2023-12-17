@@ -25,11 +25,6 @@ class EvaluationRepository extends BaseRepository<EvaluationDocument> {
           },
         },
       });
-
-      if (!simulation.conversations) {
-        throw new Error('evaluation.repository#30: simulation.conversations is undefined');
-      }
-
       return (simulation.conversations as ConversationDocument[]).map(
         (conversation) => conversation.evaluation,
       ) as EvaluationDocumentWithConversation[];
