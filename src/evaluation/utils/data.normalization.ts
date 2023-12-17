@@ -60,7 +60,8 @@ function normalizeMessageCount(numberOfMessages: number): number {
  * @returns normalized sentiment polarity (between 0 and 1; the higher, the more positive)
  */
 function normalizeSentimentAnalysis(score: number) {
-  return sigmoidNormalize(score);
+  const scalingFactor = 5;
+  return sigmoidNormalize(scalingFactor * score);
 }
 
 export { metricNormalizationFunctions };
