@@ -2,22 +2,34 @@ import { BaseRepository } from '@db/repositories/base.repository';
 import { EvaluationDocument, EvaluationDocumentWithConversation } from '@db/models/evaluation.model';
 import { Model } from 'mongoose';
 import { logger } from '@utils/logger';
+import { SimulationDocument } from '@db/models/simulation.model';
+import { ConversationDocument } from '@db/models/conversation.model';
 
 class EvaluationRepository extends BaseRepository<EvaluationDocument> {
   constructor(model: Model<EvaluationDocument>) {
     super(model);
   }
 
-  async findConversationEvaluationsBySimulation(simulationID: string): Promise<EvaluationDocumentWithConversation[]> {
+  async findConversationEvaluationsBySimulation(
+    simulation: SimulationDocument,
+  ): Promise<EvaluationDocumentWithConversation[]> {
     try {
-      const result: EvaluationDocumentWithConversation[] = await this.model.find({
-        simulation: simulationID,
-        conversation: { $ne: null },
+      simulation = await simulation.populate({
+        path: 'conversations',
+        populate: {
+          path: 'evaluation',
+          model: 'Evaluation',
+          populate: {
+            path: 'metrics',
+            model: 'Metric',
+          },
+        },
       });
-      const promises = result.map((evaluation) => evaluation.populate('metrics'));
-      return await Promise.all(promises);
+      return (simulation.conversations as ConversationDocument[]).map(
+        (conversation) => conversation.evaluation,
+      ) as EvaluationDocumentWithConversation[];
     } catch (error) {
-      logger.error(`Error fetching evaluations by simulation id ${simulationID}`);
+      logger.error(`Error fetching evaluations by simulation id ${simulation.id}`);
       throw error;
     }
   }

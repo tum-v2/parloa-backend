@@ -29,6 +29,13 @@ router.post(
   CustomValidationError.handleValidationErrors,
   evaluationController.run,
 );
+
+router.post(
+  '/simulations',
+  evaluationValidator.runMultipleValidation(),
+  CustomValidationError.handleValidationErrors,
+  evaluationController.runMultiple,
+);
 // endregion POST //
 
 export default router;
