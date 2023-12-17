@@ -194,6 +194,21 @@ async function run(
         conversation._id,
       );
       await simulationRepository.updateById(simulation._id, simulation);
+      const evaluationRequest: RunEvaluationRequest = {
+        conversation: conversation._id.toString(),
+        simulation: simulation._id,
+        isLast: false,
+        optimization: optimization,
+      };
+      if (i === numConversations - 1) {
+        evaluationRequest.isLast = true;
+        await evaluationService.runEvaluation(evaluationRequest);
+        if (optimization !== null) {
+          optimizationService.handleSimulationOver(optimization);
+        }
+      } else {
+        evaluationService.runEvaluation(evaluationRequest);
+      }
     }
     const simulationEnd = new Date();
     simulation.duration = (simulationEnd.getTime() - simulationStart.getTime()) / 1000;
@@ -212,25 +227,6 @@ async function run(
     }
 
     return;
-  }
-
-  for (let i = 0; i < conversations.length; i++) {
-    const evaluationRequest: RunEvaluationRequest = {
-      conversation: conversations[i].toString(),
-      simulation: simulation._id,
-      isLast: false,
-      optimization: optimization,
-    };
-
-    if (i === numConversations - 1) {
-      evaluationRequest.isLast = true;
-      await evaluationService.runEvaluation(evaluationRequest);
-      if (optimization !== null) {
-        optimizationService.handleSimulationOver(optimization);
-      }
-    } else {
-      evaluationService.runEvaluation(evaluationRequest);
-    }
   }
 }
 
