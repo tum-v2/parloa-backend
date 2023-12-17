@@ -31,7 +31,7 @@ router.post(
 );
 
 router.post(
-  '/run-multiple',
+  '/simulations',
   evaluationValidator.runMultipleValidation(),
   CustomValidationError.handleValidationErrors,
   evaluationController.runMultiple,
