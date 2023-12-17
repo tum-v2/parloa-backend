@@ -24,10 +24,6 @@ const metricRepository = new MetricRepository(MetricModel);
 async function calculateAllMetrics(conversation: ConversationDocument): Promise<MetricDocument[]> {
   const messages = (await conversation.populate('messages')).messages as MessageDocument[];
 
-  if (!Object.values(MetricNameEnum)) {
-    throw new Error('metric.service#28: Object.values(MetricNameenum) is undefined');
-  }
-
   const promises = Object.values(MetricNameEnum).map((metricName) => {
     const calculationFunction = metricCalculationFunctions.get(metricName);
     const normalizeFunction = metricNormalizationFunctions.get(metricName);
