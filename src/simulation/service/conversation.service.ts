@@ -380,7 +380,7 @@ export async function runConversation(
     status: ConversationStatus.ONGOING,
     usedEndpoints: undefined,
   });
-  // creates all important files needed for this conversation: e.g.
+  // creates all important files needed for this conversation: e.g. log files
   setupPath();
 
   // configure service and user agents with the request data

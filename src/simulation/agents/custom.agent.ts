@@ -115,9 +115,9 @@ export class CustomAgent {
     return this.config.welcomeMessage;
   }
 
-  async processHumanInput(humanInput: string, id: string | null = null): Promise<string> {
+  async processHumanInput(humanInput: string): Promise<string> {
     const lcMsg: BaseMessage = await this.getHumanPrompt(humanInput);
-    const msg = new MsgHistoryItem(lcMsg, MsgType.HUMANINPUT, humanInput, id ?? undefined);
+    const msg = new MsgHistoryItem(lcMsg, MsgType.HUMANINPUT, humanInput, undefined);
     await this.addMessage(msg);
 
     let response: Record<string, any> = {};
@@ -150,7 +150,7 @@ export class CustomAgent {
             undefined,
             undefined,
             undefined,
-            id!,
+            undefined,
           ),
         );
         break;
@@ -172,7 +172,7 @@ export class CustomAgent {
             action,
             actionInput!,
             undefined,
-            id!,
+            undefined,
           ),
         );
         break;
@@ -195,7 +195,7 @@ export class CustomAgent {
             action,
             actionInput!,
             undefined,
-            id!,
+            undefined,
           ),
         );
 
@@ -213,12 +213,12 @@ export class CustomAgent {
             action,
             undefined,
             toolOutput,
-            id!,
+            undefined,
           ),
         );
       }
     }
-    return String(actionInput); // type: ignore[reportGeneralTypeIssues] -- we raise in while loop but Pylance doesn't spot
+    return String(actionInput);
   }
 
   getSystemPrompt() {
@@ -313,73 +313,88 @@ export class CustomAgent {
     }
   }
 
-  async getFixedJson(inputBaseMessage: BaseMessage, id: string | null = null) {
+  async getFixedJson(inputBaseMessage: BaseMessage) {
     let count = 0;
     const maxCount = 5;
-    let baseMesage = inputBaseMessage;
-    let input = inputBaseMessage.content.toString();
+    let baseMessage = inputBaseMessage;
+
+    // get the text from basemessage
+    let text: string = inputBaseMessage.content.toString();
+
+    // the reprompting/fixing loop that tries to get the input in a good formate
     while (count++ < maxCount) {
       try {
-        const parsed = JSON.parse(input);
+        //  try to parse the text
+        const parsed: string = JSON.parse(text);
         return parsed;
       } catch (error) {
-        const firstBraceIndex = input.indexOf('{');
-
-        if (firstBraceIndex !== -1) {
-          input = input.substring(firstBraceIndex);
-        }
-
-        let fixedText = input.trim().replace(/"/g, '').replace('{', '').replace('}', '');
-        fixedText = '{' + fixedText;
-        fixedText = fixedText + '"}';
-
-        fixedText = fixedText.replace(/(\w+):/g, '"$1":');
-        fixedText = fixedText.replace(/: (?!")/g, ': "');
-        fixedText = fixedText.replace(/(?<!{)\s*"(\w+)":/g, '","$1":');
-        fixedText = fixedText.replace(/""/g, '"');
+        // try to fix the format with a simple algorithm
+        const fixedText = this.simpleJsonFix(text);
 
         try {
+          // try to parse the fixed
           const parsed = JSON.parse(fixedText);
-          console.log('fixed Text: \n' + fixedText);
           return parsed;
         } catch (exc) {
-          //console.log('failed fix asking ai: \n' + fixedText + ' count: ' + count);
-          console.log(`${Colors.GREY} JSONFIXER Reprompt input: ` + input + `${Colors.END}`);
-
-          await this.addMessage(
-            new MsgHistoryItem(
-              inputBaseMessage,
-              MsgType.TOOLCALL,
-              undefined,
-              inputBaseMessage.content.toString(),
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              id!,
-            ),
-          );
-
-          const msg = `JSON: Couldn't read your output. Remember to print only proper json! The format looks like this.  {"thought":"fill your thoughts here", "action":"your action e.g. message_to_user, auth ..","action_input": "either text" or input for tools: {}}. Only send the json blib in the brackets, nothing before or after!`;
-          await this.addMessage(
-            new MsgHistoryItem(
-              await this.getHumanPrompt(msg),
-              MsgType.TOOLOUTPUT,
-              undefined,
-              undefined,
-              undefined,
-              'error',
-              undefined,
-              msg,
-              id!,
-            ),
-          );
-          const messages: BaseMessage[] = this.messageHistory.map((msg) => msg.lcMsg);
-          baseMesage = await this.chatModel.call(messages);
-
-          input = baseMesage.content.toString();
+          // try to fix the json format by reprompting the language model
+          baseMessage = await this.repromptJsonFix(fixedText, baseMessage, id);
+          text = baseMessage.content.toString();
         }
       }
     }
+  }
+
+  simpleJsonFix(input: string): string {
+    const firstBraceIndex = input.indexOf('{');
+
+    if (firstBraceIndex !== -1) {
+      input = input.substring(firstBraceIndex);
+    }
+
+    let fixedText = input.trim().replace(/"/g, '').replace('{', '').replace('}', '');
+    fixedText = '{' + fixedText;
+    fixedText = fixedText + '"}';
+
+    fixedText = fixedText.replace(/(\w+):/g, '"$1":');
+    fixedText = fixedText.replace(/: (?!")/g, ': "');
+    fixedText = fixedText.replace(/(?<!{)\s*"(\w+)":/g, '","$1":');
+    fixedText = fixedText.replace(/""/g, '"');
+    return fixedText;
+  }
+
+  async repromptJsonFix(input: string, baseMessage: BaseMessage): Promise<BaseMessage> {
+    // add input message to history
+    await this.addMessage(
+      new MsgHistoryItem(
+        baseMessage,
+        MsgType.TOOLCALL,
+        undefined,
+        baseMessage.content.toString(),
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+      ),
+    );
+
+    // create a new message, asking the model to adjust the output
+    const msg = `JSON: Couldn't read your output. Remember to print only proper json! The format looks like this.  {"thought":"fill your thoughts here", "action":"your action e.g. message_to_user, auth ..","action_input": "either text" or input for tools: {}}. Only send the json blib in the brackets, nothing before or after!`;
+    await this.addMessage(
+      new MsgHistoryItem(
+        await this.getHumanPrompt(msg),
+        MsgType.TOOLOUTPUT,
+        undefined,
+        undefined,
+        undefined,
+        'error',
+        undefined,
+        msg,
+        undefined,
+      ),
+    );
+    // call the language model with the new messages
+    const messages: BaseMessage[] = this.messageHistory.map((msg) => msg.lcMsg);
+    return await this.chatModel.call(messages);
   }
 }
