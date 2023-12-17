@@ -38,7 +38,7 @@ let gpt4openApiKey: string | undefined;
 let gpt4azureApiInstanceName: string | undefined;
 let gpt4azureApiVersion: string | undefined;
 
-setup();
+setOpenAIVariables();
 
 /**
  * Initializes the application by setting up the necessary environment variables for Azure OpenAI.
@@ -55,7 +55,7 @@ setup();
  *
  * @throws Error If any of the required environment variables are not set.
  */
-function setup() {
+function setOpenAIVariables() {
   gpt35openApiKey = process.env.AZURE_OPENAI_API_KEY;
   if (gpt35openApiKey === undefined) throw new Error('AZURE_OPENAI_API_KEY Needs to be specified');
 
@@ -75,12 +75,16 @@ function setup() {
   if (gpt4azureApiVersion === undefined) throw new Error('AZURE_OPENAI_4_API_VERSION Needs to be specified');
 }
 
+// create a timestamp and adapt the format for the log files
 const timeStamp = new Date()
   .toISOString()
   .replace(/[-T:\\.]/g, '')
   .substring(0, 15);
 
+// path of the directory for the log files
 const logsDirectory = './message_logs/';
+
+// paths of the log files
 const SERVICE_PROMPT_LOG_FILE_PATH = path.join(logsDirectory, timeStamp + '-SIM-AGENT-PROMPTS.txt');
 const SERVICE_CHAT_LOG_FILE_PATH = path.join(logsDirectory, timeStamp + '-SIM-AGENT-CHAT.txt');
 const USER_PROMPT_LOG_FILE_PATH = path.join(logsDirectory, timeStamp + '-SIM-HUMAN-PROMPTS.txt');
@@ -143,7 +147,7 @@ function createFile(filePath: string) {
  * @param temperature - The temperature for the model.
  * @param maxTokens - The maximum number of tokens for the model.
  *
- * @returns - An object containing the model configuration.
+ * @returns - An object containing the ChatOpenAI model configuration.
  *
  * @throws Error if the provided model name is not supported.
  */
@@ -157,6 +161,7 @@ function setModelConfig(
   let azureOpenAIApiInstanceName: string | undefined;
   let azureOpenAIApiVersion: string | undefined;
 
+  // check which model is used and set the corresponding variables
   if (modelName === LLMModel.GPT35 || modelName === LLMModel.GPT35TURBO) {
     azureOpenAIApiKey = gpt35openApiKey;
     azureOpenAIApiInstanceName = gpt35azureApiInstanceName;
@@ -175,6 +180,7 @@ function setModelConfig(
     throw new Error('LLM Model not supported');
   }
 
+  // set the model configuration that is later passed when creating the ChatOpenAI model
   const azureOpenAIInput: Partial<OpenAIChatInput> & Partial<AzureOpenAIInput> & BaseChatModelParams = {
     modelName: azureOpenAIApiDeploymentName,
     azureOpenAIApiDeploymentName: azureOpenAIApiDeploymentName,
@@ -184,7 +190,6 @@ function setModelConfig(
     azureOpenAIApiVersion: azureOpenAIApiVersion,
     maxTokens: maxTokens,
   };
-  console.log(azureOpenAIInput);
   return azureOpenAIInput;
 }
 
@@ -199,34 +204,16 @@ export async function configureServiceAgent(
   agentData: AgentDocument,
   messageHistory?: MsgHistoryItem[],
 ): Promise<CustomAgent> {
-  let modelName: string;
-  let temperature: number;
-  let maxTokens: number;
-
-  if (agentData.llm === undefined) {
-    modelName = flightBookingAgentConfig.modelName;
-  } else {
-    modelName = agentData.llm;
-  }
-  if (agentData.temperature === undefined) {
-    temperature = flightBookingAgentConfig.temperature;
-  } else {
-    temperature = agentData.temperature;
-  }
-  if (agentData.maxTokens === undefined) {
-    maxTokens = 1;
-  } else {
-    maxTokens = agentData.maxTokens;
-  }
-
   let agentLLM: BaseChatModel;
+  // either create a fake agent or an agent with the provided model configuration
   if (agentData.llm === LLMModel.FAKE && isDev === 'true') {
     agentLLM = new FakeListChatModel({ responses: fakeServiceAgentResponses, sleep: 100 });
   } else {
-    const azureOpenAIInput = setModelConfig(modelName, temperature, maxTokens);
+    const azureOpenAIInput = setModelConfig(agentData.llm, agentData.temperature, agentData.maxTokens);
     agentLLM = new ChatOpenAI(azureOpenAIInput);
   }
 
+  // either use a default persona or the provided persona
   if (agentData.prompt !== 'default') {
     flightBookingAgentConfig.persona = agentData.prompt;
   } else {
@@ -235,6 +222,7 @@ export async function configureServiceAgent(
     `;
   }
 
+  // create the service agent
   const serviceAgent: CustomAgent = new CustomAgent(
     agentLLM,
     flightBookingAgentConfig,
@@ -257,35 +245,19 @@ export async function configureServiceAgent(
  * @returns - A promise that resolves to a CustomAgent object.
  */
 async function configureUserAgent(agentData: AgentDocument): Promise<CustomAgent> {
-  let modelName: string;
-  let temperature: number;
-  let maxTokens: number;
-
-  const userSimConfig = getSimConfig(agentData.prompt);
-  if (agentData.llm === undefined) {
-    modelName = userSimConfig.modelName;
-  } else {
-    modelName = agentData.llm;
-  }
-  if (agentData.temperature === undefined) {
-    temperature = userSimConfig.temperature;
-  } else {
-    temperature = agentData.temperature;
-  }
-  if (agentData.maxTokens === undefined) {
-    maxTokens = 1;
-  } else {
-    maxTokens = agentData.maxTokens;
-  }
-
   let userLLM: BaseChatModel;
+  // either create a fake agent or an agent with the provided model configuration
   if (agentData.llm === LLMModel.FAKE && isDev === 'true') {
     userLLM = new FakeListChatModel({ responses: fakeUserAgentResponses, sleep: 100 });
   } else {
-    const azureOpenAIInput = setModelConfig(modelName, temperature, maxTokens);
+    const azureOpenAIInput = setModelConfig(agentData.llm, agentData.temperature, agentData.maxTokens);
     userLLM = new ChatOpenAI(azureOpenAIInput);
   }
 
+  // get the user agent configuration
+  const userSimConfig = getSimConfig(agentData.prompt);
+
+  // create the user agent
   const userAgent: CustomAgent = new CustomAgent(
     userLLM,
     userSimConfig,
@@ -316,6 +288,7 @@ export async function createMessageDocument(
   let sender: MsgSender;
   let text: string;
 
+  // set the sender and add the sender in the beginning of the message for a better overview depending on the message type
   if (msg.type === MsgType.SYSTEMPROMPT) {
     sender = MsgSender.AGENT;
     text = `AGENT: ${welcomeMessage}`;
@@ -344,6 +317,7 @@ export async function createMessageDocument(
     throw new Error(`Unknown message type: ${msg.type}`);
   }
 
+  // create the message document
   const message: MessageDocument = await messageRepository.create({
     sender: sender,
     text: text,
