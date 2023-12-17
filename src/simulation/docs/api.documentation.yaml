@@ -3,7 +3,7 @@ info:
   title: API
   version: 1.0.0
 tags:
-  - name: Login
+  - name: Authentication
   - name: Dashboard
   - name: Simulation
   - name: Agent
@@ -12,8 +12,8 @@ tags:
 paths:
   /api/v1/auth/login:
     post:
-      summary: Start a new simulation
-      tags: [Login]
+      summary: Log in
+      tags: [Authentication]
       requestBody:
         required: true
         content:
@@ -169,7 +169,7 @@ paths:
                     example: Error
   /api/v1/simulation/run:
     post:
-      summary: Start a new simulation
+      summary: Start new automated simulation
       tags: [Simulation]
       requestBody:
         required: true
@@ -408,6 +408,61 @@ paths:
                   error:
                     type: string
                     example: "Simulation 1 not found!"
+        500:
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: string
+                    example: INTERNAL_SERVER_ERROR
+                  message:
+                    type: string
+                    example: Internal server error occurred
+                  details:
+                    type: string
+                    example: Error
+  /api/v1/simulation/abtesting/run:
+    post:
+      summary: Start new automated simulation
+      tags: [Simulation]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ABSimulationRequest"
+      responses:
+        201:
+          description: Simulation successfully created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResponseRunSimulation"
+        400:
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                        example: "VALIDATION_ERROR"
+                      message:
+                        type: string
+                        example: "API Input Validation failed"
+                      errors:
+                        type: array
+                        items:
+                          type: string
+                        example:
+                          - "Invalid simulation ID."
         500:
           description: Internal Server Error
           content:
@@ -1599,6 +1654,81 @@ components:
             name:
               type: string
               example: "TEST USER AGENT"
+            llm:
+              type: string
+              example: "FAKE"
+            temperature:
+              type: number
+              example: 0
+            maxTokens:
+              type: number
+              example: 256
+            prompt:
+              type: string
+              example: "sarcastic"
+    ABSimulationRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          example: "AB"
+        description:
+          type: string
+          example: "AB TESTING"
+        numConversations:
+          type: number
+          example: 1
+        serviceAgentAConfig:
+          type: object
+          properties:
+            name:
+              type: string
+              example: "Temp service agent"
+            domain:
+              type: string
+              example: "FLIGHT"
+            llm:
+              type: string
+              example: "FAKE"
+            temperature:
+              type: number
+              example: 0
+            maxTokens:
+              type: number
+              example: 256
+            prompt:
+              type: string
+              example: "default"
+        serviceAgentBConfig:
+          type: object
+          properties:
+            name:
+              type: string
+              example: "Temp service agent"
+            domain:
+              type: string
+              example: "FLIGHT"
+            llm:
+              type: string
+              example: "FAKE"
+            temperature:
+              type: number
+              example: 0
+            maxTokens:
+              type: number
+              example: 256
+            prompt:
+              type: string
+              example: "default"
+        userAgentConfig:
+          type: object
+          properties:
+            name:
+              type: string
+              example: "Temp user agent"
+            domain:
+              type: string
+              example: "FLIGHT"
             llm:
               type: string
               example: "FAKE"
