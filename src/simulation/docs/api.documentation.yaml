@@ -96,16 +96,16 @@ paths:
                     type: array
                     items:
                       oneOf:
-                        - $ref: "#/components/schemas/SimulationDocument"
-                        - $ref: "#/components/schemas/SimulationDocument"
-                        - $ref: "#/components/schemas/SimulationDocument"
-                        - $ref: "#/components/schemas/SimulationDocument"
-                        - $ref: "#/components/schemas/SimulationDocument"
-                        - $ref: "#/components/schemas/SimulationDocument"
-                        - $ref: "#/components/schemas/SimulationDocument"
-                        - $ref: "#/components/schemas/SimulationDocument"
-                        - $ref: "#/components/schemas/SimulationDocument"
-                        - $ref: "#/components/schemas/SimulationDocument"
+                        - $ref: "#/components/schemas/DashboardSimulation"
+                        - $ref: "#/components/schemas/DashboardSimulation"
+                        - $ref: "#/components/schemas/DashboardSimulation"
+                        - $ref: "#/components/schemas/DashboardSimulation"
+                        - $ref: "#/components/schemas/DashboardSimulation"
+                        - $ref: "#/components/schemas/DashboardSimulation"
+                        - $ref: "#/components/schemas/DashboardSimulation"
+                        - $ref: "#/components/schemas/DashboardSimulation"
+                        - $ref: "#/components/schemas/DashboardSimulation"
+                        - $ref: "#/components/schemas/DashboardSimulation"
         400:
           description: Bad Request
           content:
@@ -1741,3 +1741,22 @@ components:
             prompt:
               type: string
               example: "sarcastic"
+    DashboardSimulation:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: "657dc923c9719207ba80b496"
+        name:
+          type: string
+          example: "3"
+        createdAt:
+          type: string
+          format: date-time
+          example: "2023-12-16T15:58:27.970Z"
+        successRate:
+          type: number
+          example: 0.8996585185185185
+        domain:
+          type: string
+          example: "FLIGHT"
