@@ -115,6 +115,12 @@ export class CustomAgent {
     return this.config.welcomeMessage;
   }
 
+  /**
+   * reprompt the ai to get proper json
+   * @param baseMessage - the message that needs to be fixed
+   * @returns A new BaseMessage that hopefully works
+   * @throws Errors for AI issues
+   */
   async processHumanInput(humanInput: string): Promise<string> {
     const lcMsg: BaseMessage = await this.getHumanPrompt(humanInput);
     const msg = new MsgHistoryItem(lcMsg, MsgType.HUMANINPUT, humanInput, undefined);
@@ -313,19 +319,25 @@ export class CustomAgent {
     }
   }
 
-  async getFixedJson(inputBaseMessage: BaseMessage) {
-    let count = 0;
-    const maxCount = 5;
-    let baseMessage = inputBaseMessage;
+  /**
+   * try to bring the message into proper json format
+   * @param inputBaseMessage - the input base message
+   * @param maxReprompts - number of max reprompts allowed
+   * @returns A promise that resolves to json object
+   * @throws Throws an error if it wasn't able to create proper json after maxCount times
+   */
+  async getFixedJson(inputBaseMessage: BaseMessage, maxReprompts: number = 5): Promise<any> {
+    let count: number = 0;
+    let baseMessage: BaseMessage = inputBaseMessage;
 
     // get the text from basemessage
     let text: string = inputBaseMessage.content.toString();
 
-    // the reprompting/fixing loop that tries to get the input in a good formate
-    while (count++ < maxCount) {
+    // the reprompting/fixing loop that tries to get the input in a valid formate
+    while (count++ < maxReprompts) {
       try {
         //  try to parse the text
-        const parsed: string = JSON.parse(text);
+        const parsed = JSON.parse(text);
         return parsed;
       } catch (error) {
         // try to fix the format with a simple algorithm
@@ -337,32 +349,46 @@ export class CustomAgent {
           return parsed;
         } catch (exc) {
           // try to fix the json format by reprompting the language model
-          baseMessage = await this.repromptJsonFix(fixedText, baseMessage, id);
+          baseMessage = await this.repromptJsonFix(baseMessage);
           text = baseMessage.content.toString();
         }
       }
     }
+    throw Error('Tried ${count} times to create proper json but failed with ' + text);
   }
 
+  /**
+   * fix the json string with a simple algorithm
+   * @param input - the string that needs to be fixed
+   * @returns the fixed string
+   */
   simpleJsonFix(input: string): string {
+    // remove white space
     const firstBraceIndex = input.indexOf('{');
-
     if (firstBraceIndex !== -1) {
       input = input.substring(firstBraceIndex);
     }
 
+    //replace all ", {, }
     let fixedText = input.trim().replace(/"/g, '').replace('{', '').replace('}', '');
+
+    // manually add brackets
     fixedText = '{' + fixedText;
     fixedText = fixedText + '"}';
 
+    // manually add "" and ,
     fixedText = fixedText.replace(/(\w+):/g, '"$1":');
     fixedText = fixedText.replace(/: (?!")/g, ': "');
     fixedText = fixedText.replace(/(?<!{)\s*"(\w+)":/g, '","$1":');
     fixedText = fixedText.replace(/""/g, '"');
     return fixedText;
   }
-
-  async repromptJsonFix(input: string, baseMessage: BaseMessage): Promise<BaseMessage> {
+  /**
+   * reprompt the ai to get proper json
+   * @param baseMessage - the message that needs to be fixed
+   * @returns A new BaseMessage that hopefully works
+   */
+  async repromptJsonFix(baseMessage: BaseMessage): Promise<BaseMessage> {
     // add input message to history
     await this.addMessage(
       new MsgHistoryItem(
