@@ -68,6 +68,10 @@ async function runEvaluation(request: RunEvaluationRequest): Promise<RunEvaluati
 async function runMultipleEvaluations(
   request: RunMultipleEvaluationsRequest,
 ): Promise<EvaluationExecutedWithConversation[]> {
+  if (!request || !request.simulations) {
+    throw new Error('evaluation.service#72: request or request.simulations is undefined');
+  }
+
   const promises: Promise<Promise<EvaluationExecutedWithConversation>[]>[] = request.simulations.map(
     async (simulationID) => {
       const simulation: SimulationDocument | null = await simulationService.poll(simulationID);
@@ -77,6 +81,10 @@ async function runMultipleEvaluations(
       }
 
       const conversations = (await simulation.populate('conversations')).conversations as ConversationDocument[];
+
+      if (!conversations) {
+        throw new Error('evaluation.service#86: conversations is undefined');
+      }
 
       return conversations.map(async (conversation, indx) => {
         const runRequest: RunEvaluationRequest = {
@@ -148,7 +156,16 @@ async function initiate(
  */
 async function runEvaluationForSimulation(simulation: SimulationDocument): Promise<EvaluationDocument> {
   const conversationEvaluations = await evaluationRepository.findConversationEvaluationsBySimulation(simulation);
+
+  if (!conversationEvaluations) {
+    throw new Error('evaluation.service#161: conversationEvaluations is undefined');
+  }
+
   const allMetrics: MetricDocument[] = conversationEvaluations.map((c) => c.metrics).flat() as MetricDocument[];
+
+  if (!Object.values(MetricNameEnum)) {
+    throw new Error('evaluation.service#167: Object.values(MetricNameEnum) is undefined');
+  }
 
   const promises: Promise<MetricDocument>[] = Object.values(MetricNameEnum).map((metricName) => {
     const filteredMetrics = allMetrics.filter((metric) => metric.name === metricName);
@@ -194,6 +211,11 @@ async function getResultsForConversation(conversation: ConversationDocument): Pr
 async function getResultsForSimulation(simulation: SimulationDocument): Promise<EvaluationResultForSimulation> {
   const evaluations: EvaluationDocumentWithConversation[] =
     await evaluationRepository.findConversationEvaluationsBySimulation(simulation);
+
+  if (!evaluations) {
+    throw new Error('evaluation.service#216: evaluations is undefined');
+  }
+
   const conversationScores = evaluations
     .map((evaluation) => {
       return {
@@ -248,6 +270,10 @@ function getEvaluationResults(evaluation: EvaluationDocument): EvaluationResultF
  * @returns EvaluationExecuted -  Evaluation results.
  */
 function getExecuteEvaluationResults(evaluation: EvaluationDocument): Omit<EvaluationExecuted, 'status'> {
+  if (!evaluation.metrics) {
+    throw new Error('evaluation.service#274: evaluation.metrics is undefined');
+  }
+
   return {
     score: evaluation.successRate,
     metrics: evaluation.metrics.map((metric) => {
