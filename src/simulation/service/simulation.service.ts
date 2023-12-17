@@ -82,12 +82,12 @@ async function initiate(
 
 /**
  * Creates a simulation object and initiates the simulation.
- * @param request - The simulation configuration.
+ * @param request - The AB testing configuration.
  * @returns A promise that resolves to a simulation[].
  * @throws Throws an error if there is an issue with the MongoDB query.
  */
 async function initiateAB(request: RunABTestingRequest): Promise<SimulationDocument[]> {
-  console.log('Simulation initiated...');
+  console.log('AB Test initiated...');
   console.log('Configuration:', request);
 
   let userAgent: AgentDocument | null = null;
@@ -101,14 +101,14 @@ async function initiateAB(request: RunABTestingRequest): Promise<SimulationDocum
   } else if (request.serviceAgentAId !== undefined) {
     serviceAgentA = await agentRepository.getById(request.serviceAgentAId!);
   }
-  
+
   if (request.serviceAgentBConfig !== undefined) {
     request.serviceAgentBConfig.temporary = true;
     serviceAgentB = await agentRepository.create(request.serviceAgentBConfig!);
   } else if (request.serviceAgentBId !== undefined) {
     serviceAgentB = await agentRepository.getById(request.serviceAgentBId!);
   }
-  
+
   if (request.userAgentConfig !== undefined) {
     request.userAgentConfig.temporary = true;
     userAgent = await agentRepository.create(request.userAgentConfig!);
