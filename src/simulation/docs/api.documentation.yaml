@@ -77,15 +77,35 @@ paths:
                     example: 23
                   successRate:
                     type: number
-                    example: 0.78
+                    example: 0.8806811619311619
                   simulationGraphData:
                     type: array
                     items: 
                       type: object
-                  topSimulations:
+                      properties:
+                        id:
+                          type: string
+                          example: 6553a127fcad73273655d634
+                        successRate:
+                          type: number
+                          example: 0.8806811619311619
+                        date:
+                          type: number
+                          example: 1702068485850
+                  top10Simulations:
                     type: array
                     items:
-                      $ref: "#/components/schemas/SimulationDocument"
+                      oneOf:
+                        - $ref: "#/components/schemas/SimulationDocument"
+                        - $ref: "#/components/schemas/SimulationDocument"
+                        - $ref: "#/components/schemas/SimulationDocument"
+                        - $ref: "#/components/schemas/SimulationDocument"
+                        - $ref: "#/components/schemas/SimulationDocument"
+                        - $ref: "#/components/schemas/SimulationDocument"
+                        - $ref: "#/components/schemas/SimulationDocument"
+                        - $ref: "#/components/schemas/SimulationDocument"
+                        - $ref: "#/components/schemas/SimulationDocument"
+                        - $ref: "#/components/schemas/SimulationDocument"
         400:
           description: Bad Request
           content:
@@ -163,7 +183,29 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/SimulationDocument"
+                $ref: "#/components/schemas/ResponseRunSimulation"
+        400:
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                        example: "VALIDATION_ERROR"
+                      message:
+                        type: string
+                        example: "API Input Validation failed"
+                      errors:
+                        type: array
+                        items:
+                          type: string
+                        example:
+                          - "Invalid simulation ID."
         500:
           description: Internal Server Error
           content:
@@ -180,7 +222,7 @@ paths:
                   details:
                     type: string
                     example: Error
-  /api/v1/simulation/{simulationId}/poll:
+  /api/v1/simulation/{simulationId}:
     get:
       summary: Retrieve simulation
       tags: [Simulation]
@@ -198,6 +240,28 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/SimulationDocument"
+        400:
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                        example: "VALIDATION_ERROR"
+                      message:
+                        type: string
+                        example: "API Input Validation failed"
+                      errors:
+                        type: array
+                        items:
+                          type: string
+                        example:
+                          - "Invalid simulation ID."
         404:
           description: Not Found
           content:
@@ -224,8 +288,7 @@ paths:
                   details:
                     type: string
                     example: Error
-  /api/v1/simulation/{simulationId}:
-    patch:
+    put:
       summary: Update simulation
       tags: [Simulation]
       parameters:
@@ -251,13 +314,29 @@ paths:
           content:
             application/json:
               schema:
+                $ref: "#/components/schemas/SimulationDocument"
+        400:
+          description: Bad Request
+          content:
+            application/json:
+              schema:
                 type: object
                 properties:
-                  object:
-                    $ref: "#/components/schemas/SimulationDocument"
-                  success:
-                    type: boolean
-                    example: true
+                  error:
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                        example: "VALIDATION_ERROR"
+                      message:
+                        type: string
+                        example: "API Input Validation failed"
+                      errors:
+                        type: array
+                        items:
+                          type: string
+                        example:
+                          - "Invalid simulation ID."
         404:
           description: Not Found
           content:
@@ -297,6 +376,28 @@ paths:
       responses:
         204:
           description: OK
+        400:
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                        example: "VALIDATION_ERROR"
+                      message:
+                        type: string
+                        example: "API Input Validation failed"
+                      errors:
+                        type: array
+                        items:
+                          type: string
+                        example:
+                          - "Invalid simulation ID."
         404:
           description: Not Found
           content:
@@ -323,13 +424,13 @@ paths:
                   details:
                     type: string
                     example: Error
-  /api/v1/simulation/{simulationId}/conversations:
+  /api/v1/simulation/conversation/{conversationId}:
     get:
       summary: Retrieve simulation conversations
       tags: [Simulation]
       parameters:
         - in: path
-          name: simulationId
+          name: conversationId
           required: true
           schema:
             type: string
@@ -340,7 +441,39 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ConversationDocument"
+                $ref: "#/components/schemas/ConversationResponse"
+        400:
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                        example: "VALIDATION_ERROR"
+                      message:
+                        type: string
+                        example: "API Input Validation failed"
+                      errors:
+                        type: array
+                        items:
+                          type: string
+                        example:
+                          - "Invalid conversation ID."
+        404:
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Conversation 1 not found!"
         500:
           description: Internal Server Error
           content:
@@ -375,6 +508,28 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/AgentResponse"
+        400:
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                        example: "VALIDATION_ERROR"
+                      message:
+                        type: string
+                        example: "API Input Validation failed"
+                      errors:
+                        type: array
+                        items:
+                          type: string
+                        example:
+                          - "Invalid agent name."
         500:
           description: Internal Server Error
           content:
@@ -438,6 +593,28 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/AgentResponse"
+        400:
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                        example: "VALIDATION_ERROR"
+                      message:
+                        type: string
+                        example: "API Input Validation failed"
+                      errors:
+                        type: array
+                        items:
+                          type: string
+                        example:
+                          - "Invalid agent ID."
         404:
           description: Not Found
           content:
@@ -491,6 +668,28 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/AgentResponse"
+        400:
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                        example: "VALIDATION_ERROR"
+                      message:
+                        type: string
+                        example: "API Input Validation failed"
+                      errors:
+                        type: array
+                        items:
+                          type: string
+                        example:
+                          - "Invalid agent ID."
         404:
           description: Not Found
           content:
@@ -530,6 +729,28 @@ paths:
       responses:
         204:
           description: OK
+        400:
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                        example: "VALIDATION_ERROR"
+                      message:
+                        type: string
+                        example: "API Input Validation failed"
+                      errors:
+                        type: array
+                        items:
+                          type: string
+                        example:
+                          - "Invalid agent ID."
         404:
           description: Not Found
           content:
@@ -571,11 +792,37 @@ paths:
                 name:
                   type: string
                   example: "Chat 3"
-                serviceAgentConfig:
+                agentConfig:
                   $ref: "#/components/schemas/ServiceAgent"
       responses:
-        201:
+        200:
           description: Chat started successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChatResponse"
+        400:
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                        example: "VALIDATION_ERROR"
+                      message:
+                        type: string
+                        example: "API Input Validation failed"
+                      errors:
+                        type: array
+                        items:
+                          type: string
+                        example:
+                          - "Invalid chat name."
         500:
           description: Internal Server Error
           content:
@@ -592,11 +839,79 @@ paths:
                   details:
                     type: string
                     example: Error
-  /api/v1/chat/send-message:
+  /api/v1/chat/{chatId}/load:
+    get:
+      summary: Load previous chat
+      description: Endpoint for loading a previous chat.
+      tags: [Chat]
+      parameters:
+        - in: path
+          name: chatId
+          required: true
+          schema:
+            type: string
+            example: 6553a127fcad73273655d634
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  oneOf:
+                    - $ref: "#/components/schemas/AgentMessage"
+                    - $ref: "#/components/schemas/UserMessage"
+        400:
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                        example: "VALIDATION_ERROR"
+                      message:
+                        type: string
+                        example: "API Input Validation failed"
+                      errors:
+                        type: array
+                        items:
+                          type: string
+                        example:
+                          - "Invalid chat ID."
+        500:
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: string
+                    example: INTERNAL_SERVER_ERROR
+                  message:
+                    type: string
+                    example: Internal server error occurred
+                  details:
+                    type: string
+                    example: Error
+  /api/v1/chat/{chatId}/send-message:
     post:
       summary: Send a message
       description: Endpoint for sending a message manual chat.
       tags: [Chat]
+      parameters:
+        - in: path
+          name: chatId
+          required: true
+          schema:
+            type: string
+            example: 6553a127fcad73273655d634
       requestBody:
         required: true
         content:
@@ -614,11 +929,29 @@ paths:
           content:
             application/json:
               schema:
+                $ref: "#/components/schemas/AgentMessage"
+        400:
+          description: Bad Request
+          content:
+            application/json:
+              schema:
                 type: object
                 properties:
-                  message:
-                    type: string
-                    example: Hello
+                  error:
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                        example: "VALIDATION_ERROR"
+                      message:
+                        type: string
+                        example: "API Input Validation failed"
+                      errors:
+                        type: array
+                        items:
+                          type: string
+                        example:
+                          - "Invalid chat ID."
         500:
           description: Internal Server Error
           content:
@@ -648,149 +981,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/SimulationDocument"
-        500:
-          description: Internal Server Error
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  code:
-                    type: string
-                    example: INTERNAL_SERVER_ERROR
-                  message:
-                    type: string
-                    example: Internal server error occurred
-                  details:
-                    type: string
-                    example: Error
-  /api/v1/chat/{chatId}:
-    get:
-      summary: Retrieve chat
-      tags: [Chat]
-      parameters:
-        - in: path
-          name: chatId
-          required: true
-          schema:
-            type: string
-            example: 6553a127fcad73273655d634
-      responses:
-        200:
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/SimulationDocument"
-        404:
-          description: Not Found
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-                    example: "Chat 1 not found!"
-        500:
-          description: Internal Server Error
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  code:
-                    type: string
-                    example: INTERNAL_SERVER_ERROR
-                  message:
-                    type: string
-                    example: Internal server error occurred
-                  details:
-                    type: string
-                    example: Error
-    put:
-      summary: Update chat
-      tags: [Chat]
-      parameters:
-        - in: path
-          name: chatId
-          required: true
-          schema:
-            type: string
-            example: 6553a127fcad73273655d634
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                name:
-                  type: string
-                  example: Chat 3
-      responses:
-        200:
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  object:
-                    $ref: "#/components/schemas/SimulationDocument"
-                  success:
-                    type: boolean
-                    example: true
-        404:
-          description: Not Found
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-                    example: "Chat 1 not found!"
-        500:
-          description: Internal Server Error
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  code:
-                    type: string
-                    example: INTERNAL_SERVER_ERROR
-                  message:
-                    type: string
-                    example: Internal server error occurred
-                  details:
-                    type: string
-                    example: Error
-    delete:
-      summary: Delete chat
-      tags: [Chat]
-      parameters:
-        - in: path
-          name: chatId
-          required: true
-          schema:
-            type: string
-            example: 6553a127fcad73273655d634
-      responses:
-        204:
-          description: OK
-        404:
-          description: Not Found
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-                    example: "Chat 1 not found!"
+                  $ref: "#/components/schemas/ChatResponse"
         500:
           description: Internal Server Error
           content:
@@ -851,7 +1042,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/RunSimulationRequest"
+              $ref: "#/components/schemas/OptimizationRequest"
       responses:
         201:
           description: Optimization successfully initiated.
@@ -859,6 +1050,28 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/OptimizationDocument"
+        400:
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                        example: "VALIDATION_ERROR"
+                      message:
+                        type: string
+                        example: "API Input Validation failed"
+                      errors:
+                        type: array
+                        items:
+                          type: string
+                        example:
+                          - "Invalid simulation name."
         500:
           description: Internal Server Error
           content:
@@ -886,6 +1099,7 @@ paths:
           required: true
           schema:
             type: string
+            example: 6553a127fcad73273655d634
       responses:
         201:
           description: Child simulations successfully retrieved.
@@ -893,7 +1107,31 @@ paths:
             application/json:
               schema:
                 type: array
-                $ref: "#/components/schemas/SimulationDocument"
+                items:
+                  type: string
+                example: ["6553a127fcad73273655d634"]
+        400:
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                        example: "VALIDATION_ERROR"
+                      message:
+                        type: string
+                        example: "API Input Validation failed"
+                      errors:
+                        type: array
+                        items:
+                          type: string
+                        example:
+                          - "Invalid simulation id."
         500:
           description: Internal Server Error
           content:
@@ -915,136 +1153,72 @@ components:
     RunSimulationRequest:
       type: object
       properties:
-        name:
-          type: string
-          example: "Simulation 3"
-        scenario:
-          type: string
-          enum:
-            - SEQUENCE
-            - SLOT_FILLING
-            - CALL_FORWARD
         type:
           type: string
-          enum:
-            - CHAT
-            - AUTOMATED
-        domain:
+          example: "AUTOMATED"
+        name:
           type: string
-          enum:
-            - FLIGHT
-            - INSURANCE
+          example: "GENERATED2"
+        description:
+          type: string
+          example: "Second Simulation run by me"
         numConversations:
           type: number
-          example: 100
-        serviceAgentId:
-          type: string
-          example: 6553a127fcad73273655d634
-        userAgentId:
-          type: string
-          example: 6553a127fcad73273655d634
+          example: 1
+        serviceAgentConfig:
+          type: object
+          properties:
+            domain:
+              type: string
+              example: "FLIGHT"
+            name:
+              type: string
+              example: "TEST SERVICE AGENT"
+            llm:
+              type: string
+              example: "FAKE"
+            temperature:
+              type: number
+              example: 0
+            maxTokens:
+              type: number
+              example: 256
+            prompt:
+              type: string
+              example: "concise"
+        userAgentConfig:
+          type: object
+          properties:
+            domain:
+              type: string
+              example: "FLIGHT"
+            name:
+              type: string
+              example: "TEST USER AGENT"
+            llm:
+              type: string
+              example: "FAKE"
+            temperature:
+              type: number
+              example: 0
+            maxTokens:
+              type: number
+              example: 256
+            prompt:
+              type: string
+              example: "sarcastic"
     ServiceAgent:
       type: object
       properties:
-        model:
-          type: string
-          example: GPT-3
-        temperature:
-          type: number
-          example: 1
-        maxTokens:
-          type: number
-          example: 2048
         domain:
           type: string
-          enum:
-            - FLIGHT
-            - INSURANCE
-        prompt:
+          example: "FLIGHT"
+        name:
           type: string
-          example: "you are an helpful bot"
-    UserAgent:
-      type: object
-      properties:
-        model:
-          type: string
-          example: GPT-3
-        temperature:
-          type: number
-          example: 1
-        maxTokens:
-          type: number
-          example: 2048
-        domain:
-          type: string
-        prompt:
-          type: string
-          example: "you are an angry customer"
-    SimulationDocument:
-      type: object
-      properties:
-        _id:
-          type: string
-          example: 6553a127fcad73273655d634
-        scenario:
-          type: string
-          example: SLOT_FILLING
-        type:
-          type: string
-          example: AUTOMATED
-        domain:
-          type: string
-          example: INSURANCE
-        agents:
-          type: array
-          items:
-            oneOf:
-              - $ref: '#/components/schemas/ServiceAgent'
-              - $ref: '#/components/schemas/UserAgent'
-        conversations:
-          type: array
-          items:
-            $ref: '#/components/schemas/ConversationDocument'
-        status:
-          type: string
-          enum: [SCHEDULED, STARTED, FINISHED]
-        createdAt:
-          type: string
-          example: "2023-11-14T16:32:39.419Z"
-        updatedAt:
-          type: string
-          example: "2023-11-14T16:32:39.419Z"
-        __v:
-          type: integer
-          example: 0
-    ConversationDocument:
-      type: array
-      items:
-        type: object
-        properties:
-          messages:
-            type: array
-            items:
-              type: string
-            example: []
-          start:
-            type: string
-            format: date
-            example: 2023-12-12
-          status:
-            type: string
-            enum: [STARTED, FINISHED]
-          usedEndpoints:
-            type: array
-            items:
-              type: string
-            example: []
-    AgentResponse:
-      type: object
-      properties:
+          example: "TEST SERVICE AGENT"
         llm:
           type: string
-          example: GPT4
+          example: "FAKE"
         temperature:
           type: number
           example: 0
@@ -1053,20 +1227,164 @@ components:
           example: 256
         prompt:
           type: string
-          example: "you are a helpful bot"
+          example: "nonative"
+    UserAgent:
+      type: object
+      properties:
+        domain:
+          type: string
+          example: "FLIGHT"
+        name:
+          type: string
+          example: "TEST USER AGENT"
+        llm:
+          type: string
+          example: "FAKE"
+        temperature:
+          type: number
+          example: 0
+        maxTokens:
+          type: number
+          example: 256
+        prompt:
+          type: string
+          example: "sarcastic"
+    SimulationDocument:
+      type: object
+      properties:
         _id:
           type: string
-          example: "655a5982524f7361fefd4032"
+          example: "657eb671b13d02ce6fa88fea"
+        type:
+          type: string
+          example: "AUTOMATED"
+        name:
+          type: string
+          example: "GENERATED2"
+        numConversations:
+          type: number
+          example: 1
+        userAgent:
+          type: string
+          example: "657eb671b13d02ce6fa88fe8"
+        serviceAgent:
+          type: string
+          example: "657eb671b13d02ce6fa88fe6"
+        conversations:
+          type: array
+          items:
+            type: string
+            example: "657eb671b13d02ce6fa88fed"
+        status:
+          type: string
+          example: "FINISHED"
+        optimization:
+          type: object
+          example: null
+        duration:
+          type: number
+          example: 1.815
+        totalNumberOfInteractions:
+          type: number
+          example: 12
         createdAt:
           type: string
-          format: date-time
-          example: "2023-11-19T18:52:50.192Z"
+          example: "2023-12-17T08:50:57.696Z"
         updatedAt:
           type: string
-          format: date-time
-          example: "2023-11-19T18:52:50.192Z"
+          example: "2023-12-17T08:50:59.528Z"
         __v:
-          type: integer
+          type: number
+          example: 0
+        evaluation:
+          type: string
+          example: "657eb673b13d02ce6fa89045"
+    ConversationResponse:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: "657eeee34f42a14928828083"
+        startTime:
+          type: string
+          example: "2023-12-17T12:51:47.900Z"
+        endTime:
+          type: string
+          example: "2023-12-17T12:51:49.494Z"
+        status:
+          type: string
+          example: "FINISHED"
+        messages:
+          type: array
+          items:
+            oneOf:
+              - $ref: "#/components/schemas/AgentMessage"
+              - $ref: "#/components/schemas/UserMessage"
+    AgentMessage:
+      type: object
+      properties:
+        sender:
+          type: string
+          example: "AGENT"
+        text:
+          type: string
+          example: "Hello, I'm an agent from KronosJet. How can I help you?"
+        timestamp:
+          type: string
+          example: "2023-12-17T12:51:47.906Z"
+        userCanReply:
+          type: boolean
+          example: true
+    UserMessage:
+      type: object
+      properties:
+        sender:
+          type: string
+          example: "USER"
+        text:
+          type: string
+          example: "Hello, I want to change my flight"
+        timestamp:
+          type: string
+          example: "2023-12-17T12:51:47.906Z"
+        userCanReply:
+          type: boolean
+          example: false
+    AgentResponse:
+      type: object
+      properties:
+        name:
+          type: string
+          example: "TEST SERVICE AGENT"
+        llm:
+          type: string
+          example: "FAKE"
+        temperature:
+          type: number
+          example: 0
+        maxTokens:
+          type: number
+          example: 256
+        domain:
+          type: string
+          example: "FLIGHT"
+        prompt:
+          type: string
+          example: "nonative"
+        temporary:
+          type: boolean
+          example: false
+        _id:
+          type: string
+          example: "657f281a749e8b0ad34aea99"
+        createdAt:
+          type: string
+          example: "2023-12-17T16:55:54.567Z"
+        updatedAt:
+          type: string
+          example: "2023-12-17T16:55:54.567Z"
+        __v:
+          type: number
           example: 0
     OptimizationDocument:
       type: object
@@ -1080,4 +1398,216 @@ components:
         childSimulations:
           type: array
           items:
-            $ref: '#/components/schemas/SimulationDocument'
+            type: string
+          example: []
+    ResponseRunSimulation:
+      type: object
+      properties:
+        type:
+          type: string
+          example: "AUTOMATED"
+        name:
+          type: string
+          example: "GENERATED2"
+        numConversations:
+          type: number
+          example: 1
+        userAgent:
+          type: object
+          properties:
+            name:
+              type: string
+              example: "TEST USER AGENT"
+            llm:
+              type: string
+              example: "FAKE"
+            temperature:
+              type: number
+              example: 0
+            maxTokens:
+              type: number
+              example: 256
+            domain:
+              type: string
+              example: "FLIGHT"
+            prompt:
+              type: string
+              example: "sarcastic"
+            temporary:
+              type: boolean
+              example: true
+            _id:
+              type: string
+              example: "657eeee34f42a1492882807e"
+            createdAt:
+              type: string
+              example: "2023-12-17T12:51:47.882Z"
+            updatedAt:
+              type: string
+              example: "2023-12-17T12:51:47.882Z"
+            __v:
+              type: number
+              example: 0
+        serviceAgent:
+          type: object
+          properties:
+            name:
+              type: string
+              example: "TEST SERVICE AGENT"
+            llm:
+              type: string
+              example: "FAKE"
+            temperature:
+              type: number
+              example: 0
+            maxTokens:
+              type: number
+              example: 256
+            domain:
+              type: string
+              example: "FLIGHT"
+            prompt:
+              type: string
+              example: "concise"
+            temporary:
+              type: boolean
+              example: true
+            _id:
+              type: string
+              example: "657eeee34f42a1492882807c"
+            createdAt:
+              type: string
+              example: "2023-12-17T12:51:47.875Z"
+            updatedAt:
+              type: string
+              example: "2023-12-17T12:51:47.875Z"
+            __v:
+              type: number
+              example: 0
+        conversations:
+          type: array
+          items:
+            type: string
+          example: []
+        status:
+          type: string
+          example: "RUNNING"
+        optimization:
+          type: object
+          example: null
+        duration:
+          type: number
+          example: 0
+        totalNumberOfInteractions:
+          type: number
+          example: 0
+        _id:
+          type: string
+          example: "657eeee34f42a14928828080"
+        createdAt:
+          type: string
+          example: "2023-12-17T12:51:47.886Z"
+        updatedAt:
+          type: string
+          example: "2023-12-17T12:51:47.886Z"
+        __v:
+          type: number
+          example: 0
+    ChatResponse:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: "657f2a8b8f82c4cd43c674f7"
+        conversations:
+          type: array
+          items:
+            type: string
+            example: "657f2a8b8f82c4cd43c674fa"
+        optimization:
+          type: object
+          example: null
+        duration:
+          type: number
+          example: 0
+        totalNumberOfInteractions:
+          type: number
+          example: 1
+        name:
+          type: string
+          example: "Chat 3"
+        status:
+          type: string
+          example: "RUNNING"
+        type:
+          type: string
+          example: "CHAT"
+        serviceAgent:
+          type: string
+          example: "657f2a8b8f82c4cd43c674f8"
+        createdAt:
+          type: string
+          example: "2023-12-17T17:06:19.025Z"
+        updatedAt:
+          type: string
+          example: "2023-12-17T17:06:19.051Z"
+        __v:
+          type: number
+          example: 0
+    OptimizationRequest:
+      type: object
+      properties:
+        type:
+          type: string
+          example: "OPTIMIZATION"
+        name:
+          type: string
+          example: "GENERATED3"
+        description:
+          type: string
+          example: "Optimized simulation"
+        numConversations:
+          type: number
+          example: 1
+        serviceAgentConfig:
+          type: object
+          properties:
+            name:
+              type: string
+              example: "TEST SERVICE AGENT"
+            domain:
+              type: string
+              example: "FLIGHT"
+            llm:
+              type: string
+              example: "FAKE"
+            temperature:
+              type: number
+              example: 0
+            maxTokens:
+              type: number
+              example: 256
+            prompt:
+              type: string
+              example: "concise"
+        userAgentConfig:
+          type: object
+          properties:
+            domain:
+              type: string
+              example: "FLIGHT"
+            name:
+              type: string
+              example: "TEST USER AGENT"
+            llm:
+              type: string
+              example: "FAKE"
+            temperature:
+              type: number
+              example: 0
+            maxTokens:
+              type: number
+              example: 256
+            prompt:
+              type: string
+              example: "sarcastic"
