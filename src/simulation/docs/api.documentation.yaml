@@ -426,7 +426,7 @@ paths:
                     example: Error
   /api/v1/simulation/abtesting/run:
     post:
-      summary: Start new automated simulation
+      summary: Start new ab simulation
       tags: [Simulation]
       requestBody:
         required: true
