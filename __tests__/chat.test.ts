@@ -124,6 +124,9 @@ describe('POST /api/v1/chat/:id/send-message', () => {
   it('should return 200 for valid input', () => {
     expect(validResponse.status).toBe(200);
     expect(validResponse.body.sender).toBe('AGENT');
+    expect(validResponse.body.text).toBeDefined();
+    expect(typeof validResponse.body.text).toBe('string');
+    expect(validResponse.body.text.trim().length).toBeGreaterThan(0);
   });
 
   it('should return 404 for invalid simulation id', () => {
