@@ -337,7 +337,7 @@ export class CustomAgent {
           return parsed;
         } catch (exc) {
           // try to fix the json format by reprompting the language model
-          baseMessage = await this.repromptJsonFix(fixedText, baseMessage, id);
+          baseMessage = await this.repromptJsonFix(fixedText, baseMessage);
           text = baseMessage.content.toString();
         }
       }
