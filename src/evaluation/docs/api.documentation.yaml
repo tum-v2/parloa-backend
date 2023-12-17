@@ -48,6 +48,41 @@ paths:
                   details:
                     type: string
                     example: Error
+  /api/v1/evaluation/run-multiple:
+    post:
+      summary: evaluate multiple simulations and get the results as CSV file
+      tags: [Evaluation]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RunMultipleEvaluationsRequest"
+      responses:
+        200:
+          description: OK
+          content:
+            text/csv:
+              schema:
+                type: string
+                contentMediaType: text/csv
+                contentEncoding: utf-8
+        500:
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: string
+                    example: INTERNAL_SERVER_ERROR
+                  message:
+                    type: string
+                    example: Internal server error occurred
+                  details:
+                    type: string
+                    example: Error
   /api/v1/evaluation/results-for-conversation/{conversationId}:
     get:
       summary: Retrieve evaluation results for conversation
@@ -164,6 +199,11 @@ components:
         evaluation:
           type: string
           example: 656499ee83e3e06db0309f25
+    RunMultipleEvaluationsRequest:
+      type: array
+      items:
+        type: string
+        example: 656499ee83e3e06db0309f25
     EvaluationResultForConversation:
       type: object
       properties:

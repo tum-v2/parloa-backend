@@ -17,7 +17,10 @@ import simulationService from '@simulation/service/simulation.service';
 import EvaluationResultForConversation, {
   EvaluationExecuted,
 } from '@evaluation/model/response/results-for-conversation.response';
-import EvaluationResultForSimulation from '@evaluation/model/response/results-for-simulation.response';
+import EvaluationResultForSimulation, {
+  EvaluationExecutedWithConversation,
+} from '@evaluation/model/response/results-for-simulation.response';
+import RunMultipleEvaluationsRequest from '@evaluation/model/request/run-multiple-evaluations.request';
 
 const evaluationRepository = new EvaluationRepository(EvaluationModel);
 const conversationRepository = new ConversationRepository(ConversationModel);
@@ -54,6 +57,47 @@ async function runEvaluation(request: RunEvaluationRequest): Promise<RunEvaluati
     evaluation: evaluation.id,
   };
   return responseObject;
+}
+
+/**
+ * Runs the evaluation for multiple simulations and directly returns the results
+ * @param request - Configuration object (type RunMultipleEvaluationsRequest)
+ * @throws Error - if simulation with the given ID is not found.
+ * @returns results of the evaluated conversations (including the conversation ID)
+ */
+async function runMultipleEvaluations(
+  request: RunMultipleEvaluationsRequest,
+): Promise<EvaluationExecutedWithConversation[]> {
+  const promises: Promise<Promise<EvaluationExecutedWithConversation>[]>[] = request.simulations.map(
+    async (simulationID) => {
+      const simulation: SimulationDocument | null = await simulationService.poll(simulationID);
+
+      if (!simulation) {
+        throw new Error(`Simulation ${simulationID} not found!`);
+      }
+
+      const conversations = (await simulation.populate('conversations')).conversations as ConversationDocument[];
+
+      return conversations.map(async (conversation, indx) => {
+        const runRequest: RunEvaluationRequest = {
+          conversation: conversation.id,
+          simulation: simulationID,
+          isLast: indx == conversations.length - 1,
+          optimization: null,
+        };
+
+        let evaluation = await initiate(runRequest, conversation, simulation);
+        evaluation = await evaluation.populate('metrics');
+
+        return {
+          ...getExecuteEvaluationResults(evaluation),
+          conversation: conversation.id,
+        };
+      });
+    },
+  );
+
+  return await Promise.all((await Promise.all(promises)).flat());
 }
 
 /**
@@ -103,7 +147,7 @@ async function initiate(
  * @returns EvaluationDocument -  The created evaluation document.
  */
 async function runEvaluationForSimulation(simulation: SimulationDocument): Promise<EvaluationDocument> {
-  const conversationEvaluations = await evaluationRepository.findConversationEvaluationsBySimulation(simulation.id);
+  const conversationEvaluations = await evaluationRepository.findConversationEvaluationsBySimulation(simulation);
   const allMetrics: MetricDocument[] = conversationEvaluations.map((c) => c.metrics).flat() as MetricDocument[];
 
   const promises: Promise<MetricDocument>[] = Object.values(MetricNameEnum).map((metricName) => {
@@ -149,7 +193,7 @@ async function getResultsForConversation(conversation: ConversationDocument): Pr
  */
 async function getResultsForSimulation(simulation: SimulationDocument): Promise<EvaluationResultForSimulation> {
   const evaluations: EvaluationDocumentWithConversation[] =
-    await evaluationRepository.findConversationEvaluationsBySimulation(simulation.id);
+    await evaluationRepository.findConversationEvaluationsBySimulation(simulation);
   const conversationScores = evaluations
     .map((evaluation) => {
       return {
@@ -213,4 +257,4 @@ function getExecuteEvaluationResults(evaluation: EvaluationDocument): Omit<Evalu
   };
 }
 
-export default { initiate, getResultsForConversation, getResultsForSimulation, runEvaluation };
+export default { initiate, getResultsForConversation, getResultsForSimulation, runEvaluation, runMultipleEvaluations };

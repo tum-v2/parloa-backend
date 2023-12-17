@@ -4,6 +4,7 @@
 export default {
   preset: 'ts-jest',
   testEnvironment: 'node',
+  transform: {},
   moduleNameMapper: {
     '^@simulation/agents/(.*)$': '<rootDir>/src/simulation/agents/$1',
     '^@simulation/api/(.*)$': '<rootDir>/src/simulation/api/$1',

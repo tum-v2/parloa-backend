@@ -1,10 +1,14 @@
 import { SimulationDocument } from '@db/models/simulation.model';
 import { ConversationDocument } from '@db/models/conversation.model';
 import { AgentDocument } from '@db/models/agent.model';
+import { EvaluationDocument } from '@db/models/evaluation.model';
 import repositoryFactory from '@db/repositories/factory';
 
 import { SimulationType } from '@enums/simulation-type.enum';
 import { SimulationStatus } from '@enums/simulation-status.enum';
+import { MsgSender } from '@enums/msg-sender.enum';
+
+import { SimulationSuccessGraphItem } from '@simulation/model/type/simulation-success-graph-item';
 
 import { RunSimulationRequest } from '@simulation/model/request/simulation.request';
 import { RunEvaluationRequest } from '@evaluation/model/request/run-evaluation.request';
@@ -101,14 +105,14 @@ async function initiateAB(request: RunABTestingRequest): Promise<SimulationDocum
   } else if (request.serviceAgentAId !== undefined) {
     serviceAgentA = await agentRepository.getById(request.serviceAgentAId!);
   }
-  
+
   if (request.serviceAgentBConfig !== undefined) {
     request.serviceAgentBConfig.temporary = true;
     serviceAgentB = await agentRepository.create(request.serviceAgentBConfig!);
   } else if (request.serviceAgentBId !== undefined) {
     serviceAgentB = await agentRepository.getById(request.serviceAgentBId!);
   }
-  
+
   if (request.userAgentConfig !== undefined) {
     request.userAgentConfig.temporary = true;
     userAgent = await agentRepository.create(request.userAgentConfig!);
@@ -179,35 +183,50 @@ async function run(
   simulation.status = SimulationStatus.RUNNING;
   await simulationRepository.updateById(simulation._id, simulation);
   const simulationStart = new Date();
-  for (let i = 0; i < numConversations; i++) {
-    const conversation: ConversationDocument = await runConversation(serviceAgent, userAgent);
-    conversations.push(conversation._id);
-    simulation.conversations = conversations;
-    simulation.totalNumberOfInteractions += await _increaseTotalNumberOfInteractions(simulation._id, conversation._id);
-    await simulationRepository.updateById(simulation._id, simulation);
-  }
-  const simulationEnd = new Date();
-  simulation.duration = (simulationEnd.getTime() - simulationStart.getTime()) / 1000;
-  simulation.status = SimulationStatus.FINISHED;
-  await simulationRepository.updateById(simulation._id, simulation);
 
-  for (let i = 0; i < conversations.length; i++) {
-    const evaluationRequest: RunEvaluationRequest = {
-      conversation: conversations[i].toString(),
-      simulation: simulation._id,
-      isLast: false,
-      optimization: optimization,
-    };
-
-    if (i === numConversations - 1) {
-      evaluationRequest.isLast = true;
-      await evaluationService.runEvaluation(evaluationRequest);
-      if (optimization !== null) {
-        optimizationService.handleSimulationOver(optimization);
+  try {
+    for (let i = 0; i < numConversations; i++) {
+      const conversation: ConversationDocument = await runConversation(serviceAgent, userAgent);
+      conversations.push(conversation._id);
+      simulation.conversations = conversations;
+      simulation.totalNumberOfInteractions += await _increaseTotalNumberOfInteractions(
+        simulation._id,
+        conversation._id,
+      );
+      await simulationRepository.updateById(simulation._id, simulation);
+      const evaluationRequest: RunEvaluationRequest = {
+        conversation: conversation._id.toString(),
+        simulation: simulation._id,
+        isLast: false,
+        optimization: optimization,
+      };
+      if (i === numConversations - 1) {
+        evaluationRequest.isLast = true;
+        await evaluationService.runEvaluation(evaluationRequest);
+        if (optimization !== null) {
+          optimizationService.handleSimulationOver(optimization);
+        }
+      } else {
+        evaluationService.runEvaluation(evaluationRequest);
       }
-    } else {
-      evaluationService.runEvaluation(evaluationRequest);
     }
+    const simulationEnd = new Date();
+    simulation.duration = (simulationEnd.getTime() - simulationStart.getTime()) / 1000;
+    simulation.status = SimulationStatus.FINISHED;
+    await simulationRepository.updateById(simulation._id, simulation);
+  } catch (error) {
+    const simulationEnd = new Date();
+    simulation.duration = (simulationEnd.getTime() - simulationStart.getTime()) / 1000;
+    simulation.status = SimulationStatus.FAILED;
+
+    await simulationRepository.updateById(simulation._id, simulation);
+
+    if (error instanceof Error) {
+      const er = error as Error;
+      console.log('Catched an Error: ' + er.message + ' ' + er.stack + '\n SIMULATION FAILED!!!');
+    }
+
+    return;
   }
 }
 
@@ -281,9 +300,9 @@ async function getConversation(id: string): Promise<any | null> {
       }
       const modifiedMessage: any = {};
       modifiedMessage.sender = message.sender;
-      modifiedMessage.text = message.text;
+      modifiedMessage.text = message.text.replace(`${message.sender}: `, '');
       modifiedMessage.timestamp = message.timestamp;
-      modifiedMessage.userCanReply = true;
+      modifiedMessage.userCanReply = message.sender === MsgSender.AGENT;
       messages.push(modifiedMessage);
     }
     modifiedConversation._id = conversation.id;
@@ -337,7 +356,7 @@ async function getDashboardData(days: number): Promise<DashboardData> {
   const totalInteractions: number = await _getTotalInteractions(days);
   const simulationRuns: number = await _getSimulationRuns(days);
   const avgSuccessRate: number = await _getAverageSuccessRate(days);
-  const simulationSuccessGraph: Partial<SimulationDocument>[] = await _getSimulationSuccessGraph(days);
+  const simulationSuccessGraph: SimulationSuccessGraphItem[] = await _getSimulationSuccessGraph(days);
   const top10Simulations: Partial<SimulationDocument>[] = await _getTop10Simulations(days);
   const data: DashboardData = {
     interactions: totalInteractions,
@@ -385,8 +404,24 @@ async function _getAverageSuccessRate(days: number): Promise<number> {
  * @returns A promise that resolves to the success rate.
  * @throws Throws an error if there is an issue with the MongoDB query.
  */
-async function _getSimulationSuccessGraph(days: number): Promise<Partial<SimulationDocument>[]> {
-  return await simulationRepository.getSimulationSuccessGraph(days);
+async function _getSimulationSuccessGraph(days: number): Promise<SimulationSuccessGraphItem[]> {
+  // return raw success graph data (partial simulation document)
+  // with id (ObjectId), evaluation (EvaluationDocument), and createdAt (ISODate)
+  const successGraphRaw: Partial<SimulationDocument>[] = await simulationRepository.getSimulationSuccessGraph(days);
+
+  // then, map the raw data to the SimulationSuccessGraphItem type
+  // with id (ObjectId), successRate (number), and date (UNIX timestamp)
+  const successGraph = successGraphRaw.map((item) => {
+    return {
+      id: item._id,
+      // directly projecting success rate from the query is possible,
+      // but then it cannot be accessed via item.successRate since item is a Partial<SimulationDocument>
+      // therefore, we project evaluation and access success rate via item.evaluation.successRate
+      successRate: (item.evaluation as EvaluationDocument)?.successRate,
+      date: item.createdAt?.getTime(),
+    } as SimulationSuccessGraphItem;
+  });
+  return successGraph;
 }
 
 /**

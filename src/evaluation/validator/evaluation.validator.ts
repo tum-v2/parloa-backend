@@ -12,17 +12,18 @@ class EvaluationValidator {
       body('isLast').isBoolean().withMessage('isLast must be a valid boolean'),
       body('optimization').optional({ values: 'null' }).isMongoId().withMessage('Invalid optimization ID'),
 
-      body().custom((value, { req }) => {
-        const allowedFields = ['conversation', 'simulation', 'isLast', 'optimization'];
+      body().custom((value, { req }) =>
+        checkForAdditionalValues(req.body, ['conversation', 'simulation', 'isLast', 'optimization']),
+      ),
+    ];
+  }
 
-        const extraFields = Object.keys(req.body).filter((field) => !allowedFields.includes(field));
+  static runMultipleValidation(): ValidationChain[] {
+    return [
+      body('simulations').isArray().withMessage('simulations must be an array'),
+      body('simulations.*').isMongoId().withMessage('Invalid simulation ID in simulations'),
 
-        if (extraFields.length > 0) {
-          throw new Error(`Unexpected fields: ${extraFields.join(', ')}`);
-        }
-
-        return true;
-      }),
+      body().custom((value, { req }) => checkForAdditionalValues(req.body, ['simulations'])),
     ];
   }
 
@@ -41,6 +42,23 @@ class EvaluationValidator {
   static resultsForSimulationValidation(): ValidationChain[] {
     return [param('simulationId').isMongoId().withMessage('Invalid simulation ID')];
   }
+}
+
+/**
+ * Checks whether the request body has unexpected fields
+ * @param body - body to check for unexpected fields
+ * @param allowedFields - allowed fields
+ * @throws Error - if request body has unexpected fields
+ * @returns true if request body has no unexpected fields
+ */
+function checkForAdditionalValues(body: object, allowedFields: string[]) {
+  const extraFields = Object.keys(body).filter((field) => !allowedFields.includes(field));
+
+  if (extraFields.length > 0) {
+    throw new Error(`Unexpected fields: ${extraFields.join(', ')}`);
+  }
+
+  return true;
 }
 
 export default EvaluationValidator;

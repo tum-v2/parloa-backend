@@ -23,6 +23,7 @@ router.post(
 
 // GET //
 router.get('/all', simulationController.getAll);
+
 router.get(
   '/:id',
   SimulationValidator.idValidation(),

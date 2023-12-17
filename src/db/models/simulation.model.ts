@@ -16,12 +16,13 @@ interface SimulationDocument extends Document {
   numConversations: number;
   conversations: Types.ObjectId[] | ConversationDocument[];
   status: SimulationStatus;
-  abPartner: Types.ObjectId | undefined;
+  abPartner: Types.ObjectId | undefined; //only for AB simulations, A has a reference to B
   evaluation: EvaluationDocument | Types.ObjectId;
   optimization: Types.ObjectId | OptimizationDocument | null;
-  //in seconds
-  duration: number;
+  duration: number; //in seconds
   totalNumberOfInteractions: number;
+  createdAt: Date; //auto-generated
+  updatedAt: Date; //auto-generated
 }
 
 const SimulationSchema: Schema = new Schema(

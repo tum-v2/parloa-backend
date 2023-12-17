@@ -35,3 +35,4 @@ interface EvaluationExecutedWithConversation extends Omit<EvaluationExecuted, 's
 }
 
 export default EvaluationResultForSimulation;
+export { EvaluationExecutedWithConversation };
