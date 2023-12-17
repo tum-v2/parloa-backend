@@ -14,7 +14,8 @@ function similarityHandler(messages: MessageDocument[]) {
     execSync(`python3 src/evaluation/service/evaluation.similarity.py ${path} 1`).toString(),
   );
   fs.unlinkSync(path);
-  return result;
+  // the higher the similarity, the lower the score
+  return 1 - result;
 }
 
 /**
