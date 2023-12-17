@@ -380,13 +380,15 @@ export async function runConversation(
     status: ConversationStatus.ONGOING,
     usedEndpoints: undefined,
   });
+  // creates all important files needed for this conversation: e.g.
   setupPath();
 
+  // configure service and user agents with the request data
   const serviceAgent: CustomAgent = await configureServiceAgent(serviceAgentData);
   const userAgent: CustomAgent = await configureUserAgent(userAgentData);
 
+  // start the two agents, by adding their initial prompt to their message history
   let agentResponse: string = await serviceAgent.startAgent();
-
   await userAgent.startAgent();
 
   const maxTurnCount = 15;
@@ -395,26 +397,29 @@ export async function runConversation(
   try {
     let conversationSuccess: boolean = false;
     let hangupMsgTimestamp: Date;
+    // the main conversation loop
     while (turnCount < maxTurnCount) {
+      // calling the user language model with the new input
       const userInput: string = await userAgent.processHumanInput(agentResponse);
 
       if (userInput.indexOf('/hangup') >= 0) {
+        // /hangup can be triggered by the user agent, and finishes the conversation
         console.log(userInput);
         console.log(`\n👋👋👋 HANGUP by human_sim agent. Turn count: ${turnCount} 👋👋👋\n`);
         conversationSuccess = true;
         hangupMsgTimestamp = new Date();
         break;
       }
-
+      // calling the service language model with the new input
       agentResponse = await serviceAgent.processHumanInput(userInput);
 
       turnCount++;
     }
 
     const endTime: Date = new Date();
-
     const usedEndpoints: string[] = [];
     const messages: MessageDocument[] = [];
+
     for (let i = 0; i < serviceAgent.messageHistory.length; i++) {
       messages.push(
         await createMessageDocument(serviceAgent.messageHistory[i], usedEndpoints, serviceAgent.config.welcomeMessage),
