@@ -116,36 +116,45 @@ export class CustomAgent {
   }
 
   /**
-   * reprompt the ai to get proper json
-   * @param baseMessage - the message that needs to be fixed
-   * @returns A new BaseMessage that hopefully works
+   * This method calls the language model with the new input.
+   * It can potentially call different tools, and can reprompt itself to get to a valid result.
+   *
+   * @param humanInput - the new message input
+   * @returns the generated message to the user
    * @throws Errors for AI issues
    */
   async processHumanInput(humanInput: string): Promise<string> {
+    // Add the humanInput to the message history
     const lcMsg: BaseMessage = await this.getHumanPrompt(humanInput);
     const msg = new MsgHistoryItem(lcMsg, MsgType.HUMANINPUT, humanInput, undefined);
     await this.addMessage(msg);
 
+    // important variables
     let response: Record<string, any> = {};
     let action: string | null = null;
     let actionInput: string | Record<string, any> | null = null;
     let apiToolConfig: RestAPITool | null = null;
 
     for (;;) {
+      // call languageModel with the messageHistory
       const messages: BaseMessage[] = this.messageHistory.map((msg) => msg.lcMsg);
-
       const responseMessage = await this.chatModel.call(messages);
 
+      // try to get the message into the desired format
       response = await this.getFixedJson(responseMessage);
+
+      // retrieve the necesarry information
       action = response.action;
       actionInput = response.action_input ?? {};
 
+      // A simple response to the user
       if (
         action === MsgType.MSGTOUSER ||
         action == 'message_to_user' ||
         action == 'None' ||
         action == 'message_to_agent'
       ) {
+        // add message to history
         await this.addMessage(
           new MsgHistoryItem(
             responseMessage,
@@ -161,13 +170,14 @@ export class CustomAgent {
         );
         break;
       }
+      // Check if actionInput is valid
       actionInput = actionInput === '' ? {} : actionInput;
       if (typeof actionInput !== 'object') {
         throw new Error(`ERROR: Invalid action_input in response: ${JSON.stringify(response, null, 4)}`);
       }
+      // Check if the action is calling a routine tool
       if (action && this.config.routingTools[action]) {
-        console.log('routingInput: ' + responseMessage.content.toString());
-
+        // add to history
         await this.addMessage(
           new MsgHistoryItem(
             responseMessage,
@@ -183,14 +193,16 @@ export class CustomAgent {
         );
         break;
       }
-
+      // Check if it is available in other tools
       if (action && !(action in this.config.restApiTools)) {
         throw new Error(`ERROR: Missing or invalid tool in response action: ${JSON.stringify(response, null, 4)}`);
       }
-
+      // check if is  rest api tool
       if (action) {
+        // get tool from dictionary
         apiToolConfig = this.config.restApiTools[action];
 
+        // add toolcall message
         await this.addMessage(
           new MsgHistoryItem(
             responseMessage,
@@ -205,10 +217,11 @@ export class CustomAgent {
           ),
         );
 
+        // execute the tool
         const toolOutput: string = await apiToolConfig.executeTool(actionInput);
-
         const lcMsg = await this.getToolOutputPrompt(action, toolOutput);
 
+        // add the tooloutput message
         await this.addMessage(
           new MsgHistoryItem(
             lcMsg,
@@ -222,6 +235,7 @@ export class CustomAgent {
             undefined,
           ),
         );
+        // after this the for loop will start again and will trigger another language model call
       }
     }
     return String(actionInput);
