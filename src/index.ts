@@ -47,14 +47,14 @@ app.use(bodyParser.json());
 app.use('/api/v1/api-docs', swaggerUi.serve, swaggerUi.setup(apiSpec));
 
 // Define routes
-app.use('/api/v1/simulation', simulationRouter);
-app.use('/api/v1/optimization', optimizationRouter);
-app.use('/api/v1/chat', chatRouter);
-app.use('/api/v1/agent', agentRouter);
-app.use('/api/v1/evaluation', evaluationRouter);
+app.use('/api/v1/simulations', simulationRouter);
+app.use('/api/v1/optimizations', optimizationRouter);
+app.use('/api/v1/chats', chatRouter);
+app.use('/api/v1/agents', agentRouter);
+app.use('/api/v1/evaluations', evaluationRouter);
 app.use('/api/v1/auth', authRouter);
 app.use('/api/v1/dashboard', dashRouter);
-app.use('/api/v1/llm', llmRouter);
+app.use('/api/v1/language-models', llmRouter);
 
 app.use(CustomValidationError.handleValidationErrors);
 

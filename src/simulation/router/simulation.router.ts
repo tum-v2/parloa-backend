@@ -8,21 +8,21 @@ const router = express.Router();
 
 // POST //
 router.post(
-  '/run',
+  '/',
   SimulationValidator.runValidation(),
   CustomValidationError.handleValidationErrors,
   simulationController.run,
 );
 
 router.post(
-  '/abtesting/run',
+  '/ab-testing',
   SimulationValidator.abValidation(),
   CustomValidationError.handleValidationErrors,
   simulationController.runABTesting,
 );
 
 // GET //
-router.get('/all', simulationController.getAll);
+router.get('/', simulationController.getAll);
 
 router.get(
   '/:id',
@@ -31,7 +31,7 @@ router.get(
   simulationController.poll,
 );
 router.get(
-  '/conversation/:id',
+  '/conversations/:id',
   SimulationValidator.idValidation(),
   CustomValidationError.handleValidationErrors,
   simulationController.getConversation,
