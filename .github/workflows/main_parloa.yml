@@ -17,7 +17,7 @@ on:
       - development
 
 jobs:
-  build-dev:
+  build-start-dev:
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/development' || (github.event_name == 'pull_request' && contains(github.event.pull_request.base.ref, 'development'))
     steps:
@@ -56,12 +56,7 @@ jobs:
       - name: Run tests 
         if: ${{ github.event.inputs.run_test == 'true' }}
         run: npm run test
-  
-  stop-containers:
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/development' || (github.event_name == 'pull_request' && contains(github.event.pull_request.base.ref, 'development'))
-    needs: build-dev
-    steps:
+        
       - name: Stop containers
         if: always()
         run: docker-compose -f "docker-compose.yml" down
