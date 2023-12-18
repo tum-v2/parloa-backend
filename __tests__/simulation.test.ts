@@ -165,15 +165,15 @@ const invalidInputAB2 = {
   },
 };
 
-describe('POST /api/v1/simulation/run', () => {
+describe('POST /api/v1/simulations', () => {
   let validResponse: Response;
   let invalidResponse: Response;
   let invalidResponse2: Response;
 
   beforeEach(async () => {
-    validResponse = await request(HOSTNAME).post('/api/v1/simulation/run').send(validInputRun);
-    invalidResponse = await request(HOSTNAME).post('/api/v1/simulation/run').send(invalidInputRun);
-    invalidResponse2 = await request(HOSTNAME).post('/api/v1/simulation/run').send(invalidInput2Run);
+    validResponse = await request(HOSTNAME).post('/api/v1/simulations').send(validInputRun);
+    invalidResponse = await request(HOSTNAME).post('/api/v1/simulations').send(invalidInputRun);
+    invalidResponse2 = await request(HOSTNAME).post('/api/v1/simulations').send(invalidInput2Run);
   });
 
   afterEach(() => {
@@ -195,15 +195,15 @@ describe('POST /api/v1/simulation/run', () => {
   });
 });
 
-describe('POST /api/v1/simulation/abtesting/run', () => {
+describe('POST /api/v1/simulations/ab-testing', () => {
   let validResponse: Response;
   let invalidResponse: Response;
   let invalidResponse2: Response;
 
   beforeEach(async () => {
-    validResponse = await request(HOSTNAME).post('/api/v1/simulation/abtesting/run').send(validInputAB);
-    invalidResponse = await request(HOSTNAME).post('/api/v1/simulation/abtesting/run').send(invalidInputAB);
-    invalidResponse2 = await request(HOSTNAME).post('/api/v1/simulation/abtesting/run').send(invalidInputAB2);
+    validResponse = await request(HOSTNAME).post('/api/v1/simulations/ab-testing').send(validInputAB);
+    invalidResponse = await request(HOSTNAME).post('/api/v1/simulations/ab-testing').send(invalidInputAB);
+    invalidResponse2 = await request(HOSTNAME).post('/api/v1/simulations/ab-testing').send(invalidInputAB2);
   });
 
   afterEach(() => {
@@ -225,11 +225,11 @@ describe('POST /api/v1/simulation/abtesting/run', () => {
   });
 });
 
-describe('GET /api/v1/simulation/all', () => {
+describe('GET /api/v1/simulations', () => {
   let validResponse: Response;
 
   beforeEach(async () => {
-    validResponse = await request(HOSTNAME).get(`/api/v1/simulation/all`);
+    validResponse = await request(HOSTNAME).get(`/api/v1/simulations`);
     validSimulationId = validResponse.body[0]._id;
     deleteValidSimulationId = validResponse.body[1]._id;
 
@@ -251,13 +251,13 @@ describe('GET /api/v1/simulation/all', () => {
   });
 });
 
-describe('GET /api/v1/simulation/:id', () => {
+describe('GET /api/v1/simulations/:id', () => {
   let validResponse: Response;
   let invalidResponse: Response;
 
   beforeEach(async () => {
-    validResponse = await request(HOSTNAME).get(`/api/v1/simulation/${validSimulationId}`);
-    invalidResponse = await request(HOSTNAME).get(`/api/v1/simulation/${invalidSimulationId}`);
+    validResponse = await request(HOSTNAME).get(`/api/v1/simulations/${validSimulationId}`);
+    invalidResponse = await request(HOSTNAME).get(`/api/v1/simulations/${invalidSimulationId}`);
   });
 
   afterEach(() => {
@@ -274,13 +274,13 @@ describe('GET /api/v1/simulation/:id', () => {
   });
 });
 
-describe('GET /api/v1/simulation/conversation/:id', () => {
+describe('GET /api/v1/simulations/conversations/:id', () => {
   let validResponse: Response;
   let invalidResponse: Response;
 
   beforeEach(async () => {
-    validResponse = await request(HOSTNAME).get(`/api/v1/simulation/conversation/${validConversation}`);
-    invalidResponse = await request(HOSTNAME).get(`/api/v1/simulation/conversation/${invalidSimulationId}`);
+    validResponse = await request(HOSTNAME).get(`/api/v1/simulations/conversations/${validConversation}`);
+    invalidResponse = await request(HOSTNAME).get(`/api/v1/simulations/conversations/${invalidSimulationId}`);
   });
 
   afterEach(() => {
@@ -297,7 +297,7 @@ describe('GET /api/v1/simulation/conversation/:id', () => {
   });
 });
 
-describe('PUT /api/v1/simulation/:id', () => {
+describe('PUT /api/v1/simulations/:id', () => {
   let validResponse: Response;
   let invalidResponse: Response;
 
@@ -305,10 +305,10 @@ describe('PUT /api/v1/simulation/:id', () => {
     const obj = {
       name: 'test',
     };
-    validResponse = await request(HOSTNAME).put(`/api/v1/simulation/${validSimulationId}`).send(obj);
+    validResponse = await request(HOSTNAME).put(`/api/v1/simulations/${validSimulationId}`).send(obj);
 
     // was failing because the domain type couldn't pass the validation check
-    invalidResponse = await request(HOSTNAME).put(`/api/v1/simulation/${invalidSimulationId}`).send(obj);
+    invalidResponse = await request(HOSTNAME).put(`/api/v1/simulations/${invalidSimulationId}`).send(obj);
   });
 
   afterEach(() => {
@@ -325,13 +325,13 @@ describe('PUT /api/v1/simulation/:id', () => {
   });
 });
 
-describe('DELETE /api/v1/simulation/:id', () => {
+describe('DELETE /api/v1/simulations/:id', () => {
   let validResponse: Response;
   let invalidResponse: Response;
 
   beforeEach(async () => {
-    validResponse = await request(HOSTNAME).delete(`/api/v1/simulation/${deleteValidSimulationId}`);
-    invalidResponse = await request(HOSTNAME).delete(`/api/v1/simulation/${invalidSimulationId}`);
+    validResponse = await request(HOSTNAME).delete(`/api/v1/simulations/${deleteValidSimulationId}`);
+    invalidResponse = await request(HOSTNAME).delete(`/api/v1/simulations/${invalidSimulationId}`);
   });
 
   afterEach(() => {

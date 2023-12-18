@@ -31,20 +31,20 @@ const invalidInput = {
   },
 };
 
-describe('POST /api/v1/chat/start', () => {
+describe('POST /api/v1/chats', () => {
   let validResponse: Response;
   let invalidResponse: Response;
 
   beforeEach(async () => {
-    validResponse = await request(hostname).post('/api/v1/chat/start').send(validInput);
+    validResponse = await request(hostname).post('/api/v1/chats').send(validInput);
     simulationId = validResponse.body._id;
-    invalidResponse = await request(hostname).post('/api/v1/chat/start').send(invalidInput);
+    invalidResponse = await request(hostname).post('/api/v1/chats').send(invalidInput);
   });
 
   afterEach(async () => {
     validResponse = {} as Response;
     invalidResponse = {} as Response;
-    await request(hostname).delete(`/api/v1/simulation/${simulationId}`).send(validInput);
+    await request(hostname).delete(`/api/v1/simulations/${simulationId}`).send(validInput);
   });
 
   it('should return 201 for valid input', () => {
@@ -56,14 +56,14 @@ describe('POST /api/v1/chat/start', () => {
   });
 });
 
-describe('POST /api/v1/chat/start', () => {
+describe('POST /api/v1/chats', () => {
   let validResponse: Response;
   let invalidResponse: Response;
 
   beforeEach(async () => {
-    validResponse = await request(hostname).post('/api/v1/chat/start').send(validInput);
+    validResponse = await request(hostname).post('/api/v1/chats').send(validInput);
     simulationId = validResponse.body._id;
-    invalidResponse = await request(hostname).post('/api/v1/chat/start').send(invalidInput);
+    invalidResponse = await request(hostname).post('/api/v1/chats').send(invalidInput);
   });
 
   afterEach(async () => {
@@ -80,13 +80,13 @@ describe('POST /api/v1/chat/start', () => {
   });
 });
 
-describe('GET /api/v1/chat/:id/load', () => {
+describe('GET /api/v1/chats/:id', () => {
   let validResponse: Response;
   let invalidResponse: Response;
 
   beforeEach(async () => {
-    validResponse = await request(hostname).get(`/api/v1/chat/${simulationId}/load`);
-    invalidResponse = await request(hostname).get(`/api/v1/chat/${invalidSimulationId}/load`);
+    validResponse = await request(hostname).get(`/api/v1/chats/${simulationId}`);
+    invalidResponse = await request(hostname).get(`/api/v1/chats/${invalidSimulationId}`);
   });
 
   afterEach(async () => {
@@ -103,17 +103,13 @@ describe('GET /api/v1/chat/:id/load', () => {
     expect(invalidResponse.status).toBe(404);
   });
 });
-describe('POST /api/v1/chat/:id/send-message', () => {
+describe('POST /api/v1/chats/:id', () => {
   let validResponse: Response;
   let invalidResponse: Response;
 
   beforeEach(async () => {
-    validResponse = await request(hostname)
-      .post(`/api/v1/chat/${simulationId}/send-message`)
-      .send({ message: 'Hello' });
-    invalidResponse = await request(hostname)
-      .post(`/api/v1/chat/${invalidSimulationId}/send-message`)
-      .send({ message: 'Hello' });
+    validResponse = await request(hostname).post(`/api/v1/chats/${simulationId}`).send({ message: 'Hello' });
+    invalidResponse = await request(hostname).post(`/api/v1/chats/${invalidSimulationId}`).send({ message: 'Hello' });
   });
 
   afterEach(async () => {
@@ -135,5 +131,5 @@ describe('POST /api/v1/chat/:id/send-message', () => {
 });
 
 afterAll(async () => {
-  await request(hostname).delete(`/api/v1/simulation/${simulationId}`).send(validInput);
+  await request(hostname).delete(`/api/v1/simulations/${simulationId}`).send(validInput);
 });
