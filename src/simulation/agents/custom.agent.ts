@@ -102,12 +102,12 @@ export class CustomAgent {
     };
     this.messageHistory = messageHistory || [];
   }
-
+  /**
+   * Initializes the custom agent, by adding the systemprompt to its history.
+   * No LLM call is made.
+   * @returns the welcome message of the custom agent
+   */
   async startAgent(): Promise<string> {
-    /*Initializes the messages with the starting system prompt and returns the welcome message.
-    No LLM call is made.
-    Logs if log files set and prints if isVerbose for the class instance"""*/
-
     const lcMsg: BaseMessage = await this.getSystemPrompt();
     // console.log(lcMsg.content.toString());
     await this.addMessage(new MsgHistoryItem(lcMsg, MsgType.SYSTEMPROMPT));
@@ -116,36 +116,45 @@ export class CustomAgent {
   }
 
   /**
-   * reprompt the ai to get proper json
-   * @param baseMessage - the message that needs to be fixed
-   * @returns A new BaseMessage that hopefully works
+   * This method calls the language model with the new input.
+   * It can potentially call different tools, and can reprompt itself to get to a valid result.
+   *
+   * @param humanInput - the new message input
+   * @returns the generated message to the user
    * @throws Errors for AI issues
    */
   async processHumanInput(humanInput: string): Promise<string> {
+    // Add the humanInput to the message history
     const lcMsg: BaseMessage = await this.getHumanPrompt(humanInput);
     const msg = new MsgHistoryItem(lcMsg, MsgType.HUMANINPUT, humanInput, undefined);
     await this.addMessage(msg);
 
+    // important variables
     let response: Record<string, any> = {};
     let action: string | null = null;
     let actionInput: string | Record<string, any> | null = null;
     let apiToolConfig: RestAPITool | null = null;
 
     for (;;) {
+      // call languageModel with the messageHistory
       const messages: BaseMessage[] = this.messageHistory.map((msg) => msg.lcMsg);
-
       const responseMessage = await this.chatModel.call(messages);
 
+      // try to get the message into the desired format
       response = await this.getFixedJson(responseMessage);
+
+      // retrieve the necesarry information
       action = response.action;
       actionInput = response.action_input ?? {};
 
+      // A simple response to the user
       if (
         action === MsgType.MSGTOUSER ||
         action == 'message_to_user' ||
         action == 'None' ||
         action == 'message_to_agent'
       ) {
+        // add message to history
         await this.addMessage(
           new MsgHistoryItem(
             responseMessage,
@@ -161,13 +170,14 @@ export class CustomAgent {
         );
         break;
       }
+      // Check if actionInput is valid
       actionInput = actionInput === '' ? {} : actionInput;
       if (typeof actionInput !== 'object') {
         throw new Error(`ERROR: Invalid action_input in response: ${JSON.stringify(response, null, 4)}`);
       }
+      // Check if the action is calling a routine tool
       if (action && this.config.routingTools[action]) {
-        console.log('routingInput: ' + responseMessage.content.toString());
-
+        // add to history
         await this.addMessage(
           new MsgHistoryItem(
             responseMessage,
@@ -183,14 +193,16 @@ export class CustomAgent {
         );
         break;
       }
-
+      // Check if it is available in other tools
       if (action && !(action in this.config.restApiTools)) {
         throw new Error(`ERROR: Missing or invalid tool in response action: ${JSON.stringify(response, null, 4)}`);
       }
-
+      // check if is  rest api tool
       if (action) {
+        // get tool from dictionary
         apiToolConfig = this.config.restApiTools[action];
 
+        // add toolcall message
         await this.addMessage(
           new MsgHistoryItem(
             responseMessage,
@@ -205,10 +217,11 @@ export class CustomAgent {
           ),
         );
 
+        // execute the tool
         const toolOutput: string = await apiToolConfig.executeTool(actionInput);
-
         const lcMsg = await this.getToolOutputPrompt(action, toolOutput);
 
+        // add the tooloutput message
         await this.addMessage(
           new MsgHistoryItem(
             lcMsg,
@@ -222,13 +235,21 @@ export class CustomAgent {
             undefined,
           ),
         );
+        // after this the for loop will start again and will trigger another language model call
       }
     }
     return String(actionInput);
   }
 
+  /**
+   * Get a SystemPrompt, containing information, like tools, persona, role, conversationstrategy, tasks, currentDate
+   * It is mainly used as the initial prompt for the LLM.
+   * @param newMessage - the new MsgHistoryItem
+   * @returns a formatted string
+   */
   getSystemPrompt() {
     const toolDescriptions: Record<string, ToolDescription> = {};
+    // loops through the tools to collect data like, request parameteres, description
     for (const toolName in this.combinedTools) {
       const tool = this.combinedTools[toolName];
       if (tool.isActive) {
@@ -256,6 +277,7 @@ export class CustomAgent {
         }
       }
     }
+    // combine all the collected information in a prompt
     return SystemMessagePromptTemplate.fromTemplate(this.config.systemPromptTemplate).format({
       role: this.config.role,
       persona: this.config.persona,
@@ -266,12 +288,23 @@ export class CustomAgent {
     });
   }
 
+  /**
+   * Get a nicely formatted human output.
+   * @param newMessage - the new MsgHistoryItem
+   * @returns a formatted string
+   */
   getHumanPrompt(humanInput: string) {
     return HumanMessagePromptTemplate.fromTemplate(this.config.humanInputTemplate).format({
       humanInput: humanInput,
     });
   }
 
+  /**
+   * Get a nicely formatted tool output.
+   * @param toolName - the name of the tool
+   * @param toolOutput - data the tool wants to send to the model
+   * @returns a formatted string
+   */
   getToolOutputPrompt(toolName: string, toolOutput: string) {
     return HumanMessagePromptTemplate.fromTemplate(this.config.toolOutputTemplate).format({
       toolOutput: toolOutput,
@@ -279,6 +312,10 @@ export class CustomAgent {
     });
   }
 
+  /**
+   * Pushes a message to the messageHistory
+   * @param newMessage - the new MsgHistoryItem
+   */
   async addMessage(newMessage: MsgHistoryItem): Promise<void> {
     this.messageHistory.push(newMessage);
     this.logMessage(newMessage);
@@ -288,6 +325,10 @@ export class CustomAgent {
     }
   }
 
+  /**
+   * Logs a MsgHistoryItem to the console and log file
+   * @param msg - the MsgHistoryItem you want to log
+   */
   logMessage(msg: MsgHistoryItem) {
     if (msg.type === MsgType.SYSTEMPROMPT) {
       this.logChat(`🤖 ${Colors.BLUE}${this.config.welcomeMessage}${Colors.END}`);
@@ -309,6 +350,11 @@ export class CustomAgent {
     }
   }
 
+  /**
+   * Logs messages to the console and log files
+   * @param output - the text you want to long
+   * @param is_print - if it should be printed to the console
+   */
   logChat(output: string, is_print: boolean = true) {
     if (this.chatLogFilePath) {
       const logItem = output.replace(/\\x1B\[\d+(;\d+)*m/g, '');
