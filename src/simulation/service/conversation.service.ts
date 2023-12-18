@@ -23,6 +23,7 @@ import repositoryFactory from '@db/repositories/factory';
 
 import * as fs from 'fs';
 import * as path from 'path';
+import { Types } from 'mongoose';
 import { ConversationDocument } from '@db/models/conversation.model';
 
 const isDev = process.env.IS_DEVELOPER;
@@ -336,6 +337,65 @@ export async function createMessageDocument(
 }
 
 /**
+ * Save all messages to the database and return their ids.
+ *
+ * @param serviceAgent - The service agent.
+ * @param usedEndpoints - An array of used endpoints.
+ * @returns - A promise that resolves to an array of message ids.
+ */
+async function saveMessagesToDB(serviceAgent: CustomAgent, usedEndpoints: string[]): Promise<Types.ObjectId[]> {
+  const messages: MessageDocument[] = [];
+
+  // create a message document for each message history item
+  for (let i = 0; i < serviceAgent.messageHistory.length; i++) {
+    messages.push(
+      await createMessageDocument(serviceAgent.messageHistory[i], usedEndpoints, serviceAgent.config.welcomeMessage),
+    );
+  }
+
+  // return the ids of the messages
+  return messages.map((msg: MessageDocument) => msg._id);
+}
+
+/**
+ * Update the conversation with the messages, used endpoints, endTime and it's status
+ *
+ * @param conversation - The conversation document.
+ * @param messages - An array of messages.
+ * @param usedEndpoints - An array of used endpoints.
+ * @returns - A promise that resolves to a ConversationDocument object.
+ */
+async function updateConversation(
+  conversation: ConversationDocument,
+  messages: Types.ObjectId[],
+  usedEndpoints: string[],
+  conversationSuccess: boolean,
+  hangupMsgTimestamp: Date,
+  endTime: Date,
+) {
+  // add the hangup message if the conversation was successful
+  if (conversationSuccess) {
+    const hangupMessage: MessageDocument = await messageRepository.create({
+      sender: MsgSender.USER,
+      text: '/hangup',
+      type: MsgType.HANGUP,
+      timestamp: hangupMsgTimestamp!,
+      intermediateMsg: undefined,
+      action: undefined,
+      toolInput: undefined,
+    });
+    messages.push(hangupMessage._id);
+  }
+  conversation.messages = messages;
+  conversation.endTime = endTime;
+  conversation.status = ConversationStatus.FINISHED;
+  conversation.usedEndpoints = usedEndpoints;
+
+  // update the conversation
+  await conversationRepository.updateById(conversation._id, conversation);
+}
+
+/**
  * Runs a conversation between a service agent and a user agent.
  *
  * @param serviceAgentData - The data for the service agent.
@@ -370,7 +430,7 @@ export async function runConversation(
 
   try {
     let conversationSuccess: boolean = false;
-    let hangupMsgTimestamp: Date;
+    let hangupMsgTimestamp: Date = new Date();
     // the main conversation loop
     while (turnCount < maxTurnCount) {
       // calling the user language model with the new input
@@ -390,33 +450,17 @@ export async function runConversation(
       turnCount++;
     }
 
-    const endTime: Date = new Date();
     const usedEndpoints: string[] = [];
-    const messages: MessageDocument[] = [];
 
-    for (let i = 0; i < serviceAgent.messageHistory.length; i++) {
-      messages.push(
-        await createMessageDocument(serviceAgent.messageHistory[i], usedEndpoints, serviceAgent.config.welcomeMessage),
-      );
-    }
-    if (conversationSuccess) {
-      const hangupMessage: MessageDocument = await messageRepository.create({
-        sender: MsgSender.USER,
-        text: '/hangup',
-        type: MsgType.HANGUP,
-        timestamp: hangupMsgTimestamp!,
-        intermediateMsg: undefined,
-        action: undefined,
-        toolInput: undefined,
-      });
-      messages.push(hangupMessage);
-    }
-
-    conversation.messages = messages.map((msg: MessageDocument) => msg._id);
-    conversation.endTime = endTime;
-    conversation.status = ConversationStatus.FINISHED;
-    conversation.usedEndpoints = usedEndpoints;
-    await conversationRepository.updateById(conversation._id, conversation);
+    // update the conversation with the messages, used endpoints, endTime and it's status
+    updateConversation(
+      conversation,
+      await saveMessagesToDB(serviceAgent, usedEndpoints),
+      usedEndpoints,
+      conversationSuccess,
+      hangupMsgTimestamp,
+      new Date(),
+    );
     return conversation;
   } catch (error) {
     if (error instanceof Error) {
