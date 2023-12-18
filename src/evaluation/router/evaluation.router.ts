@@ -8,14 +8,14 @@ const router = express.Router();
 
 // region GET //
 router.get(
-  '/results-for-conversation/:conversationId',
+  '/conversations/:conversationId',
   evaluationValidator.resultsForConversationValidation(),
   CustomValidationError.handleValidationErrors,
   evaluationController.resultsForConversation,
 );
 
 router.get(
-  '/results-for-simulation/:simulationId',
+  '/simulations/:simulationId',
   evaluationValidator.resultsForSimulationValidation(),
   CustomValidationError.handleValidationErrors,
   evaluationController.resultsForSimulation,
@@ -24,7 +24,7 @@ router.get(
 
 // region POST //
 router.post(
-  '/run',
+  '/',
   evaluationValidator.runValidation(),
   CustomValidationError.handleValidationErrors,
   evaluationController.run,

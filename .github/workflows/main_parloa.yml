@@ -1,4 +1,4 @@
-name: CI
+name: CI/CD Workflow
 
 on:
   workflow_dispatch:
@@ -17,8 +17,9 @@ on:
       - development
 
 jobs:
-  build:
+  build-start-dev:
     runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/development' || (github.event_name == 'pull_request' && contains(github.event.pull_request.base.ref, 'development'))
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -42,7 +43,7 @@ jobs:
           echo "MONGOEXPRESS_DOCKER_PORT=${{ secrets.MONGOEXPRESS_DOCKER_PORT }}" >> .env
           echo "MONGOEXPRESS_BASICAUTH_USERNAME=${{ secrets.MONGOEXPRESS_BASICAUTH_USERNAME }}" >> .env
           echo "MONGOEXPRESS_BASICAUTH_PASSWORD=${{ secrets.MONGOEXPRESS_BASICAUTH_PASSWORD }}" >> .env
-      
+
       - name: Install dependencies
         run: npm install
       
@@ -59,3 +60,45 @@ jobs:
       - name: Stop containers
         if: always()
         run: docker-compose -f "docker-compose.yml" down
+
+  build-prod:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' || (github.event_name == 'pull_request' && contains(github.event.pull_request.base.ref, 'main'))
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v2
+
+    - name: Log in to registry
+      uses: docker/login-action@v2
+      with:
+        registry: https://parloaacr.azurecr.io/
+        username: ${{ secrets.AzureAppService_ContainerUsername_978d68c9548f47dead351d8f62fce38a }}
+        password: ${{ secrets.AzureAppService_ContainerPassword_1ccc76ff28a74e59b2b1e651bf4d0e2d }}
+
+    - name: Build and push container image to registry
+      uses: docker/build-push-action@v3
+      with:
+        push: true
+        tags: parloaacr.azurecr.io/${{ secrets.AzureAppService_ContainerUsername_978d68c9548f47dead351d8f62fce38a }}/parloa:${{ github.sha }}
+        file: ./Dockerfile
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build-prod
+    if: github.ref == 'refs/heads/main' || (github.event_name == 'pull_request' && contains(github.event.pull_request.base.ref, 'main'))
+    environment:
+      name: 'production'
+      url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
+
+    steps:
+    - name: Deploy to Azure Web App
+      id: deploy-to-webapp
+      uses: azure/webapps-deploy@v2
+      with:
+        app-name: 'parloa'
+        slot-name: 'production'
+        publish-profile: ${{ secrets.AzureAppService_PublishProfile_fd051c3bedd3409d838a8d81514d3631 }}
+        images: 'parloaacr.azurecr.io/${{ secrets.AzureAppService_ContainerUsername_978d68c9548f47dead351d8f62fce38a }}/parloa:${{ github.sha }}'

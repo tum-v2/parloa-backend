@@ -4,6 +4,6 @@ import llmController from '@simulation/api/llms.controller';
 
 const router = express.Router();
 
-router.get('/models', llmController.getLLMs);
+router.get('/', llmController.getLLMs);
 
 export default router;

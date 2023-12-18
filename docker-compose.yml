@@ -33,6 +33,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      target: dev
     env_file: .env
     ports:
       - $NODE_LOCAL_PORT:$NODE_DOCKER_PORT
@@ -42,11 +43,11 @@ services:
       - DB_PASSWORD=$MONGODB_PASSWORD
       - DB_NAME=$MONGODB_DATABASE
       - DB_PORT=$MONGODB_DOCKER_PORT
+      - NODE_ENV=development
     volumes:
       - ./src:/usr/src/app/src
     stdin_open: true
     tty: true
-    command: npm run start:dev
 
 volumes:
   db:

@@ -1,5 +1,5 @@
 # Start with the Node.js slim base image
-FROM node:bullseye-slim
+FROM node:bullseye-slim as base
 
 # Set the working directory
 WORKDIR /usr/src/app
@@ -27,8 +27,12 @@ RUN pip3 install -r requirements.txt && \
 # Copy the rest of your app's source code
 COPY . .
 
-# Build your TypeScript files
-RUN npm run build
-
 # The application's port
 EXPOSE 3000
+
+FROM base as dev
+CMD ["npm","run", "start:dev"]
+
+FROM base as prod
+CMD ["npm","run", "start"]
+
