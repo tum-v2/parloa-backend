@@ -5,7 +5,7 @@ info:
 tags:
   - name: Evaluation
 paths:
-  /api/v1/evaluation/run:
+  /api/v1/evaluations:
     post:
       summary: Start the evaluation of a conversation
       tags: [Evaluation]
@@ -48,7 +48,7 @@ paths:
                   details:
                     type: string
                     example: Error
-  /api/v1/evaluation/run-multiple:
+  /api/v1/evaluations/simulations:
     post:
       summary: evaluate multiple simulations and get the results as CSV file
       tags: [Evaluation]
@@ -83,7 +83,7 @@ paths:
                   details:
                     type: string
                     example: Error
-  /api/v1/evaluation/results-for-conversation/{conversationId}:
+  /api/v1/evaluations/conversations/{conversationId}:
     get:
       summary: Retrieve evaluation results for conversation
       tags: [Evaluation]
@@ -127,7 +127,7 @@ paths:
                   details:
                     type: string
                     example: Error
-  /api/v1/evaluation/results-for-simulation/{simulationId}:
+  /api/v1/evaluations/simulations/{simulationId}:
     get:
       summary: Retrieve evaluation results for simulation
       tags: [Evaluation]

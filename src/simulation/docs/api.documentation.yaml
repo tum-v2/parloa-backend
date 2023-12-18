@@ -138,7 +138,7 @@ paths:
                   details:
                     type: string
                     example: Error
-  /api/v1/simulation/all:
+  /api/v1/simulations:
     get:
       summary: Retrieve all simulations
       tags: [Simulation]
@@ -167,7 +167,6 @@ paths:
                   details:
                     type: string
                     example: Error
-  /api/v1/simulation/run:
     post:
       summary: Start new automated simulation
       tags: [Simulation]
@@ -222,7 +221,7 @@ paths:
                   details:
                     type: string
                     example: Error
-  /api/v1/simulation/{simulationId}:
+  /api/v1/simulations/{simulationId}:
     get:
       summary: Retrieve simulation
       tags: [Simulation]
@@ -424,7 +423,7 @@ paths:
                   details:
                     type: string
                     example: Error
-  /api/v1/simulation/abtesting/run:
+  /api/v1/simulations/ab-testing:
     post:
       summary: Start new A/B simulation
       tags: [Simulation]
@@ -479,7 +478,7 @@ paths:
                   details:
                     type: string
                     example: Error
-  /api/v1/simulation/conversation/{conversationId}:
+  /api/v1/simulations/conversations/{conversationId}:
     get:
       summary: Retrieve simulation conversations
       tags: [Simulation]
@@ -545,7 +544,7 @@ paths:
                   details:
                     type: string
                     example: Error
-  /api/v1/agent:
+  /api/v1/agents:
     post:
       summary: Create a new agent
       description: Endpoint to create a new agent.
@@ -601,7 +600,6 @@ paths:
                   details:
                     type: string
                     example: Error
-  /api/v1/agent/all:
     get:
       summary: Retrieve all agents
       tags: [Agent]
@@ -630,7 +628,7 @@ paths:
                   details:
                     type: string
                     example: Error
-  /api/v1/agent/{agentId}:
+  /api/v1/agents/{agentId}:
     get:
       summary: Get agent
       tags: [Agent]
@@ -832,7 +830,36 @@ paths:
                   error:
                     type: string
                     example: Error
-  /api/v1/chat/start:
+  /api/v1/chats:
+    get:
+      summary: Retrieve all chats
+      description: Endpoint for fething all simulations.
+      tags: [Chat]
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ChatResponse"
+        500:
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: string
+                    example: INTERNAL_SERVER_ERROR
+                  message:
+                    type: string
+                    example: Internal server error occurred
+                  details:
+                    type: string
+                    example: Error
     post:
       summary: Start a new chat
       description: Endpoint to start a new manual chat.
@@ -894,7 +921,7 @@ paths:
                   details:
                     type: string
                     example: Error
-  /api/v1/chat/{chatId}/load:
+  /api/v1/chats/{chatId}:
     get:
       summary: Load previous chat
       description: Endpoint for loading a previous chat.
@@ -955,7 +982,6 @@ paths:
                   details:
                     type: string
                     example: Error
-  /api/v1/chat/{chatId}/send-message:
     post:
       summary: Send a message
       description: Endpoint for sending a message manual chat.
@@ -1023,37 +1049,7 @@ paths:
                   details:
                     type: string
                     example: Error
-  /api/v1/chat/all:
-    get:
-      summary: Retrieve all chats
-      description: Endpoint for fething all simulations.
-      tags: [Chat]
-      responses:
-        200:
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/ChatResponse"
-        500:
-          description: Internal Server Error
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  code:
-                    type: string
-                    example: INTERNAL_SERVER_ERROR
-                  message:
-                    type: string
-                    example: Internal server error occurred
-                  details:
-                    type: string
-                    example: Error
-  /api/v1/llm/models:
+  /api/v1/language-models:
     get:
       summary: Retrive available LLM models
       tags: [LLMs]
@@ -1088,7 +1084,7 @@ paths:
                   details:
                     type: string
                     example: Error
-  /api/v1/optimization/run:
+  /api/v1/optimizations:
     post:
       summary: Start a new optimization
       tags: [ Optimization ]
@@ -1144,7 +1140,7 @@ paths:
                     type: string
                     example: Error
                     
-  /api/v1/optimization/{optimizationId}:
+  /api/v1/optimizations/{optimizationId}:
     get:
       summary: Get child simulations that belong to an optimized simulation
       tags: [ Optimization ]

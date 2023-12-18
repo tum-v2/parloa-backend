@@ -7,14 +7,9 @@ import { CustomValidationError } from '@utils/handle-validation-errors';
 const router = express.Router();
 
 // POST //
+router.post('/', ChatValidator.runValidation(), CustomValidationError.handleValidationErrors, chatController.start);
 router.post(
-  '/start',
-  ChatValidator.runValidation(),
-  CustomValidationError.handleValidationErrors,
-  chatController.start,
-);
-router.post(
-  '/:id/send-message',
+  '/:id',
   ChatValidator.idValidation(),
   ChatValidator.messageValidation(),
   CustomValidationError.handleValidationErrors,
@@ -22,12 +17,7 @@ router.post(
 );
 
 // GET //
-router.get(
-  '/:id/load',
-  ChatValidator.idValidation(),
-  CustomValidationError.handleValidationErrors,
-  chatController.load,
-);
-router.get('/all', chatController.getAll);
+router.get('/:id', ChatValidator.idValidation(), CustomValidationError.handleValidationErrors, chatController.load);
+router.get('/', chatController.getAll);
 
 export default router;

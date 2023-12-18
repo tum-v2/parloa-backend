@@ -1,5 +1,5 @@
 # Start with the Node.js slim base image
-FROM node:bullseye-slim
+FROM node:bullseye-slim as base
 
 # Set the working directory
 WORKDIR /usr/src/app
@@ -30,5 +30,9 @@ COPY . .
 # The application's port
 EXPOSE 3000
 
-# Start the application
-CMD ["npm", "start"]
+FROM base as dev
+CMD ["npm","run", "start:dev"]
+
+FROM base as prod
+CMD ["npm","run", "start"]
+

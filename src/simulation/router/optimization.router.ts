@@ -7,7 +7,7 @@ const router = express.Router();
 
 // POST //
 router.post(
-  '/run',
+  '/',
   SimulationValidator.runValidation(),
   CustomValidationError.handleValidationErrors,
   optimizationController.run,
