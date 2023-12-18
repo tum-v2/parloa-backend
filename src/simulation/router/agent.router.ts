@@ -10,7 +10,7 @@ const router: Router = express.Router();
 router.post('/', AgentValidator.runValidation(), CustomValidationError.handleValidationErrors, agentController.create);
 
 // GET //
-router.get('/all', agentController.getAll);
+router.get('/', agentController.getAll);
 router.get('/:id', AgentValidator.idValidation(), CustomValidationError.handleValidationErrors, agentController.get);
 
 // PUT //
