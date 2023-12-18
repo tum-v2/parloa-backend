@@ -15,12 +15,10 @@ on:
     branches:
       - main
       - development
-      - '*'
 
 jobs:
   check-out:
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/development'
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -28,7 +26,7 @@ jobs:
   build-dev:
     runs-on: ubuntu-latest
     needs: check-out
-    if: github.ref == 'refs/heads/development'
+    if: github.ref == 'refs/heads/development' || (github.event_name == 'pull_request' && contains(github.event.pull_request.base.ref, 'development'))
     steps:
       - name: Set up Node.js
         uses: actions/setup-node@v2
@@ -65,7 +63,7 @@ jobs:
   
   stop-containers:
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/development'
+    if: github.ref == 'refs/heads/development' || (github.event_name == 'pull_request' && contains(github.event.pull_request.base.ref, 'development'))
     needs: build-dev
     steps:
       - name: Stop containers
