@@ -83,7 +83,7 @@ paths:
                   details:
                     type: string
                     example: Error
-  /api/v1/evaluation/conversations/{conversationId}:
+  /api/v1/evaluations/conversations/{conversationId}:
     get:
       summary: Retrieve evaluation results for conversation
       tags: [Evaluation]
@@ -127,7 +127,7 @@ paths:
                   details:
                     type: string
                     example: Error
-  /api/v1/evaluation/simulations/{simulationId}:
+  /api/v1/evaluations/simulations/{simulationId}:
     get:
       summary: Retrieve evaluation results for simulation
       tags: [Evaluation]
