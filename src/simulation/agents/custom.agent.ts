@@ -102,12 +102,12 @@ export class CustomAgent {
     };
     this.messageHistory = messageHistory || [];
   }
-
+  /**
+   * Initializes the custom agent, by adding the systemprompt to its history.
+   * No LLM call is made.
+   * @returns the welcome message of the custom agent
+   */
   async startAgent(): Promise<string> {
-    /*Initializes the messages with the starting system prompt and returns the welcome message.
-    No LLM call is made.
-    Logs if log files set and prints if isVerbose for the class instance"""*/
-
     const lcMsg: BaseMessage = await this.getSystemPrompt();
     // console.log(lcMsg.content.toString());
     await this.addMessage(new MsgHistoryItem(lcMsg, MsgType.SYSTEMPROMPT));
@@ -241,8 +241,15 @@ export class CustomAgent {
     return String(actionInput);
   }
 
+  /**
+   * Get a SystemPrompt, containing information, like tools, persona, role, conversationstrategy, tasks, currentDate
+   * It is mainly used as the initial prompt for the LLM.
+   * @param newMessage - the new MsgHistoryItem
+   * @returns a formatted string
+   */
   getSystemPrompt() {
     const toolDescriptions: Record<string, ToolDescription> = {};
+    // loops through the tools to collect data like, request parameteres, description
     for (const toolName in this.combinedTools) {
       const tool = this.combinedTools[toolName];
       if (tool.isActive) {
@@ -270,6 +277,7 @@ export class CustomAgent {
         }
       }
     }
+    // combine all the collected information in a prompt
     return SystemMessagePromptTemplate.fromTemplate(this.config.systemPromptTemplate).format({
       role: this.config.role,
       persona: this.config.persona,
@@ -280,12 +288,23 @@ export class CustomAgent {
     });
   }
 
+  /**
+   * Get a nicely formatted human output.
+   * @param newMessage - the new MsgHistoryItem
+   * @returns a formatted string
+   */
   getHumanPrompt(humanInput: string) {
     return HumanMessagePromptTemplate.fromTemplate(this.config.humanInputTemplate).format({
       humanInput: humanInput,
     });
   }
 
+  /**
+   * Get a nicely formatted tool output.
+   * @param toolName - the name of the tool
+   * @param toolOutput - data the tool wants to send to the model
+   * @returns a formatted string
+   */
   getToolOutputPrompt(toolName: string, toolOutput: string) {
     return HumanMessagePromptTemplate.fromTemplate(this.config.toolOutputTemplate).format({
       toolOutput: toolOutput,
@@ -293,6 +312,10 @@ export class CustomAgent {
     });
   }
 
+  /**
+   * Pushes a message to the messageHistory
+   * @param newMessage - the new MsgHistoryItem
+   */
   async addMessage(newMessage: MsgHistoryItem): Promise<void> {
     this.messageHistory.push(newMessage);
     this.logMessage(newMessage);
@@ -302,6 +325,10 @@ export class CustomAgent {
     }
   }
 
+  /**
+   * Logs a MsgHistoryItem to the console and log file
+   * @param msg - the MsgHistoryItem you want to log
+   */
   logMessage(msg: MsgHistoryItem) {
     if (msg.type === MsgType.SYSTEMPROMPT) {
       this.logChat(`🤖 ${Colors.BLUE}${this.config.welcomeMessage}${Colors.END}`);
@@ -323,6 +350,11 @@ export class CustomAgent {
     }
   }
 
+  /**
+   * Logs messages to the console and log files
+   * @param output - the text you want to long
+   * @param is_print - if it should be printed to the console
+   */
   logChat(output: string, is_print: boolean = true) {
     if (this.chatLogFilePath) {
       const logItem = output.replace(/\\x1B\[\d+(;\d+)*m/g, '');
