@@ -95,20 +95,19 @@ async function initiateAB(request: RunABTestingRequest): Promise<SimulationDocum
   let serviceAgentB: AgentDocument | null = null;
   console.log('Creating simulation object...');
 
+  // check wether to use the agentConfig or id
   if (request.serviceAgentAConfig !== undefined) {
     request.serviceAgentAConfig.temporary = true;
     serviceAgentA = await agentRepository.create(request.serviceAgentAConfig!);
   } else if (request.serviceAgentAId !== undefined) {
     serviceAgentA = await agentRepository.getById(request.serviceAgentAId!);
   }
-
   if (request.serviceAgentBConfig !== undefined) {
     request.serviceAgentBConfig.temporary = true;
     serviceAgentB = await agentRepository.create(request.serviceAgentBConfig!);
   } else if (request.serviceAgentBId !== undefined) {
     serviceAgentB = await agentRepository.getById(request.serviceAgentBId!);
   }
-
   if (request.userAgentConfig !== undefined) {
     request.userAgentConfig.temporary = true;
     userAgent = await agentRepository.create(request.userAgentConfig!);
@@ -120,6 +119,7 @@ async function initiateAB(request: RunABTestingRequest): Promise<SimulationDocum
     throw new Error('User agent or service agent id not found');
   }
 
+  // Create the 2 new SimulationDocuments
   const simulationDataA: Partial<SimulationDocument> = {
     type: SimulationType.AB_TESTING,
     name: request.name,
@@ -139,13 +139,13 @@ async function initiateAB(request: RunABTestingRequest): Promise<SimulationDocum
     numConversations: request.numConversations,
     conversations: [],
     status: SimulationStatus.SCHEDULED,
-    abPartner: simulationA._id,
+    abPartner: simulationA._id, // connect with AB partner
   };
   const simulationB: SimulationDocument = await simulationRepository.create(simulationDataB);
-
+  // connect simulation with partner
   simulationA.abPartner = simulationB._id;
   await simulationRepository.updateById(simulationA._id, simulationA);
-
+  // start simulation
   runAB(simulationA, simulationB, request.numConversations, serviceAgentA, serviceAgentB, userAgent);
 
   return [simulationA, simulationB];
