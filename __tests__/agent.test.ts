@@ -24,14 +24,14 @@ const invalidInput = {
 
 let agentId = '';
 
-describe('POST /api/v1/agent/', () => {
+describe('POST /api/v1/agents/', () => {
   let validResponse: Response;
   let invalidResponse: Response;
 
   beforeEach(async () => {
-    validResponse = await request(HOSTNAME).post('/api/v1/agent/').send(validInput);
+    validResponse = await request(HOSTNAME).post('/api/v1/agents/').send(validInput);
     agentId = validResponse.body._id;
-    invalidResponse = await request(HOSTNAME).post('/api/v1/agent/').send(invalidInput);
+    invalidResponse = await request(HOSTNAME).post('/api/v1/agents/').send(invalidInput);
   });
 
   afterEach(() => {
@@ -48,13 +48,13 @@ describe('POST /api/v1/agent/', () => {
   });
 });
 
-describe('GET /api/v1/agent/:id', () => {
+describe('GET /api/v1/agents/:id', () => {
   let validResponse: Response;
   let invalidResponse: Response;
 
   beforeEach(async () => {
-    validResponse = await request(HOSTNAME).get(`/api/v1/agent/${agentId}`);
-    invalidResponse = await request(HOSTNAME).get(`/api/v1/agent/123`);
+    validResponse = await request(HOSTNAME).get(`/api/v1/agents/${agentId}`);
+    invalidResponse = await request(HOSTNAME).get(`/api/v1/agents/123`);
   });
 
   afterEach(() => {
@@ -71,11 +71,11 @@ describe('GET /api/v1/agent/:id', () => {
   });
 });
 
-describe('GET /api/v1/agent/all', () => {
+describe('GET /api/v1/agents', () => {
   let validResponse: Response;
 
   beforeEach(async () => {
-    validResponse = await request(HOSTNAME).get(`/api/v1/agent/all`);
+    validResponse = await request(HOSTNAME).get(`/api/v1/agents`);
   });
 
   afterEach(() => {
@@ -88,13 +88,13 @@ describe('GET /api/v1/agent/all', () => {
   });
 });
 
-describe('PUT /api/v1/agent/:id', () => {
+describe('PUT /api/v1/agents/:id', () => {
   let validResponse: Response;
   let invalidResponse: Response;
 
   beforeEach(async () => {
-    validResponse = await request(HOSTNAME).put(`/api/v1/agent/${agentId}`).send({ prompt: 'nonative' });
-    invalidResponse = await request(HOSTNAME).put(`/api/v1/agent/${agentId}`).send({ llm: 'GPT3' });
+    validResponse = await request(HOSTNAME).put(`/api/v1/agents/${agentId}`).send({ prompt: 'nonative' });
+    invalidResponse = await request(HOSTNAME).put(`/api/v1/agents/${agentId}`).send({ llm: 'GPT3' });
   });
 
   afterEach(() => {
@@ -112,15 +112,15 @@ describe('PUT /api/v1/agent/:id', () => {
   });
 });
 
-describe('DELETE /api/v1/agent/:id', () => {
+describe('DELETE /api/v1/agents/:id', () => {
   let validResponse: Response;
   let getResponse: Response;
   let invalidResponse: Response;
 
   beforeEach(async () => {
-    validResponse = await request(HOSTNAME).delete(`/api/v1/agent/${agentId}`);
-    getResponse = await request(HOSTNAME).get(`/api/v1/agent/${agentId}`);
-    invalidResponse = await request(HOSTNAME).delete(`/api/v1/agent/${agentId}`);
+    validResponse = await request(HOSTNAME).delete(`/api/v1/agents/${agentId}`);
+    getResponse = await request(HOSTNAME).get(`/api/v1/agents/${agentId}`);
+    invalidResponse = await request(HOSTNAME).delete(`/api/v1/agents/${agentId}`);
   });
 
   afterEach(() => {
