@@ -8,6 +8,7 @@ const router = express.Router();
 
 // POST //
 router.post('/', ChatValidator.runValidation(), CustomValidationError.handleValidationErrors, chatController.start);
+
 router.post(
   '/:id',
   ChatValidator.idValidation(),
@@ -18,6 +19,7 @@ router.post(
 
 // GET //
 router.get('/:id', ChatValidator.idValidation(), CustomValidationError.handleValidationErrors, chatController.load);
+
 router.get('/', chatController.getAll);
 
 export default router;
