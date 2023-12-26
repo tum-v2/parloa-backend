@@ -1,7 +1,6 @@
 import { CustomAgent } from '@simulation/agents/custom.agent';
-import { getSimConfig } from '@simulation/agents/user.agent';
+import { getUserConfig } from '@simulation/agents/user.agent';
 import {
-  flightBookingAgentConfig,
   fakeUserAgentResponses,
   fakeServiceAgentResponses,
 } from '@simulation/agents/service/service.agent.flight.booker';
@@ -24,6 +23,9 @@ import repositoryFactory from '@db/repositories/factory';
 import * as fs from 'fs';
 import * as path from 'path';
 import { ConversationDocument } from '@db/models/conversation.model';
+import { createFlightBookingAgent, createInsuranceAgent } from '@simulation/agents/service/service.agent';
+import { ConversationDomain } from '@enums/conversation-domain.enum';
+import { CustomAgentConfig } from '@simulation/agents/custom.agent.config';
 
 const isDev = process.env.IS_DEVELOPER;
 if (isDev === undefined) throw new Error('IS_DEVELOPER Needs to be specified');
@@ -202,14 +204,38 @@ export async function configureServiceAgent(
   let modelName: string;
   let temperature: number;
   let maxTokens: number;
+  const welcomeMessage: string = agentData.prompt.find((prompt) => prompt.name === 'welcomeMessage')?.content || '';
+  const role: string = agentData.prompt.find((prompt) => prompt.name === 'role')?.content || '';
+  const persona: string = agentData.prompt.find((prompt) => prompt.name === 'persona')?.content || '';
+  const conversationStrategy: string =
+    agentData.prompt.find((prompt) => prompt.name === 'conversationStrategy')?.content || '';
+  const tasks: string = agentData.prompt.find((prompt) => prompt.name === 'tasks')?.content || '';
+  let agentConfig: CustomAgentConfig;
 
+  // Initialize agent config depending on domain
+  if (agentData.domain === ConversationDomain.FLIGHT) {
+    agentConfig = createFlightBookingAgent(welcomeMessage, role, persona, conversationStrategy, tasks);
+  } else {
+    // create insurance agent
+    agentConfig = createInsuranceAgent();
+  }
+
+  // Change tool descriptions of agent config
+  const tools: Record<string, string> = JSON.parse(
+    agentData.prompt.find((prompt) => prompt.name === 'tools')?.content || '',
+  );
+  for (const tool in tools) {
+    agentConfig.changeToolDescription(tool, tools[tool]);
+  }
+
+  // Update agent configuration with agent data
   if (agentData.llm === undefined) {
-    modelName = flightBookingAgentConfig.modelName;
+    modelName = agentConfig.modelName;
   } else {
     modelName = agentData.llm;
   }
   if (agentData.temperature === undefined) {
-    temperature = flightBookingAgentConfig.temperature;
+    temperature = agentConfig.temperature;
   } else {
     temperature = agentData.temperature;
   }
@@ -227,17 +253,9 @@ export async function configureServiceAgent(
     agentLLM = new ChatOpenAI(azureOpenAIInput);
   }
 
-  if (agentData.prompt !== 'default') {
-    flightBookingAgentConfig.persona = agentData.prompt;
-  } else {
-    flightBookingAgentConfig.persona = `- You should be empathetic, helpful, comprehensive and polite.
-    - Never use gender specific prefixes like Mr. or Mrs. when addressing the user unless they used it themselves.
-    `;
-  }
-
   const serviceAgent: CustomAgent = new CustomAgent(
     agentLLM,
-    flightBookingAgentConfig,
+    agentConfig,
     SERVICE_PROMPT_LOG_FILE_PATH,
     SERVICE_CHAT_LOG_FILE_PATH,
     true,
@@ -261,7 +279,11 @@ async function configureUserAgent(agentData: AgentDocument): Promise<CustomAgent
   let temperature: number;
   let maxTokens: number;
 
-  const userSimConfig = getSimConfig(agentData.prompt);
+  const userSimConfig = getUserConfig(
+    agentData.prompt.find((prompt) => prompt.name === 'role')?.content || '',
+    agentData.prompt.find((prompt) => prompt.name === 'persona')?.content || '',
+    agentData.prompt.find((prompt) => prompt.name === 'conversationStrategy')?.content || '',
+  );
   if (agentData.llm === undefined) {
     modelName = userSimConfig.modelName;
   } else {

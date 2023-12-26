@@ -23,7 +23,7 @@ class AgentValidator {
       body('domain')
         .isIn(Object.values(ConversationDomain))
         .withMessage(`Invalid domain type. Must be one of: ${Object.values(ConversationDomain).join(', ')}`),
-      body('prompt').isString().withMessage('Prompt must be a valid string.'),
+      body('prompt').isArray().withMessage('Prompt must be a valid array.'),
       body('goal').optional().isMongoId().withMessage('Invalid goal ID.'),
 
       // service agent must not have a goal

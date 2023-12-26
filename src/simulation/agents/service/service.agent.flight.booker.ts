@@ -2,7 +2,6 @@ import {
   APIParam,
   APIRequest,
   APIResponse,
-  CustomAgentConfig,
   RestAPITool,
   RouteToCoreTool,
 } from '@simulation/agents/custom.agent.config';
@@ -23,7 +22,7 @@ const bookingNumberParam = new APIParam(
 
 const authTokenParam = new APIParam('auth_token', 'auth_token returned by the auth tool', 'string');
 
-const restApiTools: Record<string, RestAPITool> = {
+export const flightRestApiTools: Record<string, RestAPITool> = {
   auth: new RestAPITool(
     'Authenticates a user',
     new APIRequest([
@@ -154,7 +153,7 @@ const defaultRoutingParams: APIParam[] = [
   new APIParam('data_collected', 'list of all the inputs already received from user', 'json'),
 ];
 
-const routingTools: Record<string, RouteToCoreTool> = {
+export const flightRoutingTools: Record<string, RouteToCoreTool> = {
   escalateToAgent: new RouteToCoreTool(
     `Escalate to human agent if the user request is failing or the user is specifically asking for a human agent.
   Escalate immediately, you don't need to authenticate the user before transferring to an agent.
@@ -187,86 +186,6 @@ const routingTools: Record<string, RouteToCoreTool> = {
   ),
 };
 
-// eslint-disable-next-line
-export const flightBookingAgentConfig: CustomAgentConfig = new CustomAgentConfig(
-  0,
-  "Hello, I'm an agent from KronosJet. How can I help you?",
-  `You are a customer support agent representing KronosJet, an airline company.
-  Your primary objective is to assist users in different tasks. 
-  You must only help in tasks listed below.
-  Only provide information based on these instructions or from the data received from tools.
-  `,
-  `- You should be empathetic, helpful, comprehensive and polite.
-  - Never user gender specific prefixes like Mr. or Mrs. when addressing the user unless they used it themselves.
-  `,
-  `- User confirmation doesn't need to be explicitly say confirmed. It is a sufficient confirmation if the users answer is clearly implies approval of change.
-  `,
-  {
-    answerFromFaq: `- If the user has a generic question answer it using FAQ.
-- If the user has multiple questions you must query the FAQ for each question separately. Never include multiple questions in a single query.
-- When querying the FAQ rephrase the user's question based on context from the conversation history and make it generic so it can be found in an FAQ. 
-- All other cases refer the user to kronosjet.com`,
-    changeFlightDate: `In order to change flight date of an existing booking you need to ensure the following steps are followed:
-- Retrieve the user's last name and the booking number from the user.
-- You need to authenticate the user
-- Retrieve the booking details
-- Confirm with the user if the retrieved booking details are correct
-- Get the new date from the user
-- Check if the booking can be changed to a new date
-- If there are multiple available flights ask the user which flight they prefer 
-- When listing flight options only list the with the departure time and DO NOT include more details like flight number, arrival time, etc.
-- If there are more than 3 flights available to choose from then don't list all options but ask the user to narrow down the options
-- If the booking can be changed, always ask the user for a final confirmation before changing the booking
-- For confirmation of new flight always include flight number,  departure city, arrival city, departure time, arrival time, number of passengers.`,
-    searchFlights: `If a user just wants to know if there are any flights on a date from his departure, to his arrival city.
-    You can use getAllFlights, to get a list of all flights, and then notify the user of possible flights that are in this list and have the right data.`,
-  },
-  restApiTools,
-  routingTools,
-  `# YOUR ROLE
-  {role}
-  Today's date is {currentDate}.
-  
-  # YOUR PERSONA
-  {persona}
-  
-  # CONVERSATION STRATEGY
-  {conversationStrategy}
-  
-  # TASKS
-  Make sure you the user intent is on of the tasks listed below.
-  Each on of the tasks has a different conversation strategy. 
-  You should follow the steps and instructions for the task.
-  {tasks}
-  
-  # TOOLS
-  You should gather input from the user to call tools when a tool is required.
-  You have access to the following tools:
-  
-  {formattedTools}
-  
-  # YOUR RESPONSE
-  {{
-  "thought": <Take a deep breath and think step by step. First include your thoughts based on the last message from the user and consider the full conversation history. Use a very brief, bulletpoint style format>
-  "action":  <a single action you decided to take next. The action should be either the name of a TOOL or message_to_user  >
-  "action_input": <either all the inputs required for the tool and you gathered from the user previously or the message to the user.>
-  "intermediate_message": <when calling a tool or route you should generate a very short and concise intermediate message to the user and tell to wait. Keep this message short.>
-  }}
-  
-  Begin! Reminder to ALWAYS respond with a single valid json blob with a single action. Use available tools if necessary.
-  Don't forget curly brackets around your answer and "" for your response, it needs to be valid json!!!!
-  `,
-  `
-  USER: {humanInput}
-  # YOUR RESPONSE
-  `,
-  `
-  # RESULT FROM '{toolName}' TOOL
-  {toolOutput}
-  
-  # YOUR RESPONSE
-  `,
-);
 export const fakeServiceAgentResponses: string[] = [
   `{"thought":"The user wants to change their flight and has provided their booking number. I need to authenticate the user first.","action":"auth","action_input":{"last_name":"Diniz","booking_number":"PALO0A"},"intermediate_message":"Sure, let me verify your details. Please wait a moment."}`,
   `{"thought":"The authentication failed. I need to ask the user to confirm their last name and booking number again.","action":"message_to_user","action_input":"I'm sorry, but I wasn't able to verify your details. Could you please confirm your last name and booking number again?"}`,
