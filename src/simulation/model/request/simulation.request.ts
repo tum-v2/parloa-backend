@@ -7,6 +7,7 @@ interface RunSimulationRequest {
   name: string;
   description: string;
   numConversations: number;
+  numIterations: number;
   serviceAgentId?: string;
   userAgentId?: string;
   serviceAgentConfig?: AgentDocument;
