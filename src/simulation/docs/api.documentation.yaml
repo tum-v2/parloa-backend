@@ -442,7 +442,11 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ResponseRunSimulation"
+                type: array
+                items:
+                  oneOf:
+                    - $ref: "#/components/schemas/ResponseRunSimulation"
+                    - $ref: "#/components/schemas/ResponseRunSimulation"
         400:
           description: Bad Request
           content:

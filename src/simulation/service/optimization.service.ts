@@ -26,7 +26,7 @@ const optimizationRepository = repositoryFactory.optimizationRepository;
  */
 async function generatePrompts(agent: AgentDocument): Promise<string[]> {
   console.log('Prompt generation started.');
-  const role = agent.prompt.find((prompt) => (prompt.name = 'role'))?.content || '';
+  const role = agent.prompt.find((prompt) => prompt.name === 'role')?.content || '';
   if (agent.llm === LLMModel.FAKE) {
     console.log('Fake LLM, skipping prompt generation.');
 
@@ -90,7 +90,7 @@ async function initiate(request: RunSimulationRequest): Promise<OptimizationDocu
     const newPrompt = request.serviceAgentConfig.prompt;
     newPrompt.map((p) => {
       if (p.name === 'role') {
-        return { ...p, content: prompt };
+        p.content = prompt;
       }
       return p;
     });
