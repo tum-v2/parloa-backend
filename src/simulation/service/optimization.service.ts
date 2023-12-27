@@ -97,6 +97,7 @@ async function initiate(request: RunSimulationRequest): Promise<OptimizationDocu
     const agentConfig = {
       name: request.serviceAgentConfig.name,
       domain: request.serviceAgentConfig.domain,
+      type: request.serviceAgentConfig.type,
       llm: request.serviceAgentConfig.llm,
       temperature: request.serviceAgentConfig.temperature,
       maxTokens: request.serviceAgentConfig.maxTokens,

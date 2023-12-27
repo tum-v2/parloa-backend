@@ -1,25 +1,5 @@
 import { CustomAgentConfig } from '@simulation/agents/custom.agent.config';
 
-const PERSONAS: Record<string, string> = {
-  sarcastic:
-    '- You are very impatient and argumentative while being very sarcastic and complaining.\n' +
-    '- Keep your messages maximum 3 sentences\n' +
-    "- Don't provide all necessary information when you are explaining your intent\n" +
-    '- Make mistakes in your messages and correct them in your next message',
-  nonative:
-    '- You are not fully concise and English is not your first language.\n' +
-    ' Your surname is often incorrectly transcribed as Dinis',
-  terse:
-    '- You are very terse and always answering with the shortest form possible, often making it difficult to understand what you want.\n' +
-    '- You start the conversation only telling your intent without any other information.\n' +
-    "- If multiple pieces of information are asked, you don't always provide all of them at once.",
-  riddling:
-    "You first provide your answers in a riddle. When the agent doesn't get it, give hints. If the agent still doesn't get it, you can provide the right answer.",
-  concise:
-    '- You provide all the necessary information at once, very concisely, in the shortest form possible.\n' +
-    '- Never repeat the same information twice unless explicitly asked.',
-};
-
 const TEMPERATURE = 1;
 
 const SYSTEM_PROMPT_TEMPLATE = `# YOUR ROLE
@@ -68,16 +48,10 @@ const TOOL_OUTPUT_TEMPLATE = `# RESULT FROM '{toolName}' TOOL
  * @returns The custom agent configuration for the specified input.
  */
 export function getUserConfig(role: string, persona: string, conversationStrategy: string): CustomAgentConfig {
-  let convertedPersona: string;
-  if (persona in PERSONAS) {
-    convertedPersona = PERSONAS[persona];
-  } else {
-    convertedPersona = persona;
-  }
   const personaConfig = new CustomAgentConfig();
   personaConfig.temperature = TEMPERATURE;
   personaConfig.role = role;
-  personaConfig.persona = convertedPersona;
+  personaConfig.persona = persona;
   personaConfig.conversationStrategy = conversationStrategy;
   personaConfig.systemPromptTemplate = SYSTEM_PROMPT_TEMPLATE;
   personaConfig.humanInputTemplate = HUMAN_INPUT_TEMPLATE;
