@@ -1,6 +1,7 @@
 import { body, param, ValidationChain } from 'express-validator';
 
 import { SimulationType } from '@enums/simulation-type.enum';
+import AgentValidator from '@simulation/validator/agent.validator';
 
 class SimulationValidator {
   /**
@@ -8,7 +9,7 @@ class SimulationValidator {
    * @returns Validation chain array that checks simulation run request
    */
   static runValidation(): ValidationChain[] {
-    return [
+    const validations: ValidationChain[] = [
       body('name').isString().withMessage('Simulation name must be a valid string.'),
       body('type')
         .isIn(Object.values(SimulationType))
@@ -72,6 +73,18 @@ class SimulationValidator {
         return true;
       }),
     ];
+
+    if (body('serviceAgentConfig').exists()) {
+      const validationRules = AgentValidator.agentConfigFieldsValidation('serviceAgentConfig');
+      validations.push(...validationRules);
+    }
+
+    if (body('userAgentConfig').exists()) {
+      const validationRules = AgentValidator.agentConfigFieldsValidation('userAgentConfig');
+      validations.push(...validationRules);
+    }
+
+    return validations;
   }
 
   /**
@@ -79,7 +92,7 @@ class SimulationValidator {
    * @returns Validation chain array that checks simulation run request
    */
   static abValidation(): ValidationChain[] {
-    return [
+    const validations: ValidationChain[] = [
       body('name').isString().withMessage('Simulation name must be a valid string.'),
       body('numConversations').isInt().withMessage('Number of conversations must be a valid integer.'),
 
@@ -153,6 +166,23 @@ class SimulationValidator {
         return true;
       }),
     ];
+
+    if (body('serviceAgentAConfig').exists()) {
+      const validationRules = AgentValidator.agentConfigFieldsValidation('serviceAgentAConfig');
+      validations.push(...validationRules);
+    }
+
+    if (body('serviceAgentBConfig').exists()) {
+      const validationRules = AgentValidator.agentConfigFieldsValidation('serviceAgentBConfig');
+      validations.push(...validationRules);
+    }
+
+    if (body('userAgentConfig').exists()) {
+      const validationRules = AgentValidator.agentConfigFieldsValidation('userAgentConfig');
+      validations.push(...validationRules);
+    }
+
+    return validations;
   }
 
   /**

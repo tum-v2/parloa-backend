@@ -10,6 +10,8 @@ tags:
   - name: Goal
   - name: Chat
   - name: LLMs
+  - name: Optimization
+  - name: Prompt
 paths:
   /api/v1/auth/login:
     post:
@@ -1466,62 +1468,72 @@ paths:
                   details:
                     type: string
                     example: Error
+  /api/v1/prompts:
+    get:
+      summary: Load promts for specific agent
+      tags: [Prompt]
+      parameters:
+        - name: domain
+          in: query
+          schema:
+            type: string
+            example: FLIGHT
+        - name: agentType
+          in: query
+          schema:
+            type: string
+            example: SERVICE
+      responses:
+        200:
+          description: OK  
+        400:
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Agent type USER1 not found!"
 components:
   schemas:
     RunSimulationRequest:
       type: object
       properties:
+        _id:
+          type: string
+          example: "657eb671b13d02ce6fa88fea"
         type:
           type: string
           example: "AUTOMATED"
         name:
           type: string
-          example: "GENERATED2"
+          example: "TEST GPT4 ENDPOINT"
         description:
           type: string
-          example: "Second Simulation run by me"
+          example: "Nth Simulation run by me"
         numConversations:
           type: number
           example: 1
-        serviceAgentConfig:
-          type: object
-          properties:
-            domain:
-              type: string
-              example: "FLIGHT"
-            name:
-              type: string
-              example: "TEST SERVICE AGENT"
-            type:
-              type: string
-              example: "SERVICE"
-            llm:
-              type: string
-              example: "FAKE"
-            temperature:
-              type: number
-              example: 0
-            maxTokens:
-              type: number
-              example: 256
-            prompt:
-              type: string
-              example: "concise"
         userAgentConfig:
           type: object
           properties:
+            name:
+              type: string
+              example: "Temp user agent"
             domain:
               type: string
               example: "FLIGHT"
-            name:
-              type: string
-              example: "TEST USER AGENT"
-            type:
-              type: string
-              example: "USER"
             llm:
               type: string
               example: "FAKE"
+            type:
+              type: string
+              example: "USER"
+            goal:
+              type: string
+              example: "658ae7f7226062a81c0d6d06"
             temperature:
               type: number
               example: 0
@@ -1529,11 +1541,48 @@ components:
               type: number
               example: 256
             prompt:
+              type: array
+              items:
+                type: object
+                properties:
+                  name:
+                    type: string
+                    example: "role"
+                  content:
+                    type: string
+                    example: "You are a human calling a call center trying to change your flight booking."
+        serviceAgentConfig:
+          type: object
+          properties:
+            name:
               type: string
-              example: "sarcastic"
-            goal:
+              example: "Temp service agent"
+            domain:
               type: string
-              example: "657f2a8b8f82c4cd43c674f7"
+              example: "FLIGHT"
+            llm:
+              type: string
+              example: "FAKE"
+            type:
+              type: string
+              example: "SERVICE"
+            temperature:
+              type: number
+              example: 0
+            maxTokens:
+              type: number
+              example: 256
+            prompt:
+              type: array
+              items:
+                type: object
+                properties:
+                  name:
+                    type: string
+                    example: "welcomeMessage"
+                  content:
+                    type: string
+                    example: "Hello, I'm an agent from KronosJet. How can I help you?"
     ServiceAgent:
       type: object
       properties:
@@ -1556,8 +1605,16 @@ components:
           type: number
           example: 256
         prompt:
-          type: string
-          example: "nonative"
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+                example: "welcomeMessage"
+              content:
+                type: string
+                example: "Hello, I'm an agent from KronosJet. How can I help you?"
     UserAgent:
       type: object
       properties:
@@ -1580,8 +1637,16 @@ components:
           type: number
           example: 256
         prompt:
-          type: string
-          example: "sarcastic"
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+                example: "role"
+              content:
+                type: string
+                example: "You are a human calling a call center trying to change your flight booking."
         goal:
           type: string
           example: "657f2a8b8f82c4cd43c674f7"
@@ -1708,8 +1773,16 @@ components:
           type: string
           example: "FLIGHT"
         prompt:
-          type: string
-          example: "nonative"
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+                example: "welcomeMessage"
+              content:
+                type: string
+                example: "Hello, I'm an agent from KronosJet. How can I help you?"
         temporary:
           type: boolean
           example: false
@@ -1773,8 +1846,16 @@ components:
               type: string
               example: "FLIGHT"
             prompt:
-              type: string
-              example: "sarcastic"
+              type: array
+              items:
+                type: object
+                properties:
+                  name:
+                    type: string
+                    example: "role"
+                  content:
+                    type: string
+                    example: "You are a human calling a call center trying to change your flight booking."
             goal:
               type: string
               example: "657f2a8b8f82c4cd43c674f7"
@@ -1815,8 +1896,16 @@ components:
               type: string
               example: "FLIGHT"
             prompt:
-              type: string
-              example: "concise"
+              type: array
+              items:
+                type: object
+                properties:
+                  name:
+                    type: string
+                    example: "role"
+                  content:
+                    type: string
+                    example: "Hello, I'm an agent from KronosJet. How can I help you?"
             temporary:
               type: boolean
               example: true
@@ -1939,8 +2028,16 @@ components:
               type: number
               example: 256
             prompt:
-              type: string
-              example: "concise"
+              type: array
+              items:
+                type: object
+                properties:
+                  name:
+                    type: string
+                    example: "role"
+                  content:
+                    type: string
+                    example: "Hello, I'm an agent from KronosJet. How can I help you?"
         userAgentConfig:
           type: object
           properties:
@@ -1963,8 +2060,16 @@ components:
               type: number
               example: 256
             prompt:
-              type: string
-              example: "sarcastic"
+              type: array
+              items:
+                type: object
+                properties:
+                  name:
+                    type: string
+                    example: "role"
+                  content:
+                    type: string
+                    example: "You are a human calling a call center trying to change your flight booking."
             goal:
               type: string
               example: "657f2a8b8f82c4cd43c674f7"
@@ -2002,8 +2107,16 @@ components:
               type: number
               example: 256
             prompt:
-              type: string
-              example: "default"
+              type: array
+              items:
+                type: object
+                properties:
+                  name:
+                    type: string
+                    example: "role"
+                  content:
+                    type: string
+                    example: "Hello, I'm an agent from KronosJet. How can I help you?"
         serviceAgentBConfig:
           type: object
           properties:
@@ -2026,8 +2139,16 @@ components:
               type: number
               example: 256
             prompt:
-              type: string
-              example: "default"
+              type: array
+              items:
+                type: object
+                properties:
+                  name:
+                    type: string
+                    example: "role"
+                  content:
+                    type: string
+                    example: "Hello, I'm an agent from KronosJet. How can I help you?"
         userAgentConfig:
           type: object
           properties:
@@ -2050,8 +2171,16 @@ components:
               type: number
               example: 256
             prompt:
-              type: string
-              example: "sarcastic"
+              type: array
+              items:
+                type: object
+                properties:
+                  name:
+                    type: string
+                    example: "role"
+                  content:
+                    type: string
+                    example: "You are a human calling a call center trying to change your flight booking."
             goal:
               type: string
               example: "657f2a8b8f82c4cd43c674f7"
