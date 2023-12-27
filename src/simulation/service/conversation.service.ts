@@ -1,16 +1,25 @@
 import { CustomAgent } from '@simulation/agents/custom.agent';
 import { getSimConfig } from '@simulation/agents/user.agent';
+
 import {
   flightBookingAgentConfig,
-  fakeUserAgentResponses,
-  fakeServiceAgentResponses,
+  flightFakeUserAgentResponses,
+  flightFakeServiceAgentResponses,
 } from '@simulation/agents/service/service.agent.flight.booker';
+
+import {
+  insuranceAgentConfig,
+  insuranceFakeUserAgentResponses,
+  insuranceFakeServiceAgentResponses,
+} from '@simulation/agents/service/service.agent.insurance';
+
 import { MsgHistoryItem } from '@simulation/agents/custom.agent';
 
 import { LLMModel } from '@enums/llm-model.enum';
 import { MsgSender } from '@enums/msg-sender.enum';
 import { MsgType } from '@enums/msg-type.enum';
 import { ConversationStatus } from '@enums/conversation-status.enum';
+import { ConversationDomain } from '@enums/conversation-domain.enum';
 
 import { BaseChatModel, BaseChatModelParams } from 'langchain/chat_models/base';
 import { ChatOpenAI, OpenAIChatInput } from 'langchain/chat_models/openai';
@@ -24,6 +33,7 @@ import repositoryFactory from '@db/repositories/factory';
 import * as fs from 'fs';
 import * as path from 'path';
 import { ConversationDocument } from '@db/models/conversation.model';
+import { CustomAgentConfig } from '@simulation/agents/custom.agent.config';
 
 const isDev = process.env.IS_DEVELOPER;
 if (isDev === undefined) throw new Error('IS_DEVELOPER Needs to be specified');
@@ -37,7 +47,6 @@ let gpt35azureApiVersion: string | undefined;
 let gpt4openApiKey: string | undefined;
 let gpt4azureApiInstanceName: string | undefined;
 let gpt4azureApiVersion: string | undefined;
-
 setup();
 
 /**
@@ -202,14 +211,16 @@ export async function configureServiceAgent(
   let modelName: string;
   let temperature: number;
   let maxTokens: number;
+  const config: CustomAgentConfig =
+    agentData.domain === ConversationDomain.FLIGHT ? flightBookingAgentConfig : insuranceAgentConfig;
 
   if (agentData.llm === undefined) {
-    modelName = flightBookingAgentConfig.modelName;
+    modelName = config.modelName;
   } else {
     modelName = agentData.llm;
   }
   if (agentData.temperature === undefined) {
-    temperature = flightBookingAgentConfig.temperature;
+    temperature = config.temperature;
   } else {
     temperature = agentData.temperature;
   }
@@ -221,23 +232,29 @@ export async function configureServiceAgent(
 
   let agentLLM: BaseChatModel;
   if (agentData.llm === LLMModel.FAKE && isDev === 'true') {
-    agentLLM = new FakeListChatModel({ responses: fakeServiceAgentResponses, sleep: 100 });
+    agentLLM = new FakeListChatModel({
+      responses:
+        agentData.domain === ConversationDomain.FLIGHT
+          ? flightFakeServiceAgentResponses
+          : insuranceFakeServiceAgentResponses,
+      sleep: 100,
+    });
   } else {
     const azureOpenAIInput = setModelConfig(modelName, temperature, maxTokens);
     agentLLM = new ChatOpenAI(azureOpenAIInput);
   }
 
   if (agentData.prompt !== 'default') {
-    flightBookingAgentConfig.persona = agentData.prompt;
+    config.persona = agentData.prompt;
   } else {
-    flightBookingAgentConfig.persona = `- You should be empathetic, helpful, comprehensive and polite.
+    config.persona = `- You should be empathetic, helpful, comprehensive and polite.
     - Never use gender specific prefixes like Mr. or Mrs. when addressing the user unless they used it themselves.
     `;
   }
 
   const serviceAgent: CustomAgent = new CustomAgent(
     agentLLM,
-    flightBookingAgentConfig,
+    config,
     SERVICE_PROMPT_LOG_FILE_PATH,
     SERVICE_CHAT_LOG_FILE_PATH,
     true,
@@ -261,7 +278,7 @@ async function configureUserAgent(agentData: AgentDocument): Promise<CustomAgent
   let temperature: number;
   let maxTokens: number;
 
-  const userSimConfig = getSimConfig(agentData.prompt);
+  const userSimConfig = getSimConfig(agentData.prompt, agentData.domain);
   if (agentData.llm === undefined) {
     modelName = userSimConfig.modelName;
   } else {
@@ -280,7 +297,11 @@ async function configureUserAgent(agentData: AgentDocument): Promise<CustomAgent
 
   let userLLM: BaseChatModel;
   if (agentData.llm === LLMModel.FAKE && isDev === 'true') {
-    userLLM = new FakeListChatModel({ responses: fakeUserAgentResponses, sleep: 100 });
+    userLLM = new FakeListChatModel({
+      responses:
+        agentData.domain === ConversationDomain.FLIGHT ? flightFakeUserAgentResponses : insuranceFakeUserAgentResponses,
+      sleep: 100,
+    });
   } else {
     const azureOpenAIInput = setModelConfig(modelName, temperature, maxTokens);
     userLLM = new ChatOpenAI(azureOpenAIInput);

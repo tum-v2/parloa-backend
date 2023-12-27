@@ -1,3 +1,4 @@
+import { ConversationDomain } from '@enums/conversation-domain.enum';
 import { CustomAgentConfig } from '@simulation/agents/custom.agent.config';
 
 const PERSONAS: Record<string, string> = {
@@ -24,7 +25,7 @@ const TEMPERATURE = 1;
 
 const ROLE = `You are a human calling a call center trying to change your flight booking.`;
 
-const CONVERSATION_STRATEGY =
+const FLIGHT_CONVERSATION_STRATEGY =
   /*`Ask first for flights on the november 17, 18 and 19 from New York to Boston. Dont give him your number or name, you just want to ask if there are flights.
   - When you successfully got your information return { "action": "message_to_user", "action_input": "/hangup"}
 
@@ -36,6 +37,12 @@ const CONVERSATION_STRATEGY =
 - Your flight is from New York to Boston.f
 - Your booking is for 3 people.
 - You want to change it to November 17 or 18 or 19, ideally 2pm but any time is fine.
+- Generate your responses in a way which is realistic to a phone conversation.
+- Include common voice to text transcription errors in the text.
+- When you successfully changed your booking return { "action": "message_to_user", "action_input": "/hangup"}
+`;
+
+const INSURANCE_CONVERSATION_STRATEGY = `- Your primary objective is to ask for insurance.
 - Generate your responses in a way which is realistic to a phone conversation.
 - Include common voice to text transcription errors in the text.
 - When you successfully changed your booking return { "action": "message_to_user", "action_input": "/hangup"}
@@ -82,23 +89,23 @@ const TOOL_OUTPUT_TEMPLATE = `# RESULT FROM '{toolName}' TOOL
 /**
  * Retrieves the simulation configuration for a given persona.
  * @param persona - The persona for which to retrieve the configuration.
+ * @param domain - The conversation Domain (FLIGHT/INSURANCE)
  * Must be one of the available personas: sarcastic, nonative, terse, riddling, concise.
  * @returns The custom agent configuration for the specified persona.
- * @throws Error if the persona is not found in the available personas.
  */
-export function getSimConfig(persona: string): CustomAgentConfig {
+export function getSimConfig(persona: string, domain: ConversationDomain): CustomAgentConfig {
   let convertedPersona: string;
   if (persona in PERSONAS) {
     convertedPersona = PERSONAS[persona];
   } else {
     convertedPersona = persona;
-    //throw new Error(`Persona ${persona} not found. Available personas: ${Object.keys(PERSONAS)}`);
   }
   const personaConfig = new CustomAgentConfig();
   personaConfig.temperature = TEMPERATURE;
   personaConfig.role = ROLE;
   personaConfig.persona = convertedPersona;
-  personaConfig.conversationStrategy = CONVERSATION_STRATEGY;
+  personaConfig.conversationStrategy =
+    domain === ConversationDomain.FLIGHT ? FLIGHT_CONVERSATION_STRATEGY : INSURANCE_CONVERSATION_STRATEGY;
   personaConfig.systemPromptTemplate = SYSTEM_PROMPT_TEMPLATE;
   personaConfig.humanInputTemplate = HUMAN_INPUT_TEMPLATE;
   personaConfig.toolOutputTemplate = TOOL_OUTPUT_TEMPLATE;
