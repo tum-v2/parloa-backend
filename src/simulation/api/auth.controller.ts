@@ -24,7 +24,7 @@ async function login(req: Request, res: Response): Promise<void> {
     return;
   }
   const token = jwt.sign({ accessCode }, process.env.JWT_SECRET_KEY as string, {
-    expiresIn: '20m',
+    expiresIn: '14d',
   });
 
   res.status(200).send({ succes: codeCorrect, token: token });
