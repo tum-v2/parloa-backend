@@ -11,7 +11,7 @@ const router: Router = express.Router();
 router.post(
   '/',
   verifyToken,
-  AgentValidator.runValidation(),
+  AgentValidator.createValidation(),
   CustomValidationError.handleValidationErrors,
   agentController.create,
 );

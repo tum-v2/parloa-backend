@@ -18,10 +18,12 @@ import { CustomValidationError } from '@utils/handle-validation-errors';
 import simulationRouter from '@simulation/router/simulation.router';
 import chatRouter from '@simulation/router/chat.router';
 import agentRouter from '@simulation/router/agent.router';
+import goalRouter from '@simulation/router/goal.router';
 import authRouter from '@simulation/router/auth.router';
 import dashRouter from '@simulation/router/dashboard.router';
 import llmRouter from '@simulation/router/llms.router';
 import optimizationRouter from '@simulation/router/optimization.router';
+import promptRouter from '@simulation/router/prompt.router';
 
 // Evaluation routers
 import evaluationRouter from '@evaluation/router/evaluation.router';
@@ -51,10 +53,12 @@ app.use('/api/v1/simulations', simulationRouter);
 app.use('/api/v1/optimizations', optimizationRouter);
 app.use('/api/v1/chats', chatRouter);
 app.use('/api/v1/agents', agentRouter);
+app.use('/api/v1/goals', goalRouter);
 app.use('/api/v1/evaluations', evaluationRouter);
 app.use('/api/v1/auth', authRouter);
 app.use('/api/v1/dashboard', dashRouter);
 app.use('/api/v1/language-models', llmRouter);
+app.use('/api/v1/prompts', promptRouter);
 
 app.use(CustomValidationError.handleValidationErrors);
 

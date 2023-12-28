@@ -26,15 +26,15 @@ const optimizationRepository = repositoryFactory.optimizationRepository;
  */
 async function generatePrompts(agent: AgentDocument): Promise<string[]> {
   console.log('Prompt generation started.');
-
+  const role = agent.prompt.find((prompt) => prompt.name === 'role')?.content || '';
   if (agent.llm === LLMModel.FAKE) {
     console.log('Fake LLM, skipping prompt generation.');
 
     return [
-      'From Munich, I want to fly to Berlin',
-      'I would like to fly from Munich to Berlin',
-      'I want to buy tickets from Munich to Berlin',
-      'I need tickets from Munich to Berlin',
+      role + 'Help with what you can the customer\n',
+      role + 'Try to help the customer with as soon as possible\n',
+      role + 'Let the customer know that you are here to help\n',
+      role + 'Try to find a solution for the customer and understand what the customer wants\n',
     ];
   }
 
@@ -51,9 +51,8 @@ async function generatePrompts(agent: AgentDocument): Promise<string[]> {
   ]);
 
   // Returns a comma seperated list of new prompts
-
   return await chain.invoke({
-    prompt: agent.prompt,
+    prompt: role,
     promptNumber: NUMBER_OF_PROMPTS.toString(),
     format_instructions: parser.getFormatInstructions(),
   });
@@ -88,13 +87,21 @@ async function initiate(request: RunSimulationRequest): Promise<OptimizationDocu
 
   for (const prompt of prompts) {
     //TODO Create a template for every prompt in the database until we figure out what to do.
+    const newPrompt = request.serviceAgentConfig.prompt;
+    newPrompt.map((p) => {
+      if (p.name === 'role') {
+        p.content = prompt;
+      }
+      return p;
+    });
     const agentConfig = {
       name: request.serviceAgentConfig.name,
       domain: request.serviceAgentConfig.domain,
+      type: request.serviceAgentConfig.type,
       llm: request.serviceAgentConfig.llm,
       temperature: request.serviceAgentConfig.temperature,
       maxTokens: request.serviceAgentConfig.maxTokens,
-      prompt: prompt,
+      prompt: newPrompt,
       temporary: true,
     };
 

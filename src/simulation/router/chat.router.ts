@@ -15,8 +15,10 @@ router.post(
   CustomValidationError.handleValidationErrors,
   chatController.start,
 );
+
 router.post(
   '/:id',
+  verifyToken,
   ChatValidator.idValidation(),
   ChatValidator.messageValidation(),
   CustomValidationError.handleValidationErrors,
@@ -31,6 +33,7 @@ router.get(
   CustomValidationError.handleValidationErrors,
   chatController.load,
 );
+
 router.get('/', verifyToken, chatController.getAll);
 
 export default router;
