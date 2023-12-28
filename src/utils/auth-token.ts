@@ -12,13 +12,13 @@ export function verifyToken(req: Request, res: Response, next: NextFunction): vo
   const token = req.headers.authorization?.split(' ')[1]; // Bearer <token>
 
   if (!token) {
-    res.status(401).json({ success: false, message: 'Token not provided' });
+    res.status(401).json({ error: 'Token not provided' });
     return;
   }
 
   jwt.verify(token, process.env.JWT_SECRET_KEY as string, (err, decoded) => {
     if (err) {
-      res.status(401).json({ success: false, message: 'Invalid token' });
+      res.status(401).json({ error: 'Invalid token' });
       return;
     }
 

@@ -12,6 +12,8 @@ tags:
   - name: LLMs
   - name: Optimization
   - name: Prompt
+security:
+  - bearerAuth: []
 paths:
   /api/v1/auth/login:
     post:
@@ -64,6 +66,8 @@ paths:
           schema:
             type: number
             example: 10
+      security:
+        - bearerAuth: []
       responses:
         200:
           description: OK
@@ -125,6 +129,16 @@ paths:
                   details:
                     type: string
                     example: "Please provide a number of days: e.g. ?days=10"
+        401:
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Invalid token"
         500:
           description: Internal Server Error
           content:
@@ -145,6 +159,8 @@ paths:
     get:
       summary: Retrieve all simulations
       tags: [Simulation]
+      security:
+        - bearerAuth: []
       responses:
         200:
           description: OK
@@ -154,6 +170,16 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/SimulationDocument"
+        401:
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Invalid token"
         500:
           description: Bad Request
           content:
@@ -173,6 +199,8 @@ paths:
     post:
       summary: Start new automated simulation
       tags: [Simulation]
+      security:
+        - bearerAuth: []
       requestBody:
         required: true
         content:
@@ -208,6 +236,16 @@ paths:
                           type: string
                         example:
                           - "Invalid simulation ID."
+        401:
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Invalid token"
         500:
           description: Internal Server Error
           content:
@@ -228,6 +266,8 @@ paths:
     get:
       summary: Retrieve simulation
       tags: [Simulation]
+      security:
+        - bearerAuth: []
       parameters:
         - in: path
           name: simulationId
@@ -264,6 +304,16 @@ paths:
                           type: string
                         example:
                           - "Invalid simulation ID."
+        401:
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Invalid token"
         404:
           description: Not Found
           content:
@@ -293,6 +343,8 @@ paths:
     put:
       summary: Update simulation
       tags: [Simulation]
+      security:
+        - bearerAuth: []
       parameters:
         - in: path
           name: simulationId
@@ -339,6 +391,16 @@ paths:
                           type: string
                         example:
                           - "Invalid simulation ID."
+        401:
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Invalid token"
         404:
           description: Not Found
           content:
@@ -368,6 +430,8 @@ paths:
     delete:
       summary: Delete simulation
       tags: [Simulation]
+      security:
+        - bearerAuth: []
       parameters:
         - in: path
           name: simulationId
@@ -400,6 +464,16 @@ paths:
                           type: string
                         example:
                           - "Invalid simulation ID."
+        401:
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Invalid token"
         404:
           description: Not Found
           content:
@@ -430,6 +504,8 @@ paths:
     post:
       summary: Start new A/B simulation
       tags: [Simulation]
+      security:
+        - bearerAuth: []
       requestBody:
         required: true
         content:
@@ -469,6 +545,16 @@ paths:
                           type: string
                         example:
                           - "Invalid simulation ID."
+        401:
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Invalid token"
         500:
           description: Internal Server Error
           content:
@@ -489,6 +575,8 @@ paths:
     get:
       summary: Retrieve simulation conversations
       tags: [Simulation]
+      security:
+        - bearerAuth: []
       parameters:
         - in: path
           name: conversationId
@@ -525,6 +613,16 @@ paths:
                           type: string
                         example:
                           - "Invalid conversation ID."
+        401:
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Invalid token"
         404:
           description: Not Found
           content:
@@ -556,6 +654,8 @@ paths:
       summary: Create a new agent
       description: Endpoint to create a new agent.
       tags: [Agent]
+      security:
+        - bearerAuth: []
       requestBody:
         required: true
         content:
@@ -591,6 +691,16 @@ paths:
                           type: string
                         example:
                           - "Invalid agent name."
+        401:
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Invalid token"
         500:
           description: Internal Server Error
           content:
@@ -610,6 +720,8 @@ paths:
     get:
       summary: Retrieve all agents
       tags: [Agent]
+      security:
+        - bearerAuth: []
       responses:
         200:
           description: OK
@@ -619,6 +731,16 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/AgentResponse"
+        401:
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Invalid token"
         500:
           description: Internal Server Error
           content:
@@ -639,6 +761,8 @@ paths:
     get:
       summary: Get agent
       tags: [Agent]
+      security:
+        - bearerAuth: []
       parameters:
         - in: path
           name: agentId
@@ -675,6 +799,16 @@ paths:
                           type: string
                         example:
                           - "Invalid agent ID."
+        401:
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Invalid token"
         404:
           description: Not Found
           content:
@@ -704,6 +838,8 @@ paths:
     put:
       summary: Update agent
       tags: [Agent]
+      security:
+        - bearerAuth: []
       parameters:
         - in: path
           name: agentId
@@ -750,6 +886,16 @@ paths:
                           type: string
                         example:
                           - "Invalid agent ID."
+        401:
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Invalid token"
         404:
           description: Not Found
           content:
@@ -779,6 +925,8 @@ paths:
     delete:
       summary: Delete agent
       tags: [Agent]
+      security:
+        - bearerAuth: []
       parameters:
         - in: path
           name: agentId
@@ -811,6 +959,16 @@ paths:
                           type: string
                         example:
                           - "Invalid agent ID."
+        401:
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Invalid token"
         404:
           description: Not Found
           content:
@@ -841,6 +999,8 @@ paths:
     get:
       summary: Retrieve all goals
       tags: [Goal]
+      security:
+        - bearerAuth: []
       responses:
         200:
           description: OK
@@ -889,6 +1049,16 @@ paths:
                           type: string
                         example:
                           - "Scenarios must be a valid, non-empty array."
+        401:
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Invalid token"
         500:
           description: Internal Server Error
           content:
@@ -909,6 +1079,8 @@ paths:
     get:
       summary: Get goal
       tags: [Goal]
+      security:
+        - bearerAuth: []
       parameters:
         - in: path
           name: goalId
@@ -945,6 +1117,16 @@ paths:
                           type: string
                         example:
                           - "Scenarios must be a valid, non-empty array."
+        401:
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Invalid token"
         404:
           description: Not Found
           content:
@@ -974,6 +1156,8 @@ paths:
     put:
       summary: Update goal
       tags: [Goal]
+      security:
+        - bearerAuth: []
       parameters:
         - in: path
           name: goalId
@@ -1016,6 +1200,16 @@ paths:
                           type: string
                         example:
                           - "Scenarios must be a valid, non-empty array."
+        401:
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Invalid token"
         404:
           description: Not Found
           content:
@@ -1045,6 +1239,8 @@ paths:
     delete:
       summary: Delete goal
       tags: [Goal]
+      security:
+        - bearerAuth: []
       parameters:
         - in: path
           name: goalId
@@ -1077,6 +1273,16 @@ paths:
                           type: string
                         example:
                           - "Invalid goal ID."
+        401:
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Invalid token"
         404:
           description: Not Found
           content:
@@ -1108,6 +1314,8 @@ paths:
       summary: Retrieve all chats
       description: Endpoint for fething all simulations.
       tags: [Chat]
+      security:
+        - bearerAuth: []
       responses:
         200:
           description: OK
@@ -1117,6 +1325,16 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/ChatResponse"
+        401:
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Invalid token"
         500:
           description: Internal Server Error
           content:
@@ -1137,6 +1355,8 @@ paths:
       summary: Start a new chat
       description: Endpoint to start a new manual chat.
       tags: [Chat]
+      security:
+        - bearerAuth: []
       requestBody:
         required: true
         content:
@@ -1178,6 +1398,16 @@ paths:
                           type: string
                         example:
                           - "Invalid chat name."
+        401:
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Invalid token"
         500:
           description: Internal Server Error
           content:
@@ -1199,6 +1429,8 @@ paths:
       summary: Load previous chat
       description: Endpoint for loading a previous chat.
       tags: [Chat]
+      security:
+        - bearerAuth: []
       parameters:
         - in: path
           name: chatId
@@ -1239,6 +1471,16 @@ paths:
                           type: string
                         example:
                           - "Invalid chat ID."
+        401:
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Invalid token"
         500:
           description: Internal Server Error
           content:
@@ -1259,6 +1501,8 @@ paths:
       summary: Send a message
       description: Endpoint for sending a message manual chat.
       tags: [Chat]
+      security:
+        - bearerAuth: []
       parameters:
         - in: path
           name: chatId
@@ -1306,6 +1550,16 @@ paths:
                           type: string
                         example:
                           - "Invalid chat ID."
+        401:
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Invalid token"
         500:
           description: Internal Server Error
           content:
@@ -1326,6 +1580,8 @@ paths:
     get:
       summary: Retrive available LLM models
       tags: [LLMs]
+      security:
+        - bearerAuth: []
       responses:
         200:
           description: OK
@@ -1341,6 +1597,16 @@ paths:
               example:
                 - GPT4
                 - LLAMA2
+        401:
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Invalid token"
         500:
           description: Internal Server Error
           content:
@@ -1361,6 +1627,8 @@ paths:
     post:
       summary: Start a new optimization
       tags: [ Optimization ]
+      security:
+        - bearerAuth: []
       requestBody:
         required: true
         content:
@@ -1396,6 +1664,16 @@ paths:
                           type: string
                         example:
                           - "Invalid simulation name."
+        401:
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Invalid token"
         500:
           description: Internal Server Error
           content:
@@ -1417,6 +1695,8 @@ paths:
     get:
       summary: Get child simulations that belong to an optimized simulation
       tags: [ Optimization ]
+      security:
+        - bearerAuth: []
       parameters:
         - in: path
           name: optimizationId
@@ -1456,6 +1736,16 @@ paths:
                           type: string
                         example:
                           - "Invalid simulation id."
+        401:
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Invalid token"
         500:
           description: Internal Server Error
           content:
@@ -1476,6 +1766,8 @@ paths:
     get:
       summary: Load promts for specific agent
       tags: [Prompt]
+      security:
+        - bearerAuth: []
       parameters:
         - name: domain
           in: query
@@ -1500,6 +1792,16 @@ paths:
                   error:
                     type: string
                     example: "Agent type USER1 not found!"
+        401:
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Invalid token"
 components:
   schemas:
     RunSimulationRequest:
@@ -2298,4 +2600,8 @@ components:
         content:
           type: string
           example: "{ \"auth\": \"Authenticates a user\", \"bookingInfo\": \"Retrieves booking details\", \"checkAvailability\": \"Returns a list of available flight for a given new date for which an existing booking can be changed.\", \"getAllFlights\": \"Get a list of all Flights.\", \"changeFlightDate\": \"Used to modify an existing booking with a new flight date. The new date parameter must be in yyyy-mm-dd format but should not be disclosed to the user.\", \"getAnswerFromFaq\": \"Get an answer from the FAQ for a question of the user.\", \"escalateToAgent\": \"Escalate to human agent if the user request is failing or the user is specifically asking for a human agent.\\nEscalate immediately, you don't need to authenticate the user before transferring to an agent.\\nDont't forget to provide user_intent and data_collected.\\n\", \"routeToNewFlightBooking\": \"Route to new flight booking system if the user wants to book a new flight.\", \"routeToBookingChange\": \"Route to flight booking change system if the user wants to amend a booking beyond the task you supports (eg. upgrade to business class, change seats, add luggage etc.).\\nYou must  follow these steps first before the routing::\\n- Retrieve the user's last name and the booking number from the user.\\n- You need to authenticate the user\\n- Retrieve the booking details\\n- Confirm with the user if the retrieved booking details are correct\\n- Include the booking details retrieved in the entities_collected.\\n- If the user can't provide booking details or you fail to retrieve booking details after multiple clarification attempts then offer to transfer to an agent.\\n\" }"
-        
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
