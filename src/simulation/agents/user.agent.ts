@@ -1,44 +1,10 @@
 import { CustomAgentConfig } from '@simulation/agents/custom.agent.config';
-
-const TEMPERATURE = 1;
-
-const SYSTEM_PROMPT_TEMPLATE = `# YOUR ROLE
-{role}
-Today's date is {currentDate}.
-
-# YOUR PERSONA
-{persona}
-
-# CONVERSATION STRATEGY
-{conversationStrategy}
-
-# TOOLS
-You should gather input from the agent to call tools when a tool is required.
-You have access to the following tools:
-
-{formattedTools}
-
-{tasks}
-
-# YOUR RESPONSE
-{{
-"thought": <Take a deep breath and think step by step. First include your thoughts based on the last message from the user and consider the full converstation history>
-"action":  <a single action you decided to take next. The action should be either the name of a TOOL name or message_to_user  >
-"action_input": <either all the inputs required for the tool which you gathered from the agent previously or the message to the agent.>
-"intermediate_message": <when calling a tool you should generate a short intermediate message to the user saying to wait a bit because you are doing something>
-}}
-
-Begin! Reminder to ALWAYS respond with a single valid json blob with a single action. Use available tools if necessary.
-`;
-
-const HUMAN_INPUT_TEMPLATE = `AGENT: {humanInput}
-# YOUR RESPONSE
-`;
-const TOOL_OUTPUT_TEMPLATE = `# RESULT FROM '{toolName}' TOOL
-{toolOutput}
-
-# YOUR RESPONSE
-`;
+import {
+  HUMAN_INPUT_USER_AGENT,
+  SYSTEM_PROMPT_USER_AGENT,
+  TEMPERATURE_USER_AGENT,
+  TOOL_OUTPUT_USER_AGENT,
+} from '@simulation/config/prompt';
 
 /**
  * Retrieves the user agent configuration based on user input.
@@ -49,13 +15,13 @@ const TOOL_OUTPUT_TEMPLATE = `# RESULT FROM '{toolName}' TOOL
  */
 export function getUserConfig(role: string, persona: string, conversationStrategy: string): CustomAgentConfig {
   const personaConfig = new CustomAgentConfig();
-  personaConfig.temperature = TEMPERATURE;
+  personaConfig.temperature = TEMPERATURE_USER_AGENT;
   personaConfig.role = role;
   personaConfig.persona = persona;
   personaConfig.conversationStrategy = conversationStrategy;
-  personaConfig.systemPromptTemplate = SYSTEM_PROMPT_TEMPLATE;
-  personaConfig.humanInputTemplate = HUMAN_INPUT_TEMPLATE;
-  personaConfig.toolOutputTemplate = TOOL_OUTPUT_TEMPLATE;
+  personaConfig.systemPromptTemplate = SYSTEM_PROMPT_USER_AGENT;
+  personaConfig.humanInputTemplate = HUMAN_INPUT_USER_AGENT;
+  personaConfig.toolOutputTemplate = TOOL_OUTPUT_USER_AGENT;
 
   return personaConfig;
 }

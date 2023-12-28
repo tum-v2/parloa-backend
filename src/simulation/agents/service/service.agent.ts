@@ -1,51 +1,10 @@
 import { CustomAgentConfig } from '@simulation/agents/custom.agent.config';
 import { flightRestApiTools, flightRoutingTools } from '@simulation/agents/service/service.agent.flight.booker';
-
-const SYSTEMPROMPT = `# YOUR ROLE
-{role}
-Today's date is {currentDate}.
-
-# YOUR PERSONA
-{persona}
-
-# CONVERSATION STRATEGY
-{conversationStrategy}
-
-# TASKS
-Make sure you the user intent is on of the tasks listed below.
-Each on of the tasks has a different conversation strategy. 
-You should follow the steps and instructions for the task.
-{tasks}
-
-# TOOLS
-You should gather input from the user to call tools when a tool is required.
-You have access to the following tools:
-
-{formattedTools}
-
-# YOUR RESPONSE
-{{
-"thought": <Take a deep breath and think step by step. First include your thoughts based on the last message from the user and consider the full conversation history. Use a very brief, bulletpoint style format>
-"action":  <a single action you decided to take next. The action should be either the name of a TOOL or message_to_user  >
-"action_input": <either all the inputs required for the tool and you gathered from the user previously or the message to the user.>
-"intermediate_message": <when calling a tool or route you should generate a very short and concise intermediate message to the user and tell to wait. Keep this message short.>
-}}
-
-Begin! Reminder to ALWAYS respond with a single valid json blob with a single action. Use available tools if necessary.
-Don't forget curly brackets around your answer and "" for your response, it needs to be valid json!!!!
-`;
-
-const HUMANINPUT = `
-USER: {humanInput}
-# YOUR RESPONSE
-`;
-
-const TOOLOUTPUT = `
-# RESULT FROM '{toolName}' TOOL
-{toolOutput}
-
-# YOUR RESPONSE
-`;
+import {
+  HUMAN_INPUT_SERVICE_AGENT,
+  SYSTEM_PROMPT_SERVICE_AGENT,
+  TOOL_OUTPUT_SERVICE_AGENT,
+} from '@simulation/config/prompt';
 
 /**
  * Creates a new flight booking agent.
@@ -71,9 +30,9 @@ export function createFlightBookingAgent(
     JSON.parse(tasks),
     flightRestApiTools,
     flightRoutingTools,
-    SYSTEMPROMPT,
-    HUMANINPUT,
-    TOOLOUTPUT,
+    SYSTEM_PROMPT_SERVICE_AGENT,
+    HUMAN_INPUT_SERVICE_AGENT,
+    TOOL_OUTPUT_SERVICE_AGENT,
   );
 }
 

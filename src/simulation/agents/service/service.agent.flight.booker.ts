@@ -22,7 +22,7 @@ const bookingNumberParam = new APIParam(
 
 const authTokenParam = new APIParam('auth_token', 'auth_token returned by the auth tool', 'string');
 
-export const flightRestApiTools: Record<string, RestAPITool> = {
+const flightRestApiTools: Record<string, RestAPITool> = {
   auth: new RestAPITool(
     'Authenticates a user',
     new APIRequest([
@@ -153,7 +153,7 @@ const defaultRoutingParams: APIParam[] = [
   new APIParam('data_collected', 'list of all the inputs already received from user', 'json'),
 ];
 
-export const flightRoutingTools: Record<string, RouteToCoreTool> = {
+const flightRoutingTools: Record<string, RouteToCoreTool> = {
   escalateToAgent: new RouteToCoreTool(
     `Escalate to human agent if the user request is failing or the user is specifically asking for a human agent.
   Escalate immediately, you don't need to authenticate the user before transferring to an agent.
@@ -186,7 +186,7 @@ export const flightRoutingTools: Record<string, RouteToCoreTool> = {
   ),
 };
 
-export const fakeServiceAgentResponses: string[] = [
+const fakeServiceAgentResponses: string[] = [
   `{"thought":"The user wants to change their flight and has provided their booking number. I need to authenticate the user first.","action":"auth","action_input":{"last_name":"Diniz","booking_number":"PALO0A"},"intermediate_message":"Sure, let me verify your details. Please wait a moment."}`,
   `{"thought":"The authentication failed. I need to ask the user to confirm their last name and booking number again.","action":"message_to_user","action_input":"I'm sorry, but I wasn't able to verify your details. Could you please confirm your last name and booking number again?"}`,
   `{"thought":"The user has provided the correct last name and booking number. I need to authenticate the user again.","action":"auth","action_input":{"last_name":"Diniz","booking_number":"PARL0A"},"intermediate_message":"Thank you for the correction. Let me verify your details again. Please wait a moment."}`,
@@ -197,7 +197,7 @@ export const fakeServiceAgentResponses: string[] = [
   `{"thought":"The user has confirmed the change. Now I need to change the flight date.","action":"changeFlightDate","action_input":{"auth_token":"FFsecret00token","booking_number":"PARL0A","new_flight_number":"PA321","new_date":"2023-11-19"},"intermediate_message":"Thank you for confirming. I'm now processing the change. Please wait a moment."}`,
   `{"thought":"The flight date has been successfully changed. I need to inform the user about this.","action":"message_to_user","action_input":"Your flight has been successfully changed to flight PA321, departing from New York to Boston on 2023-11-19 at 5:30pm, arriving at 7:00pm with 3 passengers. Thank you for choosing KronosJet. If you have any other questions or need further assistance, feel free to ask."}`,
 ];
-export const fakeUserAgentResponses: string[] = [
+const fakeUserAgentResponses: string[] = [
   `{"thought":"I should clearly state my problem to the agent. My flight needs to be rescheduled to a later date.","action":"message_to_user","action_input":"Hello agent, am me Claudio Diniz. I change my flight. Booking number is PALO0A is it correct, yea?"}`,
   `{"thought":"Looks like there's a bit of confusion. I should repeat my information but a bit more clearly this time.","action":"message_to_user","action_input":"Apologies for the confusion. Surname it is Diniz, booking number PARL0A, Not PALO0A."}`,
   `{"thought":"This is the correct booking. Now, I should ask the agent to change the booking to my desired date and time.","action":"message_to_user","action_input":"Yes yes, Correct booking. I need to change it to novermber 17 or 18 or 19. Any time is fine but 2pm interesting for me."}`,
@@ -205,3 +205,5 @@ export const fakeUserAgentResponses: string[] = [
   `{"thought":"The flight details provided are correct. Let's confirm the change.","action":"message_to_user","action_input":"Yes, correct details. I confirm this change. Thank you."}`,
   `{"thought":"The agent has successfully changed my flight booking. Now, I should end the call as I have no more inquiries.","action":"message_to_user","action_input":"/hangup"}`,
 ];
+
+export { flightRestApiTools, flightRoutingTools, fakeServiceAgentResponses, fakeUserAgentResponses };
