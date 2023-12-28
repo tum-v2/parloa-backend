@@ -7,6 +7,7 @@ tags:
   - name: Dashboard
   - name: Simulation
   - name: Agent
+  - name: Goal
   - name: Chat
   - name: LLMs
 paths:
@@ -36,7 +37,7 @@ paths:
                     type: boolean
                     example: true
         500:
-          description: Bad Request
+          description: Internal Server Error
           content:
             application/json:
               schema:
@@ -811,6 +812,16 @@ paths:
               schema:
                 type: object
                 properties:
+                  error:
+                    type: string
+                    example: "Agent 1 not found!"
+        500:
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
                   code:
                     type: string
                     example: INTERNAL_SERVER_ERROR
@@ -820,6 +831,58 @@ paths:
                   details:
                     type: string
                     example: Error
+  /api/v1/goals:
+    get:
+      summary: Retrieve all goals
+      tags: [Goal]
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/GoalDocument"
+    post:
+      summary: Create a new goal
+      description: Endpoint to create a new goal.
+      tags: [Goal]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GoalRequest"
+      responses:
+        201:
+          description: Goal created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GoalDocument"
+        400:
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                        example: "VALIDATION_ERROR"
+                      message:
+                        type: string
+                        example: "API Input Validation failed"
+                      errors:
+                        type: array
+                        items:
+                          type: string
+                        example:
+                          - "Scenarios must be a valid, non-empty array."
         500:
           description: Internal Server Error
           content:
@@ -827,7 +890,211 @@ paths:
               schema:
                 type: object
                 properties:
+                  code:
+                    type: string
+                    example: INTERNAL_SERVER_ERROR
+                  message:
+                    type: string
+                    example: Internal server error occurred
+                  details:
+                    type: string
+                    example: Error
+  /api/v1/goals/{goalId}:
+    get:
+      summary: Get goal
+      tags: [Goal]
+      parameters:
+        - in: path
+          name: goalId
+          required: true
+          schema:
+            type: string
+            example: 6553a127fcad73273655d634
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GoalDocument"
+        400:
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
                   error:
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                        example: "VALIDATION_ERROR"
+                      message:
+                        type: string
+                        example: "API Input Validation failed"
+                      errors:
+                        type: array
+                        items:
+                          type: string
+                        example:
+                          - "Scenarios must be a valid, non-empty array."
+        404:
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Goal 1 not found!"
+        500:
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: string
+                    example: INTERNAL_SERVER_ERROR
+                  message:
+                    type: string
+                    example: Internal server error occurred
+                  details:
+                    type: string
+                    example: Error
+    put:
+      summary: Update goal
+      tags: [Goal]
+      parameters:
+        - in: path
+          name: goalId
+          required: true
+          schema:
+            type: string
+            example: 6553a127fcad73273655d634
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GoalRequest"
+      responses:
+        200:
+          description: Goal updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GoalDocument"
+        400:
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                        example: "VALIDATION_ERROR"
+                      message:
+                        type: string
+                        example: "API Input Validation failed"
+                      errors:
+                        type: array
+                        items:
+                          type: string
+                        example:
+                          - "Scenarios must be a valid, non-empty array."
+        404:
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Goal 1 not found!"
+        500:
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: string
+                    example: INTERNAL_SERVER_ERROR
+                  message:
+                    type: string
+                    example: Internal server error occurred
+                  details:
+                    type: string
+                    example: Error
+    delete:
+      summary: Delete goal
+      tags: [Goal]
+      parameters:
+        - in: path
+          name: goalId
+          required: true
+          schema:
+            type: string
+            example: 6553a127fcad73273655d634
+      responses:
+        204:
+          description: OK
+        400:
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                        example: "VALIDATION_ERROR"
+                      message:
+                        type: string
+                        example: "API Input Validation failed"
+                      errors:
+                        type: array
+                        items:
+                          type: string
+                        example:
+                          - "Invalid goal ID."
+        404:
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Goal 1 not found!"
+        500:
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: string
+                    example: INTERNAL_SERVER_ERROR
+                  message:
+                    type: string
+                    example: Internal server error occurred
+                  details:
                     type: string
                     example: Error
   /api/v1/chats:
@@ -1225,6 +1492,9 @@ components:
             name:
               type: string
               example: "TEST SERVICE AGENT"
+            type:
+              type: string
+              example: "SERVICE"
             llm:
               type: string
               example: "FAKE"
@@ -1246,6 +1516,9 @@ components:
             name:
               type: string
               example: "TEST USER AGENT"
+            type:
+              type: string
+              example: "USER"
             llm:
               type: string
               example: "FAKE"
@@ -1258,6 +1531,9 @@ components:
             prompt:
               type: string
               example: "sarcastic"
+            goal:
+              type: string
+              example: "657f2a8b8f82c4cd43c674f7"
     ServiceAgent:
       type: object
       properties:
@@ -1267,6 +1543,9 @@ components:
         name:
           type: string
           example: "TEST SERVICE AGENT"
+        type:
+            type: string
+            example: "SERVICE"
         llm:
           type: string
           example: "FAKE"
@@ -1288,6 +1567,9 @@ components:
         name:
           type: string
           example: "TEST USER AGENT"
+        type:
+            type: string
+            example: "USER"
         llm:
           type: string
           example: "FAKE"
@@ -1300,6 +1582,9 @@ components:
         prompt:
           type: string
           example: "sarcastic"
+        goal:
+          type: string
+          example: "657f2a8b8f82c4cd43c674f7"
     SimulationDocument:
       type: object
       properties:
@@ -1407,6 +1692,9 @@ components:
         name:
           type: string
           example: "TEST SERVICE AGENT"
+        type:
+          type: string
+          example: "SERVICE"
         llm:
           type: string
           example: "FAKE"
@@ -1469,6 +1757,9 @@ components:
             name:
               type: string
               example: "TEST USER AGENT"
+            type:
+              type: string
+              example: "USER"
             llm:
               type: string
               example: "FAKE"
@@ -1484,6 +1775,9 @@ components:
             prompt:
               type: string
               example: "sarcastic"
+            goal:
+              type: string
+              example: "657f2a8b8f82c4cd43c674f7"
             temporary:
               type: boolean
               example: true
@@ -1505,6 +1799,9 @@ components:
             name:
               type: string
               example: "TEST SERVICE AGENT"
+            type:
+              type: string
+              example: "SERVICE"
             llm:
               type: string
               example: "FAKE"
@@ -1629,6 +1926,9 @@ components:
             domain:
               type: string
               example: "FLIGHT"
+            type:
+              type: string
+              example: "SERVICE"
             llm:
               type: string
               example: "FAKE"
@@ -1650,6 +1950,9 @@ components:
             name:
               type: string
               example: "TEST USER AGENT"
+            type:
+              type: string
+              example: "USER"
             llm:
               type: string
               example: "FAKE"
@@ -1662,6 +1965,9 @@ components:
             prompt:
               type: string
               example: "sarcastic"
+            goal:
+              type: string
+              example: "657f2a8b8f82c4cd43c674f7"
     ABSimulationRequest:
       type: object
       properties:
@@ -1683,6 +1989,9 @@ components:
             domain:
               type: string
               example: "FLIGHT"
+            type:
+              type: string
+              example: "SERVICE"
             llm:
               type: string
               example: "FAKE"
@@ -1704,6 +2013,9 @@ components:
             domain:
               type: string
               example: "FLIGHT"
+            type:
+              type: string
+              example: "SERVICE"
             llm:
               type: string
               example: "FAKE"
@@ -1725,6 +2037,9 @@ components:
             domain:
               type: string
               example: "FLIGHT"
+            type:
+              type: string
+              example: "USER"
             llm:
               type: string
               example: "FAKE"
@@ -1737,6 +2052,9 @@ components:
             prompt:
               type: string
               example: "sarcastic"
+            goal:
+              type: string
+              example: "657f2a8b8f82c4cd43c674f7"
     DashboardSimulation:
       type: object
       properties:
@@ -1756,3 +2074,43 @@ components:
         domain:
           type: string
           example: "FLIGHT"
+    GoalRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          example: "Goal 1"
+        description:
+          type: string
+          example: "Goal 1 description"
+        scenarios:
+          type: array
+          items:
+            type: string
+          example: [SLOT_FILLING, SEQUENCE]
+    GoalDocument:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: "657f2a8b8f82c4cd43c674f7"
+        name:
+          type: string
+          example: "Goal 1"
+        description:
+          type: string
+          example: "Goal 1 description"
+        scenarios:
+          type: array
+          items:
+            type: string
+          example: [SLOT_FILLING, SEQUENCE]
+        createdAt:
+          type: string
+          example: "2023-12-17T17:06:19.025Z"
+        updatedAt:
+          type: string
+          example: "2023-12-17T17:06:19.051Z"
+        __v:
+          type: number
+          example: 0

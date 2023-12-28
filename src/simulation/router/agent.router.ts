@@ -7,7 +7,12 @@ import AgentValidator from '@simulation/validator/agent.validator';
 const router: Router = express.Router();
 
 // POST //
-router.post('/', AgentValidator.runValidation(), CustomValidationError.handleValidationErrors, agentController.create);
+router.post(
+  '/',
+  AgentValidator.createValidation(),
+  CustomValidationError.handleValidationErrors,
+  agentController.create,
+);
 
 // GET //
 router.get('/', agentController.getAll);
