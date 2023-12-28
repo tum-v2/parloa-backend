@@ -5,6 +5,8 @@ export default {
   preset: 'ts-jest',
   testEnvironment: 'node',
   transform: {},
+  collectCoverage: true,
+  collectCoverageFrom: ['src/{simulation, evaluation}/**/*.ts'],
   moduleNameMapper: {
     '^@simulation/agents/(.*)$': '<rootDir>/src/simulation/agents/$1',
     '^@simulation/api/(.*)$': '<rootDir>/src/simulation/api/$1',

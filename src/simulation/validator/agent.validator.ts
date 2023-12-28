@@ -114,6 +114,7 @@ class AgentValidator {
         .isIn(Object.values(ConversationDomain))
         .withMessage(`Invalid domain type. Must be one of: ${Object.values(ConversationDomain).join(', ')}`),
       body('prompt')
+        .optional()
         .isArray({ min: 1 })
         .withMessage('Prompt must be a non-empty array')
         .custom((value: PromptPart[]) => {
