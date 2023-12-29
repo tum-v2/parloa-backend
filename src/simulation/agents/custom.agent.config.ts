@@ -199,4 +199,16 @@ export class CustomAgentConfig {
     this.humanInputTemplate = humanInputTemplate;
     this.toolOutputTemplate = toolOutputTemplate;
   }
+
+  /**
+   * Changes the description of a tool based on the name of the tool.
+   */
+  changeToolDescription(name: string, description: string): void {
+    if (this.restApiTools[name]) {
+      this.restApiTools[name].description = description;
+    }
+    if (this.routingTools[name]) {
+      this.routingTools[name].description = description;
+    }
+  }
 }

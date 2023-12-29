@@ -11,9 +11,14 @@ interface AgentDocument extends Document {
   temperature: number;
   maxTokens: number;
   domain: ConversationDomain;
-  prompt: string;
+  prompt: PromptPart[];
   goal?: GoalDocument | Types.ObjectId; // only user agents have a goal
   temporary?: boolean;
+}
+
+interface PromptPart {
+  name: string;
+  content: string;
 }
 
 const agentSchema: Schema = new Schema(
@@ -24,7 +29,7 @@ const agentSchema: Schema = new Schema(
     temperature: { type: Number, required: true },
     maxTokens: { type: Number, required: true },
     domain: { type: String, enum: Object.values(ConversationDomain), required: true },
-    prompt: { type: String, required: true },
+    prompt: { type: [{ name: String, content: String }], required: true, _id: false },
     goal: { type: Schema.Types.ObjectId, ref: 'Goal' },
     temporary: { type: Boolean, default: false },
   },
@@ -92,4 +97,4 @@ agentSchema.pre('findOneAndUpdate', async function (next) {
 
 const AgentModel = model<AgentDocument>('Agent', agentSchema);
 
-export { AgentModel, AgentDocument };
+export { AgentModel, AgentDocument, PromptPart };

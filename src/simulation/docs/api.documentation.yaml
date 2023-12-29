@@ -10,6 +10,8 @@ tags:
   - name: Goal
   - name: Chat
   - name: LLMs
+  - name: Optimization
+  - name: Prompt
 paths:
   /api/v1/auth/login:
     post:
@@ -440,7 +442,11 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ResponseRunSimulation"
+                type: array
+                items:
+                  oneOf:
+                    - $ref: "#/components/schemas/ResponseRunSimulation"
+                    - $ref: "#/components/schemas/ResponseRunSimulation"
         400:
           description: Bad Request
           content:
@@ -1466,62 +1472,69 @@ paths:
                   details:
                     type: string
                     example: Error
+  /api/v1/prompts:
+    get:
+      summary: Load promts for specific agent
+      tags: [Prompt]
+      parameters:
+        - name: domain
+          in: query
+          schema:
+            type: string
+            example: FLIGHT
+        - name: agentType
+          in: query
+          schema:
+            type: string
+            example: SERVICE
+      responses:
+        200:
+          description: OK  
+        400:
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Agent type USER1 not found!"
 components:
   schemas:
     RunSimulationRequest:
       type: object
-      properties:
+      properties:    
         type:
           type: string
           example: "AUTOMATED"
         name:
           type: string
-          example: "GENERATED2"
+          example: "Test Simulation"
         description:
           type: string
-          example: "Second Simulation run by me"
+          example: "Nth Simulation run by me"
         numConversations:
           type: number
           example: 1
-        serviceAgentConfig:
-          type: object
-          properties:
-            domain:
-              type: string
-              example: "FLIGHT"
-            name:
-              type: string
-              example: "TEST SERVICE AGENT"
-            type:
-              type: string
-              example: "SERVICE"
-            llm:
-              type: string
-              example: "FAKE"
-            temperature:
-              type: number
-              example: 0
-            maxTokens:
-              type: number
-              example: 256
-            prompt:
-              type: string
-              example: "concise"
         userAgentConfig:
           type: object
           properties:
+            name:
+              type: string
+              example: "Temp user agent"
             domain:
               type: string
               example: "FLIGHT"
-            name:
-              type: string
-              example: "TEST USER AGENT"
-            type:
-              type: string
-              example: "USER"
             llm:
               type: string
               example: "FAKE"
+            type:
+              type: string
+              example: "USER"
+            goal:
+              type: string
+              example: "658ae7f7226062a81c0d6d06"
             temperature:
               type: number
               example: 0
@@ -1529,11 +1542,43 @@ components:
               type: number
               example: 256
             prompt:
+              type: array
+              items:
+                oneOf:
+                  - $ref: "#/components/schemas/RoleUserAgent"
+                  - $ref: "#/components/schemas/PersonaUserAgent"
+                  - $ref: "#/components/schemas/ConversationStrategyUserAgent"
+        serviceAgentConfig:
+          type: object
+          properties:
+            name:
               type: string
-              example: "sarcastic"
-            goal:
+              example: "Temp service agent"
+            domain:
               type: string
-              example: "657f2a8b8f82c4cd43c674f7"
+              example: "FLIGHT"
+            llm:
+              type: string
+              example: "FAKE"
+            type:
+              type: string
+              example: "SERVICE"
+            temperature:
+              type: number
+              example: 0
+            maxTokens:
+              type: number
+              example: 256
+            prompt:
+              type: array
+              items:
+                oneOf:
+                  - $ref: "#/components/schemas/WelcomeMessage"
+                  - $ref: "#/components/schemas/RoleServiceAgent"
+                  - $ref: "#/components/schemas/PersonaUserAgent"
+                  - $ref: "#/components/schemas/ConversationStrategyUserAgent"
+                  - $ref: "#/components/schemas/TasksServiceAgent"
+                  - $ref: "#/components/schemas/ToolsServiceAgent"
     ServiceAgent:
       type: object
       properties:
@@ -1556,8 +1601,15 @@ components:
           type: number
           example: 256
         prompt:
-          type: string
-          example: "nonative"
+          type: array
+          items:
+            oneOf:
+              - $ref: "#/components/schemas/WelcomeMessage"
+              - $ref: "#/components/schemas/RoleServiceAgent"
+              - $ref: "#/components/schemas/PersonaUserAgent"
+              - $ref: "#/components/schemas/ConversationStrategyUserAgent"
+              - $ref: "#/components/schemas/TasksServiceAgent"
+              - $ref: "#/components/schemas/ToolsServiceAgent"
     UserAgent:
       type: object
       properties:
@@ -1580,8 +1632,12 @@ components:
           type: number
           example: 256
         prompt:
-          type: string
-          example: "sarcastic"
+          type: array
+          items:
+            oneOf:
+              - $ref: "#/components/schemas/RoleUserAgent"
+              - $ref: "#/components/schemas/PersonaUserAgent"
+              - $ref: "#/components/schemas/ConversationStrategyUserAgent"
         goal:
           type: string
           example: "657f2a8b8f82c4cd43c674f7"
@@ -1708,8 +1764,15 @@ components:
           type: string
           example: "FLIGHT"
         prompt:
-          type: string
-          example: "nonative"
+          type: array
+          items:
+            oneOf:
+              - $ref: "#/components/schemas/WelcomeMessage"
+              - $ref: "#/components/schemas/RoleServiceAgent"
+              - $ref: "#/components/schemas/PersonaUserAgent"
+              - $ref: "#/components/schemas/ConversationStrategyUserAgent"
+              - $ref: "#/components/schemas/TasksServiceAgent"
+              - $ref: "#/components/schemas/ToolsServiceAgent"
         temporary:
           type: boolean
           example: false
@@ -1773,8 +1836,12 @@ components:
               type: string
               example: "FLIGHT"
             prompt:
-              type: string
-              example: "sarcastic"
+              type: array
+              items:
+                oneOf:
+                  - $ref: "#/components/schemas/RoleUserAgent"
+                  - $ref: "#/components/schemas/PersonaUserAgent"
+                  - $ref: "#/components/schemas/ConversationStrategyUserAgent"
             goal:
               type: string
               example: "657f2a8b8f82c4cd43c674f7"
@@ -1815,8 +1882,15 @@ components:
               type: string
               example: "FLIGHT"
             prompt:
-              type: string
-              example: "concise"
+              type: array
+              items:
+                oneOf:
+                  - $ref: "#/components/schemas/WelcomeMessage"
+                  - $ref: "#/components/schemas/RoleServiceAgent"
+                  - $ref: "#/components/schemas/PersonaUserAgent"
+                  - $ref: "#/components/schemas/ConversationStrategyUserAgent"
+                  - $ref: "#/components/schemas/TasksServiceAgent"
+                  - $ref: "#/components/schemas/ToolsServiceAgent"
             temporary:
               type: boolean
               example: true
@@ -1939,8 +2013,15 @@ components:
               type: number
               example: 256
             prompt:
-              type: string
-              example: "concise"
+              type: array
+              items:
+                oneOf:
+                  - $ref: "#/components/schemas/WelcomeMessage"
+                  - $ref: "#/components/schemas/RoleServiceAgent"
+                  - $ref: "#/components/schemas/PersonaUserAgent"
+                  - $ref: "#/components/schemas/ConversationStrategyUserAgent"
+                  - $ref: "#/components/schemas/TasksServiceAgent"
+                  - $ref: "#/components/schemas/ToolsServiceAgent"
         userAgentConfig:
           type: object
           properties:
@@ -1963,8 +2044,12 @@ components:
               type: number
               example: 256
             prompt:
-              type: string
-              example: "sarcastic"
+              type: array
+              items:
+                oneOf:
+                  - $ref: "#/components/schemas/RoleUserAgent"
+                  - $ref: "#/components/schemas/PersonaUserAgent"
+                  - $ref: "#/components/schemas/ConversationStrategyUserAgent"
             goal:
               type: string
               example: "657f2a8b8f82c4cd43c674f7"
@@ -2002,8 +2087,15 @@ components:
               type: number
               example: 256
             prompt:
-              type: string
-              example: "default"
+              type: array
+              items:
+                oneOf:
+                  - $ref: "#/components/schemas/WelcomeMessage"
+                  - $ref: "#/components/schemas/RoleServiceAgent"
+                  - $ref: "#/components/schemas/PersonaUserAgent"
+                  - $ref: "#/components/schemas/ConversationStrategyUserAgent"
+                  - $ref: "#/components/schemas/TasksServiceAgent"
+                  - $ref: "#/components/schemas/ToolsServiceAgent"
         serviceAgentBConfig:
           type: object
           properties:
@@ -2026,8 +2118,15 @@ components:
               type: number
               example: 256
             prompt:
-              type: string
-              example: "default"
+              type: array
+              items:
+                oneOf:
+                  - $ref: "#/components/schemas/WelcomeMessage"
+                  - $ref: "#/components/schemas/RoleServiceAgent"
+                  - $ref: "#/components/schemas/PersonaUserAgent"
+                  - $ref: "#/components/schemas/ConversationStrategyUserAgent"
+                  - $ref: "#/components/schemas/TasksServiceAgent"
+                  - $ref: "#/components/schemas/ToolsServiceAgent"
         userAgentConfig:
           type: object
           properties:
@@ -2050,8 +2149,12 @@ components:
               type: number
               example: 256
             prompt:
-              type: string
-              example: "sarcastic"
+              type: array
+              items:
+                oneOf:
+                  - $ref: "#/components/schemas/RoleUserAgent"
+                  - $ref: "#/components/schemas/PersonaUserAgent"
+                  - $ref: "#/components/schemas/ConversationStrategyUserAgent"
             goal:
               type: string
               example: "657f2a8b8f82c4cd43c674f7"
@@ -2114,3 +2217,85 @@ components:
         __v:
           type: number
           example: 0
+    WelcomeMessage:
+      type: object
+      properties:
+        name:
+          type: string
+          example: "welcomeMessage"
+        content:
+          type: string
+          example: "Hello, I'm an agent from KronosJet. How can I help you?"
+    RoleServiceAgent:
+      type: object
+      properties:
+        name:
+          type: string
+          example: "role"
+        content:
+          type: string
+          example: "You are a customer support agent representing KronosJet, an airline company.\nYour primary objective is to assist users in different tasks.\nYou must only help in tasks listed below.\nOnly provide information based on these instructions or from the data received from tools.\n"
+    RoleUserAgent:
+      type: object
+      properties:
+        name:
+          type: string
+          example: "role"
+        content:
+          type: string
+          example: "You are a human calling a call center trying to change your flight booking.\n"
+    PersonaServiceAgent:
+      type: object
+      properties:
+        name:
+          type: string
+          example: "persona"
+        content:
+          type: string
+          example: "- You should be empathetic, helpful, comprehensive and polite.\n- Never user gender specific prefixes like Mr. or Mrs. when addressing the user unless they used it themselves.\n"
+    PersonaUserAgent:
+      type: object
+      properties:
+        name:
+          type: string
+          example: "persona"
+        content:
+          type: string
+          example: "- You provide all the necessary information at once, very concisely, in the shortest form possible.\n- Never repeat the same information twice unless explicitly asked."
+    ConversationStrategyServiceAgent:
+      type: object
+      properties:
+        name:
+          type: string
+          example: "conversationStrategy"
+        content:
+          type: string
+          example: "- User confirmation doesn't need to be explicitly say confirmed. It is a sufficient confirmation if the users answer is clearly implies approval of change.\n"
+    ConversationStrategyUserAgent:
+      type: object
+      properties:
+        name:
+          type: string
+          example: "conversationStrategy"
+        content:
+          type: string
+          example: "- Your primary objective is to change your existing booking.\n- Your booking number is PARL0A.\n- Your name is Claudio Diniz.\n- Your flight date for your booking is November, 12th, 2023. at 11 am.\n- Your flight is from New York to Boston.\n- Your booking is for 3 people.\n- You want to change it to November 17, 18, or 19, ideally 2 pm but any time is fine.\n- Generate your responses in a realistic way to a phone conversation.\n- Include common voice-to-text transcription errors in the text.\n- When you successfully changed your booking return { \"action\": \"message_to_user\", \"action_input\": \"/hangup\"}\n"
+    TasksServiceAgent:
+      type: object
+      properties:
+        name:
+          type: string
+          example: "tasks"
+        content:
+          type: string
+          example: "{\"answerFromFaq\":\"- If the user has a generic question answer it using FAQ.\\n- If the user has multiple questions you must query the FAQ for each question separately. Never include multiple questions in a single query.\\n- When querying the FAQ rephrase the user's question based on context from the conversation history and make it generic so it can be found in an FAQ. \\n- All other cases refer the user to kronosjet.com\",\"changeFlightDate\":\"In order to change flight date of an existing booking you need to ensure the following steps are followed:\\n- Retrieve the user's last name and the booking number from the user.\\n- You need to authenticate the user\\n- Retrieve the booking details\\n- Confirm with the user if the retrieved booking details are correct\\n- Get the new date from the user\\n- Check if the booking can be changed to a new date\\n- If there are multiple available flights ask the user which flight they prefer \\n- When listing flight options only list the with the departure time and DO NOT include more details like flight number, arrival time, etc.\\n- If there are more than 3 flights available to choose from then don't list all options but ask the user to narrow down the options\\n- If the booking can be changed, always ask the user for a final confirmation before changing the booking\\n- For confirmation of new flight always include flight number,  departure city, arrival city, departure time, arrival time, number of passengers.\",\"searchFlights\":\"If a user just wants to know if there are any flights on a date from his departure, to his arrival city.\\n    You can use getAllFlights, to get a list of all flights, and then notify the user of possible flights that are in this list and have the right data.\"}"
+    ToolsServiceAgent:
+      type: object
+      properties:
+        name:
+          type: string
+          example: "tools"
+        content:
+          type: string
+          example: "{ \"auth\": \"Authenticates a user\", \"bookingInfo\": \"Retrieves booking details\", \"checkAvailability\": \"Returns a list of available flight for a given new date for which an existing booking can be changed.\", \"getAllFlights\": \"Get a list of all Flights.\", \"changeFlightDate\": \"Used to modify an existing booking with a new flight date. The new date parameter must be in yyyy-mm-dd format but should not be disclosed to the user.\", \"getAnswerFromFaq\": \"Get an answer from the FAQ for a question of the user.\", \"escalateToAgent\": \"Escalate to human agent if the user request is failing or the user is specifically asking for a human agent.\\nEscalate immediately, you don't need to authenticate the user before transferring to an agent.\\nDont't forget to provide user_intent and data_collected.\\n\", \"routeToNewFlightBooking\": \"Route to new flight booking system if the user wants to book a new flight.\", \"routeToBookingChange\": \"Route to flight booking change system if the user wants to amend a booking beyond the task you supports (eg. upgrade to business class, change seats, add luggage etc.).\\nYou must  follow these steps first before the routing::\\n- Retrieve the user's last name and the booking number from the user.\\n- You need to authenticate the user\\n- Retrieve the booking details\\n- Confirm with the user if the retrieved booking details are correct\\n- Include the booking details retrieved in the entities_collected.\\n- If the user can't provide booking details or you fail to retrieve booking details after multiple clarification attempts then offer to transfer to an agent.\\n\" }"
+        

@@ -23,6 +23,7 @@ import authRouter from '@simulation/router/auth.router';
 import dashRouter from '@simulation/router/dashboard.router';
 import llmRouter from '@simulation/router/llms.router';
 import optimizationRouter from '@simulation/router/optimization.router';
+import promptRouter from '@simulation/router/prompt.router';
 
 // Evaluation routers
 import evaluationRouter from '@evaluation/router/evaluation.router';
@@ -57,6 +58,7 @@ app.use('/api/v1/evaluations', evaluationRouter);
 app.use('/api/v1/auth', authRouter);
 app.use('/api/v1/dashboard', dashRouter);
 app.use('/api/v1/language-models', llmRouter);
+app.use('/api/v1/prompts', promptRouter);
 
 app.use(CustomValidationError.handleValidationErrors);
 
