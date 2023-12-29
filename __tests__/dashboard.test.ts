@@ -4,9 +4,20 @@ import dotenv from 'dotenv';
 dotenv.config();
 const HOSTNAME = `http://localhost:${process.env.NODE_DOCKER_PORT}`;
 
+let token: string = '';
+
+beforeAll(async () => {
+  const accessCode = process.env.LOGIN_ACCESS_CODE;
+  const loginResponse = await request(HOSTNAME).post('/api/v1/auth/login').send({ accessCode: accessCode });
+  token = loginResponse.body.token;
+});
+
 describe('GET /dashboard', () => {
   it('responds with the dashboard data', async () => {
-    const response = await request(HOSTNAME).get('/api/v1/dashboard').query({ days: 7 });
+    const response = await request(HOSTNAME)
+      .get('/api/v1/dashboard')
+      .set('Authorization', `Bearer ${token}`)
+      .query({ days: 7 });
 
     expect(response.status).toBe(200);
     expect(response.body).toEqual({

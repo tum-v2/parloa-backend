@@ -16,14 +16,12 @@ export function verifyToken(req: Request, res: Response, next: NextFunction): vo
     return;
   }
 
-  jwt.verify(token, process.env.JWT_SECRET_KEY as string, (err, decoded) => {
+  jwt.verify(token, process.env.JWT_SECRET_KEY as string, (err) => {
     if (err) {
       res.status(401).json({ error: 'Invalid token' });
       return;
     }
 
-    // If token is valid, attach the decoded payload to the request object
-    req.body.decoded = decoded;
     next();
   });
 }

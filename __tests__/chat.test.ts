@@ -2,7 +2,7 @@ import request, { Response } from 'supertest';
 import dotenv from 'dotenv';
 dotenv.config();
 
-const hostname = `http://localhost:${process.env.NODE_DOCKER_PORT}`;
+const HOSTNAME = `http://localhost:${process.env.NODE_DOCKER_PORT}`;
 
 let simulationId = '';
 const invalidSimulationId = '000000000000000000000000';
@@ -62,20 +62,37 @@ const invalidInput = {
   },
 };
 
+let token: string = '';
+
+beforeAll(async () => {
+  const accessCode = process.env.LOGIN_ACCESS_CODE;
+  const loginResponse = await request(HOSTNAME).post('/api/v1/auth/login').send({ accessCode: accessCode });
+  token = loginResponse.body.token;
+});
+
 describe('POST /api/v1/chats', () => {
   let validResponse: Response;
   let invalidResponse: Response;
 
   beforeEach(async () => {
-    validResponse = await request(hostname).post('/api/v1/chats').send(validInput);
+    validResponse = await request(HOSTNAME)
+      .post('/api/v1/chats')
+      .set('Authorization', `Bearer ${token}`)
+      .send(validInput);
     simulationId = validResponse.body._id;
-    invalidResponse = await request(hostname).post('/api/v1/chats').send(invalidInput);
+    invalidResponse = await request(HOSTNAME)
+      .post('/api/v1/chats')
+      .set('Authorization', `Bearer ${token}`)
+      .send(invalidInput);
   });
 
   afterEach(async () => {
     validResponse = {} as Response;
     invalidResponse = {} as Response;
-    await request(hostname).delete(`/api/v1/simulations/${simulationId}`).send(validInput);
+    await request(HOSTNAME)
+      .delete(`/api/v1/simulations/${simulationId}`)
+      .set('Authorization', `Bearer ${token}`)
+      .send(validInput);
   });
 
   it('should return 201 for valid input', () => {
@@ -92,9 +109,15 @@ describe('POST /api/v1/chats', () => {
   let invalidResponse: Response;
 
   beforeEach(async () => {
-    validResponse = await request(hostname).post('/api/v1/chats').send(validInput);
+    validResponse = await request(HOSTNAME)
+      .post('/api/v1/chats')
+      .set('Authorization', `Bearer ${token}`)
+      .send(validInput);
     simulationId = validResponse.body._id;
-    invalidResponse = await request(hostname).post('/api/v1/chats').send(invalidInput);
+    invalidResponse = await request(HOSTNAME)
+      .post('/api/v1/chats')
+      .set('Authorization', `Bearer ${token}`)
+      .send(invalidInput);
   });
 
   afterEach(async () => {
@@ -116,8 +139,12 @@ describe('GET /api/v1/chats/:id', () => {
   let invalidResponse: Response;
 
   beforeEach(async () => {
-    validResponse = await request(hostname).get(`/api/v1/chats/${simulationId}`);
-    invalidResponse = await request(hostname).get(`/api/v1/chats/${invalidSimulationId}`);
+    validResponse = await request(HOSTNAME)
+      .get(`/api/v1/chats/${simulationId}`)
+      .set('Authorization', `Bearer ${token}`);
+    invalidResponse = await request(HOSTNAME)
+      .get(`/api/v1/chats/${invalidSimulationId}`)
+      .set('Authorization', `Bearer ${token}`);
   });
 
   afterEach(async () => {
@@ -139,8 +166,14 @@ describe('POST /api/v1/chats/:id', () => {
   let invalidResponse: Response;
 
   beforeEach(async () => {
-    validResponse = await request(hostname).post(`/api/v1/chats/${simulationId}`).send({ message: 'Hello' });
-    invalidResponse = await request(hostname).post(`/api/v1/chats/${invalidSimulationId}`).send({ message: 'Hello' });
+    validResponse = await request(HOSTNAME)
+      .post(`/api/v1/chats/${simulationId}`)
+      .send({ message: 'Hello' })
+      .set('Authorization', `Bearer ${token}`);
+    invalidResponse = await request(HOSTNAME)
+      .post(`/api/v1/chats/${invalidSimulationId}`)
+      .send({ message: 'Hello' })
+      .set('Authorization', `Bearer ${token}`);
   });
 
   afterEach(async () => {
@@ -162,5 +195,8 @@ describe('POST /api/v1/chats/:id', () => {
 });
 
 afterAll(async () => {
-  await request(hostname).delete(`/api/v1/simulations/${simulationId}`).send(validInput);
+  await request(HOSTNAME)
+    .delete(`/api/v1/simulations/${simulationId}`)
+    .send(validInput)
+    .set('Authorization', `Bearer ${token}`);
 });
