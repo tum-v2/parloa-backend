@@ -145,6 +145,10 @@ function calculateAverageResponseTime(
   for (let i = 1; i < filteredMessages.length; i++) {
     const currentMessage = filteredMessages[i];
 
+    if (filteredMessages.length < 2) {
+      return 0;
+    }
+
     // Only calculate response time for agent messages
     if (currentMessage.sender === MsgSender.USER) {
       continue;
