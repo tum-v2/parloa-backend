@@ -11,7 +11,7 @@ const CELL_SEPARATOR = ',';
  * @param results - The results which should be stored in the csv file
  * @returns an array with the path to the created file as first and the filename as second element
  */
-function evaluationResultsToCsv(results: EvaluationExecutedWithConversation[]): [string, string] {
+function evaluationResultsToCsv(results: (EvaluationExecutedWithConversation | null)[]): [string, string] {
   const filePath = path.join(EVALUATION_RESULTS_DIR, `evaluation-results_${getFormattedDate()}.csv`);
 
   if (!fs.existsSync(path.dirname(filePath))) {
@@ -27,7 +27,11 @@ function evaluationResultsToCsv(results: EvaluationExecutedWithConversation[]): 
   lines.push(data.join(CELL_SEPARATOR));
 
   for (const result of results) {
-    lines.push(generateTableRow(result));
+    if (result) {
+      lines.push(generateTableRow(result));
+    } else {
+      lines.push('-');
+    }
   }
 
   fs.writeFileSync(filePath, lines.join('\n'));
