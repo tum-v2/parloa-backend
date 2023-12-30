@@ -416,15 +416,32 @@ const invalidInputAB2 = {
   },
 };
 
+let token: string = '';
+
+beforeAll(async () => {
+  const accessCode = process.env.LOGIN_ACCESS_CODE;
+  const loginResponse = await request(HOSTNAME).post('/api/v1/auth/login').send({ accessCode: accessCode });
+  token = loginResponse.body.token;
+});
+
 describe('POST /api/v1/simulations', () => {
   let validResponse: Response;
   let invalidResponse: Response;
   let invalidResponse2: Response;
 
   beforeEach(async () => {
-    validResponse = await request(HOSTNAME).post('/api/v1/simulations').send(validInputRun);
-    invalidResponse = await request(HOSTNAME).post('/api/v1/simulations').send(invalidInputRun);
-    invalidResponse2 = await request(HOSTNAME).post('/api/v1/simulations').send(invalidInput2Run);
+    validResponse = await request(HOSTNAME)
+      .post('/api/v1/simulations')
+      .set('Authorization', `Bearer ${token}`)
+      .send(validInputRun);
+    invalidResponse = await request(HOSTNAME)
+      .post('/api/v1/simulations')
+      .set('Authorization', `Bearer ${token}`)
+      .send(invalidInputRun);
+    invalidResponse2 = await request(HOSTNAME)
+      .post('/api/v1/simulations')
+      .set('Authorization', `Bearer ${token}`)
+      .send(invalidInput2Run);
   });
 
   afterEach(() => {
@@ -452,9 +469,18 @@ describe('POST /api/v1/simulations/ab-testing', () => {
   let invalidResponse2: Response;
 
   beforeEach(async () => {
-    validResponse = await request(HOSTNAME).post('/api/v1/simulations/ab-testing').send(validInputAB);
-    invalidResponse = await request(HOSTNAME).post('/api/v1/simulations/ab-testing').send(invalidInputAB);
-    invalidResponse2 = await request(HOSTNAME).post('/api/v1/simulations/ab-testing').send(invalidInputAB2);
+    validResponse = await request(HOSTNAME)
+      .post('/api/v1/simulations/ab-testing')
+      .set('Authorization', `Bearer ${token}`)
+      .send(validInputAB);
+    invalidResponse = await request(HOSTNAME)
+      .post('/api/v1/simulations/ab-testing')
+      .set('Authorization', `Bearer ${token}`)
+      .send(invalidInputAB);
+    invalidResponse2 = await request(HOSTNAME)
+      .post('/api/v1/simulations/ab-testing')
+      .set('Authorization', `Bearer ${token}`)
+      .send(invalidInputAB2);
   });
 
   afterEach(() => {
@@ -480,7 +506,7 @@ describe('GET /api/v1/simulations', () => {
   let validResponse: Response;
 
   beforeEach(async () => {
-    validResponse = await request(HOSTNAME).get(`/api/v1/simulations`);
+    validResponse = await request(HOSTNAME).get(`/api/v1/simulations`).set('Authorization', `Bearer ${token}`);
     validSimulationId = validResponse.body[0]._id;
     deleteValidSimulationId = validResponse.body[1]._id;
 
@@ -507,8 +533,12 @@ describe('GET /api/v1/simulations/:id', () => {
   let invalidResponse: Response;
 
   beforeEach(async () => {
-    validResponse = await request(HOSTNAME).get(`/api/v1/simulations/${validSimulationId}`);
-    invalidResponse = await request(HOSTNAME).get(`/api/v1/simulations/${invalidSimulationId}`);
+    validResponse = await request(HOSTNAME)
+      .get(`/api/v1/simulations/${validSimulationId}`)
+      .set('Authorization', `Bearer ${token}`);
+    invalidResponse = await request(HOSTNAME)
+      .get(`/api/v1/simulations/${invalidSimulationId}`)
+      .set('Authorization', `Bearer ${token}`);
   });
 
   afterEach(() => {
@@ -530,8 +560,12 @@ describe('GET /api/v1/simulations/conversations/:id', () => {
   let invalidResponse: Response;
 
   beforeEach(async () => {
-    validResponse = await request(HOSTNAME).get(`/api/v1/simulations/conversations/${validConversation}`);
-    invalidResponse = await request(HOSTNAME).get(`/api/v1/simulations/conversations/${invalidSimulationId}`);
+    validResponse = await request(HOSTNAME)
+      .get(`/api/v1/simulations/conversations/${validConversation}`)
+      .set('Authorization', `Bearer ${token}`);
+    invalidResponse = await request(HOSTNAME)
+      .get(`/api/v1/simulations/conversations/${invalidSimulationId}`)
+      .set('Authorization', `Bearer ${token}`);
   });
 
   afterEach(() => {
@@ -556,10 +590,16 @@ describe('PUT /api/v1/simulations/:id', () => {
     const obj = {
       name: 'test',
     };
-    validResponse = await request(HOSTNAME).put(`/api/v1/simulations/${validSimulationId}`).send(obj);
+    validResponse = await request(HOSTNAME)
+      .put(`/api/v1/simulations/${validSimulationId}`)
+      .set('Authorization', `Bearer ${token}`)
+      .send(obj);
 
     // was failing because the domain type couldn't pass the validation check
-    invalidResponse = await request(HOSTNAME).put(`/api/v1/simulations/${invalidSimulationId}`).send(obj);
+    invalidResponse = await request(HOSTNAME)
+      .put(`/api/v1/simulations/${invalidSimulationId}`)
+      .set('Authorization', `Bearer ${token}`)
+      .send(obj);
   });
 
   afterEach(() => {
@@ -581,8 +621,12 @@ describe('DELETE /api/v1/simulations/:id', () => {
   let invalidResponse: Response;
 
   beforeEach(async () => {
-    validResponse = await request(HOSTNAME).delete(`/api/v1/simulations/${deleteValidSimulationId}`);
-    invalidResponse = await request(HOSTNAME).delete(`/api/v1/simulations/${invalidSimulationId}`);
+    validResponse = await request(HOSTNAME)
+      .delete(`/api/v1/simulations/${deleteValidSimulationId}`)
+      .set('Authorization', `Bearer ${token}`);
+    invalidResponse = await request(HOSTNAME)
+      .delete(`/api/v1/simulations/${invalidSimulationId}`)
+      .set('Authorization', `Bearer ${token}`);
   });
 
   afterEach(() => {
@@ -598,10 +642,3 @@ describe('DELETE /api/v1/simulations/:id', () => {
     expect(invalidResponse.status).toBe(404);
   });
 });
-/*
-afterAll(() => {
-  server.close(async () => {
-    await disconnectFromDatabase();
-  });
-});
-*/

@@ -85,14 +85,28 @@ const invalidInput = {
 
 let agentId = '';
 
+let token: string = '';
+
+beforeAll(async () => {
+  const accessCode = process.env.LOGIN_ACCESS_CODE;
+  const loginResponse = await request(HOSTNAME).post('/api/v1/auth/login').send({ accessCode: accessCode });
+  token = loginResponse.body.token;
+});
+
 describe('POST /api/v1/agents/', () => {
   let validResponse: Response;
   let invalidResponse: Response;
 
   beforeEach(async () => {
-    validResponse = await request(HOSTNAME).post('/api/v1/agents/').send(validInput);
+    validResponse = await request(HOSTNAME)
+      .post('/api/v1/agents/')
+      .set('Authorization', `Bearer ${token}`)
+      .send(validInput);
     agentId = validResponse.body._id;
-    invalidResponse = await request(HOSTNAME).post('/api/v1/agents/').send(invalidInput);
+    invalidResponse = await request(HOSTNAME)
+      .post('/api/v1/agents/')
+      .set('Authorization', `Bearer ${token}`)
+      .send(invalidInput);
   });
 
   afterEach(() => {
@@ -114,8 +128,8 @@ describe('GET /api/v1/agents/:id', () => {
   let invalidResponse: Response;
 
   beforeEach(async () => {
-    validResponse = await request(HOSTNAME).get(`/api/v1/agents/${agentId}`);
-    invalidResponse = await request(HOSTNAME).get(`/api/v1/agents/123`);
+    validResponse = await request(HOSTNAME).get(`/api/v1/agents/${agentId}`).set('Authorization', `Bearer ${token}`);
+    invalidResponse = await request(HOSTNAME).get(`/api/v1/agents/123`).set('Authorization', `Bearer ${token}`);
   });
 
   afterEach(() => {
@@ -136,7 +150,7 @@ describe('GET /api/v1/agents', () => {
   let validResponse: Response;
 
   beforeEach(async () => {
-    validResponse = await request(HOSTNAME).get(`/api/v1/agents`);
+    validResponse = await request(HOSTNAME).get(`/api/v1/agents`).set('Authorization', `Bearer ${token}`);
   });
 
   afterEach(() => {
@@ -154,8 +168,14 @@ describe('PUT /api/v1/agents/:id', () => {
   let invalidResponse: Response;
 
   beforeEach(async () => {
-    validResponse = await request(HOSTNAME).put(`/api/v1/agents/${agentId}`).send({ name: 'AGENT' });
-    invalidResponse = await request(HOSTNAME).put(`/api/v1/agents/${agentId}`).send({ llm: 'GPT3' });
+    validResponse = await request(HOSTNAME)
+      .put(`/api/v1/agents/${agentId}`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({ name: 'AGENT' });
+    invalidResponse = await request(HOSTNAME)
+      .put(`/api/v1/agents/${agentId}`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({ llm: 'GPT3' });
   });
 
   afterEach(() => {
@@ -179,9 +199,11 @@ describe('DELETE /api/v1/agents/:id', () => {
   let invalidResponse: Response;
 
   beforeEach(async () => {
-    validResponse = await request(HOSTNAME).delete(`/api/v1/agents/${agentId}`);
-    getResponse = await request(HOSTNAME).get(`/api/v1/agents/${agentId}`);
-    invalidResponse = await request(HOSTNAME).delete(`/api/v1/agents/${agentId}`);
+    validResponse = await request(HOSTNAME).delete(`/api/v1/agents/${agentId}`).set('Authorization', `Bearer ${token}`);
+    getResponse = await request(HOSTNAME).get(`/api/v1/agents/${agentId}`).set('Authorization', `Bearer ${token}`);
+    invalidResponse = await request(HOSTNAME)
+      .delete(`/api/v1/agents/${agentId}`)
+      .set('Authorization', `Bearer ${token}`);
   });
 
   afterEach(() => {
