@@ -21,9 +21,8 @@ import agentRouter from '@simulation/router/agent.router';
 import goalRouter from '@simulation/router/goal.router';
 import authRouter from '@simulation/router/auth.router';
 import dashRouter from '@simulation/router/dashboard.router';
-import llmRouter from '@simulation/router/llms.router';
+import dictionaryRouter from '@simulation/router/dictionary.router';
 import optimizationRouter from '@simulation/router/optimization.router';
-import promptRouter from '@simulation/router/prompt.router';
 
 // Evaluation routers
 import evaluationRouter from '@evaluation/router/evaluation.router';
@@ -57,8 +56,7 @@ app.use('/api/v1/goals', goalRouter);
 app.use('/api/v1/evaluations', evaluationRouter);
 app.use('/api/v1/auth', authRouter);
 app.use('/api/v1/dashboard', dashRouter);
-app.use('/api/v1/language-models', llmRouter);
-app.use('/api/v1/prompts', promptRouter);
+app.use('/api/v1/dictionary', dictionaryRouter);
 
 app.use(CustomValidationError.handleValidationErrors);
 

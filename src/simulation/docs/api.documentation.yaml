@@ -9,9 +9,8 @@ tags:
   - name: Agent
   - name: Goal
   - name: Chat
-  - name: LLMs
   - name: Optimization
-  - name: Prompt
+  - name: Dictionary
 security:
   - bearerAuth: []
 paths:
@@ -1576,10 +1575,10 @@ paths:
                   details:
                     type: string
                     example: Error
-  /api/v1/language-models:
+  /api/v1/dictionary/language-models:
     get:
       summary: Retrive available LLM models
-      tags: [LLMs]
+      tags: [Dictionary]
       security:
         - bearerAuth: []
       responses:
@@ -1623,6 +1622,54 @@ paths:
                   details:
                     type: string
                     example: Error
+  /api/v1/dictionary/domains:
+    get:
+      summary: Retrive all domains for agents
+      tags: [Dictionary]
+      security:
+        - bearerAuth: []
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+                  enum:
+                    - FLIGHT
+                    - INSURANCE
+              example:
+                - FLIGHT
+                - INSURANCE
+        401:
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Invalid token"
+        500:
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: string
+                    example: INTERNAL_SERVER_ERROR
+                  message:
+                    type: string
+                    example: Internal server error occurred
+                  details:
+                    type: string
+                    example: Error
+  
   /api/v1/optimizations:
     post:
       summary: Start a new optimization
@@ -1762,10 +1809,10 @@ paths:
                   details:
                     type: string
                     example: Error
-  /api/v1/prompts:
+  /api/v1/dictionary/prompts:
     get:
-      summary: Load promts for specific agent
-      tags: [Prompt]
+      summary: Load prompts for specific agent
+      tags: [Dictionary]
       security:
         - bearerAuth: []
       parameters:
@@ -1782,6 +1829,54 @@ paths:
       responses:
         200:
           description: OK  
+        400:
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Agent type USER1 not found!"
+        401:
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Invalid token"
+  /api/v1/dictionary/prompt-names:
+    get:
+      summary: Load prompt names for specific agent
+      tags: [Dictionary]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: agentType
+          in: query
+          schema:
+            type: string
+            example: SERVICE
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+              example:
+                - welcomeMessage
+                - role
+                - persona
+                - conversationStrategy
+                - tasks
+                - tools
         400:
           description: Bad Request
           content:

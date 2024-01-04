@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import { LLMModel } from '@enums/llm-model.enum';
 import { ConversationDomain } from '@enums/conversation-domain.enum';
 import { BAD_REQUEST } from '@utils/errors';
 import {
@@ -6,6 +7,8 @@ import {
   SERVICE_AGENT_FLIGHT_PROMPT,
   USER_AGENT_INSURANCE_PROMPT,
   SERVICE_AGENT_INSURANCE_PROMPT,
+  PROMPT_NAMES_USER_AGENT,
+  PROMPT_NAMES_SERVICE_AGENT,
 } from '@simulation/config/defaults';
 
 /**
@@ -39,6 +42,46 @@ async function getPrompts(req: Request, res: Response): Promise<void> {
   }
 }
 
+/**
+ * Get all LLMs
+ * @param req - Request object.
+ * @param res - Response object. It returns all LLMs.
+ */
+async function getLLMs(req: Request, res: Response): Promise<void> {
+  res.status(200).send(Object.values(LLMModel));
+}
+
+/**
+ * Get all domains
+ * @param req - Request object.
+ * @param res - Response object. It returns all domains.
+ */
+async function getDomains(req: Request, res: Response): Promise<void> {
+  res.status(200).send(Object.values(ConversationDomain));
+}
+
+/**
+ * Get propmt names for a specific agent
+ * @param req - Request object.
+ * @param res - Response object. It returns all prompt names for an agent.
+ */
+async function getPromptNames(req: Request, res: Response): Promise<void> {
+  if (!req.query.agentType) {
+    res.status(400).send(BAD_REQUEST('Please provide agetType: e.g. ?agentType=USER'));
+    return;
+  }
+  if (req.query.agentType === 'USER') {
+    res.status(200).send(PROMPT_NAMES_USER_AGENT);
+  } else if (req.query.agentType === 'SERVICE') {
+    res.status(200).send(PROMPT_NAMES_SERVICE_AGENT);
+  } else {
+    res.status(400).send({ error: `Agent type ${req.query.agentType} not found!` });
+  }
+}
+
 export default {
+  getLLMs,
   getPrompts,
+  getDomains,
+  getPromptNames,
 };

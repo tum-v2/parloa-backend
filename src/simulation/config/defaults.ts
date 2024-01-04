@@ -1,5 +1,9 @@
 import { PromptPart } from '@db/models/agent.model';
 
+const PROMPT_NAMES_SERVICE_AGENT = ['welcomeMessage', 'role', 'persona', 'conversationStrategy', 'tasks', 'tools'];
+
+const PROMPT_NAMES_USER_AGENT = ['role', 'persona', 'conversationStrategy'];
+
 const USER_AGENT_FLIGHT_PROMPT: PromptPart[] = [
   {
     name: 'role',
@@ -58,4 +62,6 @@ export {
   SERVICE_AGENT_FLIGHT_PROMPT,
   USER_AGENT_INSURANCE_PROMPT,
   SERVICE_AGENT_INSURANCE_PROMPT,
+  PROMPT_NAMES_SERVICE_AGENT,
+  PROMPT_NAMES_USER_AGENT,
 };
