@@ -16,6 +16,7 @@ import { BaseChatModel, BaseChatModelParams } from 'langchain/chat_models/base';
 import { ChatOpenAI, OpenAIChatInput } from 'langchain/chat_models/openai';
 import { AzureOpenAIInput } from 'langchain/chat_models/openai';
 import { FakeListChatModel } from 'langchain/chat_models/fake';
+import { TogetherAI } from '@langchain/community/llms/togetherai';
 
 import { AgentDocument } from '@db/models/agent.model';
 import { MessageDocument } from '@db/models/message.model';
@@ -224,6 +225,7 @@ export async function configureServiceAgent(
     agentLLM = new FakeListChatModel({ responses: fakeServiceAgentResponses, sleep: 100 });
   } else {
     const azureOpenAIInput = setModelConfig(modelName, temperature, maxTokens);
+    //eslint-disable-next-line @typescript-eslint/no-unused-vars
     agentLLM = new ChatOpenAI(azureOpenAIInput);
   }
 
@@ -236,7 +238,11 @@ export async function configureServiceAgent(
   }
 
   const serviceAgent: CustomAgent = new CustomAgent(
-    agentLLM,
+    new TogetherAI({
+      modelName: 'togethercomputer/llama-2-70b-chat',
+      temperature: 0,
+      maxTokens: 256,
+    }),
     flightBookingAgentConfig,
     SERVICE_PROMPT_LOG_FILE_PATH,
     SERVICE_CHAT_LOG_FILE_PATH,
@@ -283,11 +289,16 @@ async function configureUserAgent(agentData: AgentDocument): Promise<CustomAgent
     userLLM = new FakeListChatModel({ responses: fakeUserAgentResponses, sleep: 100 });
   } else {
     const azureOpenAIInput = setModelConfig(modelName, temperature, maxTokens);
+    //eslint-disable-next-line @typescript-eslint/no-unused-vars
     userLLM = new ChatOpenAI(azureOpenAIInput);
   }
 
   const userAgent: CustomAgent = new CustomAgent(
-    userLLM,
+    new TogetherAI({
+      modelName: 'togethercomputer/llama-2-70b-chat',
+      temperature: 1,
+      maxTokens: 256,
+    }),
     userSimConfig,
     USER_PROMPT_LOG_FILE_PATH,
     USER_CHAT_LOG_FILE_PATH,
@@ -372,6 +383,21 @@ export async function runConversation(
   serviceAgentData: AgentDocument,
   userAgentData: AgentDocument,
 ): Promise<ConversationDocument> {
+  /*const llama = new TogetherAI({
+    modelName: 'togethercomputer/llama-2-70b-chat',
+    temperature: 0.7,
+    maxTokens: 256,
+  });
+
+  //write a question to llama and log the response
+  const question = 'What is 2 + 2?';
+  const response = await llama.predict(question);
+  console.log(response);
+  console.log(
+    '--------------------------------------------------------------------------------------------------------',
+  );
+  return null as unknown as ConversationDocument;*/
+
   const startTime: Date = new Date();
   const conversation = await conversationRepository.create({
     messages: undefined,

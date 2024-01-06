@@ -1,13 +1,15 @@
-import { BaseChatModel } from 'langchain/chat_models/base';
+//import { BaseChatModel } from 'langchain/chat_models/base';
 import { HumanMessagePromptTemplate, SystemMessagePromptTemplate } from 'langchain/prompts';
-import { BaseMessage } from 'langchain/schema';
+import { BaseMessage as LcBaseMessage } from 'langchain/schema';
+import { BaseMessage as CoreBaseMessage } from '@langchain/core/dist/messages/index';
 import { CustomAgentConfig, RestAPITool, RouteToCoreTool } from '@simulation/agents/custom.agent.config';
 import moment from 'moment';
 import { appendFileSync } from 'fs';
 import { MsgType } from '@enums/msg-type.enum';
+import { TogetherAI } from '@langchain/community/llms/togetherai';
 
 export class MsgHistoryItem {
-  lcMsg: BaseMessage;
+  lcMsg: LcBaseMessage;
   type: MsgType;
   timestamp: Date;
   userInput: string | null;
@@ -19,7 +21,7 @@ export class MsgHistoryItem {
   parentId: string | null;
 
   constructor(
-    lcMsg: BaseMessage,
+    lcMsg: LcBaseMessage,
     type: MsgType,
     userInput?: string,
     msgToUser?: string,
@@ -69,7 +71,7 @@ type ToolDescription = {
 };
 
 export class CustomAgent {
-  chatModel: BaseChatModel;
+  chatModel: TogetherAI;
   config: CustomAgentConfig;
   promptLogFilePath: string | null;
   chatLogFilePath: string | null;
@@ -80,7 +82,7 @@ export class CustomAgent {
   messageHistory: MsgHistoryItem[];
 
   constructor(
-    chatModel: BaseChatModel,
+    chatModel: TogetherAI,
     config: CustomAgentConfig,
     promptLogFilePath?: string | null,
     chatLogFilePath?: string | null,
@@ -108,7 +110,7 @@ export class CustomAgent {
     No LLM call is made.
     Logs if log files set and prints if isVerbose for the class instance"""*/
 
-    const lcMsg: BaseMessage = await this.getSystemPrompt();
+    const lcMsg: LcBaseMessage = await this.getSystemPrompt();
     // console.log(lcMsg.content.toString());
     await this.addMessage(new MsgHistoryItem(lcMsg, MsgType.SYSTEMPROMPT));
 
@@ -116,7 +118,7 @@ export class CustomAgent {
   }
 
   async processHumanInput(humanInput: string, id: string | null = null): Promise<string> {
-    const lcMsg: BaseMessage = await this.getHumanPrompt(humanInput);
+    const lcMsg: LcBaseMessage = await this.getHumanPrompt(humanInput);
     const msg = new MsgHistoryItem(lcMsg, MsgType.HUMANINPUT, humanInput, id ?? undefined);
     await this.addMessage(msg);
 
@@ -126,11 +128,23 @@ export class CustomAgent {
     let apiToolConfig: RestAPITool | null = null;
 
     for (;;) {
-      const messages: BaseMessage[] = this.messageHistory.map((msg) => msg.lcMsg);
+      const messages: CoreBaseMessage[] = this.messageHistory.map((msg) => msg.lcMsg as CoreBaseMessage);
 
-      const responseMessage = await this.chatModel.call(messages);
+      console.log('0---------------------------------------------------------------------------------');
+      for (let m = 0; m < messages.length; m++) {
+        console.log('message: ' + JSON.stringify(messages[m], null, 2));
+      }
 
-      response = await this.getFixedJson(responseMessage);
+      const responseMessage = await this.chatModel.predictMessages(messages);
+
+      console.log('1---------------------------------------------------------------------------------');
+      console.log(responseMessage.content.toString());
+      console.log('2---------------------------------------------------------------------------------');
+      console.log(responseMessage.content.toString().split('}')[0] + '}');
+      //cut off everything after }
+      response = JSON.parse(responseMessage.content.toString().split('}')[0] + '}');
+      console.log('3---------------------------------------------------------------------------------');
+      console.log(response);
       action = response.action;
       actionInput = response.action_input ?? {};
 
@@ -142,7 +156,7 @@ export class CustomAgent {
       ) {
         await this.addMessage(
           new MsgHistoryItem(
-            responseMessage,
+            responseMessage as LcBaseMessage,
             MsgType.MSGTOUSER,
             undefined,
             String(actionInput),
@@ -164,7 +178,7 @@ export class CustomAgent {
 
         await this.addMessage(
           new MsgHistoryItem(
-            responseMessage,
+            responseMessage as LcBaseMessage,
             MsgType.ROUTE,
             undefined,
             undefined,
@@ -187,7 +201,7 @@ export class CustomAgent {
 
         await this.addMessage(
           new MsgHistoryItem(
-            responseMessage,
+            responseMessage as LcBaseMessage,
             MsgType.TOOLCALL,
             undefined,
             undefined,
@@ -312,10 +326,10 @@ export class CustomAgent {
     }
   }
 
-  async getFixedJson(inputBaseMessage: BaseMessage, id: string | null = null) {
+  async getFixedJson(inputBaseMessage: LcBaseMessage, id: string | null = null) {
     let count = 0;
     const maxCount = 5;
-    let baseMesage = inputBaseMessage;
+    //let baseMesage = inputBaseMessage;
     let input = inputBaseMessage.content.toString();
     while (count++ < maxCount) {
       try {
@@ -359,7 +373,7 @@ export class CustomAgent {
             ),
           );
 
-          const msg = `JSON: Couldn't read your output. Remember to print only proper json! The format looks like this.  {"thought":"fill your thoughts here", "action":"your action e.g. message_to_user, auth ..","action_input": "either text" or input for tools: {}}. Only send the json blib in the brackets, nothing before or after!`;
+          const msg = `JSON: Couldn't read your output. Remember to print only proper json! The format looks like this.  {"thought":"fill your thoughts here", "action":"your action e.g. message_to_user, auth ..","action_input": "either text" or input for tools: {}}. Only send the json blib in the brackets, nothing before or after! Also send only one message at a time (you are either a user or a service agent, not both)`;
           await this.addMessage(
             new MsgHistoryItem(
               await this.getHumanPrompt(msg),
@@ -373,8 +387,8 @@ export class CustomAgent {
               id!,
             ),
           );
-          const messages: BaseMessage[] = this.messageHistory.map((msg) => msg.lcMsg);
-          baseMesage = await this.chatModel.call(messages);
+          const messages: CoreBaseMessage[] = this.messageHistory.map((msg) => msg.lcMsg as CoreBaseMessage);
+          const baseMesage = await this.chatModel.predictMessages(messages);
 
           input = baseMesage.content.toString();
         }
