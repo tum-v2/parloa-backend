@@ -442,6 +442,7 @@ export async function runConversation(
       turnCount++;
     }
   } catch (error) {
+    conversationSuccess = false;
     if (error instanceof Error) {
       thrownError = error as Error;
     }
@@ -491,7 +492,7 @@ async function updateConversation(
   }
   conversation.messages = messages;
   conversation.endTime = endTime;
-  conversation.status = ConversationStatus.FINISHED;
+  conversation.status = conversationSuccess ? ConversationStatus.FINISHED : ConversationStatus.FAILED;
   conversation.usedEndpoints = usedEndpoints;
 
   // update the conversation
