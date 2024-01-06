@@ -74,15 +74,11 @@ class SimulationValidator {
       }),
     ];
 
-    if (body('serviceAgentConfig').exists()) {
-      const validationRules = AgentValidator.agentConfigFieldsValidation('serviceAgentConfig');
-      validations.push(...validationRules);
-    }
+    let validationRules = AgentValidator.agentConfigFieldsValidation('serviceAgentConfig');
+    validations.push(...validationRules);
 
-    if (body('userAgentConfig').exists()) {
-      const validationRules = AgentValidator.agentConfigFieldsValidation('userAgentConfig');
-      validations.push(...validationRules);
-    }
+    validationRules = AgentValidator.agentConfigFieldsValidation('userAgentConfig');
+    validations.push(...validationRules);
 
     return validations;
   }
@@ -169,20 +165,14 @@ class SimulationValidator {
       }),
     ];
 
-    if (body('serviceAgentAConfig').exists()) {
-      const validationRules = AgentValidator.agentConfigFieldsValidation('serviceAgentAConfig');
-      validations.push(...validationRules);
-    }
+    let validationRules = AgentValidator.agentConfigFieldsValidation('serviceAgentAConfig');
+    validations.push(...validationRules);
 
-    if (body('serviceAgentBConfig').exists()) {
-      const validationRules = AgentValidator.agentConfigFieldsValidation('serviceAgentBConfig');
-      validations.push(...validationRules);
-    }
+    validationRules = AgentValidator.agentConfigFieldsValidation('serviceAgentBConfig');
+    validations.push(...validationRules);
 
-    if (body('userAgentConfig').exists()) {
-      const validationRules = AgentValidator.agentConfigFieldsValidation('userAgentConfig');
-      validations.push(...validationRules);
-    }
+    validationRules = AgentValidator.agentConfigFieldsValidation('userAgentConfig');
+    validations.push(...validationRules);
 
     return validations;
   }
