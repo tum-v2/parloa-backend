@@ -23,8 +23,8 @@ const PERSONAS: Record<string, string> = {
 
 const TEMPERATURE = 1;
 
-const ROLE = `You are a human calling a call center trying to change your flight booking.`;
-
+const ROLE_FLIGHT = `You are a human calling a call center trying to change your flight booking.`;
+const ROLE_INSURANCE = 'You are a human calling a call center trying to find out more about Insurance products.';
 const FLIGHT_CONVERSATION_STRATEGY =
   /*`Ask first for flights on the november 17, 18 and 19 from New York to Boston. Dont give him your number or name, you just want to ask if there are flights.
   - When you successfully got your information return { "action": "message_to_user", "action_input": "/hangup"}
@@ -42,7 +42,10 @@ const FLIGHT_CONVERSATION_STRATEGY =
 - When you successfully changed your booking return { "action": "message_to_user", "action_input": "/hangup"}
 `;
 
-const INSURANCE_CONVERSATION_STRATEGY = `- Your primary objective is to ask for insurance.
+const INSURANCE_CONVERSATION_STRATEGY = `- Your primary objective is to get a list of all available products.
+- Select one of the products and ask for more information about it.
+- Your date of birth is 1976-02-01, your policy number is 334455
+- Also ask for information about your current policy.
 - Generate your responses in a way which is realistic to a phone conversation.
 - Include common voice to text transcription errors in the text.
 - When you successfully changed your booking return { "action": "message_to_user", "action_input": "/hangup"}
@@ -102,7 +105,7 @@ export function getSimConfig(persona: string, domain: ConversationDomain): Custo
   }
   const personaConfig = new CustomAgentConfig();
   personaConfig.temperature = TEMPERATURE;
-  personaConfig.role = ROLE;
+  personaConfig.role = domain === ConversationDomain.FLIGHT ? ROLE_FLIGHT : ROLE_INSURANCE;
   personaConfig.persona = convertedPersona;
   personaConfig.conversationStrategy =
     domain === ConversationDomain.FLIGHT ? FLIGHT_CONVERSATION_STRATEGY : INSURANCE_CONVERSATION_STRATEGY;
