@@ -14,12 +14,13 @@ import { RunSimulationRequest } from '@simulation/model/request/simulation.reque
 import { RunEvaluationRequest } from '@evaluation/model/request/run-evaluation.request';
 import { RunABTestingRequest } from '@simulation/model/request/ab-testing.request';
 import DashboardData from '@simulation/model/response/dashboard.response';
-import { runConversation } from '@simulation/service/conversation.service';
+import { runConversation, RunConversationData } from '@simulation/service/conversation.service';
 import optimizationService from '@simulation/service/optimization.service';
 
 import evaluationService from '@evaluation/service/evaluation.service';
 
 import { Types } from 'mongoose';
+import { error } from 'console';
 
 const agentRepository = repositoryFactory.agentRepository;
 const simulationRepository = repositoryFactory.simulationRepository;
@@ -186,7 +187,9 @@ async function run(
 
   try {
     for (let i = 0; i < numConversations; i++) {
-      const conversation: ConversationDocument = await runConversation(serviceAgent, userAgent);
+      const runConv: RunConversationData = await runConversation(serviceAgent, userAgent);
+      const conversation = runConv.document;
+
       conversations.push(conversation._id);
       simulation.conversations = conversations;
       simulation.totalNumberOfInteractions += await _increaseTotalNumberOfInteractions(
@@ -208,6 +211,10 @@ async function run(
         }
       } else {
         evaluationService.runEvaluation(evaluationRequest);
+      }
+
+      if (runConv.error !== undefined) {
+        throw error!;
       }
     }
     const simulationEnd = new Date();
