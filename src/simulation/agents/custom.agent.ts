@@ -109,7 +109,7 @@ export class CustomAgent {
     Logs if log files set and prints if isVerbose for the class instance"""*/
 
     const lcMsg: BaseMessage = await this.getSystemPrompt();
-    // console.log(lcMsg.content.toString());
+
     await this.addMessage(new MsgHistoryItem(lcMsg, MsgType.SYSTEMPROMPT));
 
     return this.config.welcomeMessage;
