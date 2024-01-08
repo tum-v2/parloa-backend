@@ -7,8 +7,12 @@ tags:
   - name: Dashboard
   - name: Simulation
   - name: Agent
+  - name: Goal
   - name: Chat
-  - name: LLMs
+  - name: Optimization
+  - name: Dictionary
+security:
+  - bearerAuth: []
 paths:
   /api/v1/auth/login:
     post:
@@ -36,7 +40,7 @@ paths:
                     type: boolean
                     example: true
         500:
-          description: Bad Request
+          description: Internal Server Error
           content:
             application/json:
               schema:
@@ -61,6 +65,8 @@ paths:
           schema:
             type: number
             example: 10
+      security:
+        - bearerAuth: []
       responses:
         200:
           description: OK
@@ -122,6 +128,16 @@ paths:
                   details:
                     type: string
                     example: "Please provide a number of days: e.g. ?days=10"
+        401:
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Invalid token"
         500:
           description: Internal Server Error
           content:
@@ -142,6 +158,8 @@ paths:
     get:
       summary: Retrieve all simulations
       tags: [Simulation]
+      security:
+        - bearerAuth: []
       responses:
         200:
           description: OK
@@ -151,6 +169,16 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/SimulationDocument"
+        401:
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Invalid token"
         500:
           description: Bad Request
           content:
@@ -170,6 +198,8 @@ paths:
     post:
       summary: Start new automated simulation
       tags: [Simulation]
+      security:
+        - bearerAuth: []
       requestBody:
         required: true
         content:
@@ -205,6 +235,16 @@ paths:
                           type: string
                         example:
                           - "Invalid simulation ID."
+        401:
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Invalid token"
         500:
           description: Internal Server Error
           content:
@@ -225,6 +265,8 @@ paths:
     get:
       summary: Retrieve simulation
       tags: [Simulation]
+      security:
+        - bearerAuth: []
       parameters:
         - in: path
           name: simulationId
@@ -261,6 +303,16 @@ paths:
                           type: string
                         example:
                           - "Invalid simulation ID."
+        401:
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Invalid token"
         404:
           description: Not Found
           content:
@@ -290,6 +342,8 @@ paths:
     put:
       summary: Update simulation
       tags: [Simulation]
+      security:
+        - bearerAuth: []
       parameters:
         - in: path
           name: simulationId
@@ -336,6 +390,16 @@ paths:
                           type: string
                         example:
                           - "Invalid simulation ID."
+        401:
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Invalid token"
         404:
           description: Not Found
           content:
@@ -365,6 +429,8 @@ paths:
     delete:
       summary: Delete simulation
       tags: [Simulation]
+      security:
+        - bearerAuth: []
       parameters:
         - in: path
           name: simulationId
@@ -397,6 +463,16 @@ paths:
                           type: string
                         example:
                           - "Invalid simulation ID."
+        401:
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Invalid token"
         404:
           description: Not Found
           content:
@@ -427,6 +503,8 @@ paths:
     post:
       summary: Start new A/B simulation
       tags: [Simulation]
+      security:
+        - bearerAuth: []
       requestBody:
         required: true
         content:
@@ -439,7 +517,11 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ResponseRunSimulation"
+                type: array
+                items:
+                  oneOf:
+                    - $ref: "#/components/schemas/ResponseRunSimulation"
+                    - $ref: "#/components/schemas/ResponseRunSimulation"
         400:
           description: Bad Request
           content:
@@ -462,6 +544,16 @@ paths:
                           type: string
                         example:
                           - "Invalid simulation ID."
+        401:
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Invalid token"
         500:
           description: Internal Server Error
           content:
@@ -482,6 +574,8 @@ paths:
     get:
       summary: Retrieve simulation conversations
       tags: [Simulation]
+      security:
+        - bearerAuth: []
       parameters:
         - in: path
           name: conversationId
@@ -518,6 +612,16 @@ paths:
                           type: string
                         example:
                           - "Invalid conversation ID."
+        401:
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Invalid token"
         404:
           description: Not Found
           content:
@@ -549,6 +653,8 @@ paths:
       summary: Create a new agent
       description: Endpoint to create a new agent.
       tags: [Agent]
+      security:
+        - bearerAuth: []
       requestBody:
         required: true
         content:
@@ -584,6 +690,16 @@ paths:
                           type: string
                         example:
                           - "Invalid agent name."
+        401:
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Invalid token"
         500:
           description: Internal Server Error
           content:
@@ -603,6 +719,8 @@ paths:
     get:
       summary: Retrieve all agents
       tags: [Agent]
+      security:
+        - bearerAuth: []
       responses:
         200:
           description: OK
@@ -612,6 +730,16 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/AgentResponse"
+        401:
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Invalid token"
         500:
           description: Internal Server Error
           content:
@@ -632,6 +760,8 @@ paths:
     get:
       summary: Get agent
       tags: [Agent]
+      security:
+        - bearerAuth: []
       parameters:
         - in: path
           name: agentId
@@ -668,6 +798,16 @@ paths:
                           type: string
                         example:
                           - "Invalid agent ID."
+        401:
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Invalid token"
         404:
           description: Not Found
           content:
@@ -697,6 +837,8 @@ paths:
     put:
       summary: Update agent
       tags: [Agent]
+      security:
+        - bearerAuth: []
       parameters:
         - in: path
           name: agentId
@@ -743,6 +885,16 @@ paths:
                           type: string
                         example:
                           - "Invalid agent ID."
+        401:
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Invalid token"
         404:
           description: Not Found
           content:
@@ -772,6 +924,8 @@ paths:
     delete:
       summary: Delete agent
       tags: [Agent]
+      security:
+        - bearerAuth: []
       parameters:
         - in: path
           name: agentId
@@ -804,8 +958,28 @@ paths:
                           type: string
                         example:
                           - "Invalid agent ID."
+        401:
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Invalid token"
         404:
           description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Agent 1 not found!"
+        500:
+          description: Internal Server Error
           content:
             application/json:
               schema:
@@ -820,8 +994,62 @@ paths:
                   details:
                     type: string
                     example: Error
-        500:
-          description: Internal Server Error
+  /api/v1/goals:
+    get:
+      summary: Retrieve all goals
+      tags: [Goal]
+      security:
+        - bearerAuth: []
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/GoalDocument"
+    post:
+      summary: Create a new goal
+      description: Endpoint to create a new goal.
+      tags: [Goal]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GoalRequest"
+      responses:
+        201:
+          description: Goal created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GoalDocument"
+        400:
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                        example: "VALIDATION_ERROR"
+                      message:
+                        type: string
+                        example: "API Input Validation failed"
+                      errors:
+                        type: array
+                        items:
+                          type: string
+                        example:
+                          - "Scenarios must be a valid, non-empty array."
+        401:
+          description: Unauthorized
           content:
             application/json:
               schema:
@@ -829,12 +1057,264 @@ paths:
                 properties:
                   error:
                     type: string
+                    example: "Invalid token"
+        500:
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: string
+                    example: INTERNAL_SERVER_ERROR
+                  message:
+                    type: string
+                    example: Internal server error occurred
+                  details:
+                    type: string
+                    example: Error
+  /api/v1/goals/{goalId}:
+    get:
+      summary: Get goal
+      tags: [Goal]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: goalId
+          required: true
+          schema:
+            type: string
+            example: 6553a127fcad73273655d634
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GoalDocument"
+        400:
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                        example: "VALIDATION_ERROR"
+                      message:
+                        type: string
+                        example: "API Input Validation failed"
+                      errors:
+                        type: array
+                        items:
+                          type: string
+                        example:
+                          - "Scenarios must be a valid, non-empty array."
+        401:
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Invalid token"
+        404:
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Goal 1 not found!"
+        500:
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: string
+                    example: INTERNAL_SERVER_ERROR
+                  message:
+                    type: string
+                    example: Internal server error occurred
+                  details:
+                    type: string
+                    example: Error
+    put:
+      summary: Update goal
+      tags: [Goal]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: goalId
+          required: true
+          schema:
+            type: string
+            example: 6553a127fcad73273655d634
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GoalRequest"
+      responses:
+        200:
+          description: Goal updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GoalDocument"
+        400:
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                        example: "VALIDATION_ERROR"
+                      message:
+                        type: string
+                        example: "API Input Validation failed"
+                      errors:
+                        type: array
+                        items:
+                          type: string
+                        example:
+                          - "Scenarios must be a valid, non-empty array."
+        401:
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Invalid token"
+        404:
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Goal 1 not found!"
+        500:
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: string
+                    example: INTERNAL_SERVER_ERROR
+                  message:
+                    type: string
+                    example: Internal server error occurred
+                  details:
+                    type: string
+                    example: Error
+    delete:
+      summary: Delete goal
+      tags: [Goal]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: goalId
+          required: true
+          schema:
+            type: string
+            example: 6553a127fcad73273655d634
+      responses:
+        204:
+          description: OK
+        400:
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                        example: "VALIDATION_ERROR"
+                      message:
+                        type: string
+                        example: "API Input Validation failed"
+                      errors:
+                        type: array
+                        items:
+                          type: string
+                        example:
+                          - "Invalid goal ID."
+        401:
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Invalid token"
+        404:
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Goal 1 not found!"
+        500:
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: string
+                    example: INTERNAL_SERVER_ERROR
+                  message:
+                    type: string
+                    example: Internal server error occurred
+                  details:
+                    type: string
                     example: Error
   /api/v1/chats:
     get:
       summary: Retrieve all chats
       description: Endpoint for fething all simulations.
       tags: [Chat]
+      security:
+        - bearerAuth: []
       responses:
         200:
           description: OK
@@ -844,6 +1324,16 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/ChatResponse"
+        401:
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Invalid token"
         500:
           description: Internal Server Error
           content:
@@ -864,6 +1354,8 @@ paths:
       summary: Start a new chat
       description: Endpoint to start a new manual chat.
       tags: [Chat]
+      security:
+        - bearerAuth: []
       requestBody:
         required: true
         content:
@@ -905,6 +1397,16 @@ paths:
                           type: string
                         example:
                           - "Invalid chat name."
+        401:
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Invalid token"
         500:
           description: Internal Server Error
           content:
@@ -926,6 +1428,8 @@ paths:
       summary: Load previous chat
       description: Endpoint for loading a previous chat.
       tags: [Chat]
+      security:
+        - bearerAuth: []
       parameters:
         - in: path
           name: chatId
@@ -966,6 +1470,16 @@ paths:
                           type: string
                         example:
                           - "Invalid chat ID."
+        401:
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Invalid token"
         500:
           description: Internal Server Error
           content:
@@ -986,6 +1500,8 @@ paths:
       summary: Send a message
       description: Endpoint for sending a message manual chat.
       tags: [Chat]
+      security:
+        - bearerAuth: []
       parameters:
         - in: path
           name: chatId
@@ -1033,6 +1549,16 @@ paths:
                           type: string
                         example:
                           - "Invalid chat ID."
+        401:
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Invalid token"
         500:
           description: Internal Server Error
           content:
@@ -1049,10 +1575,12 @@ paths:
                   details:
                     type: string
                     example: Error
-  /api/v1/language-models:
+  /api/v1/dictionary/language-models:
     get:
       summary: Retrive available LLM models
-      tags: [LLMs]
+      tags: [Dictionary]
+      security:
+        - bearerAuth: []
       responses:
         200:
           description: OK
@@ -1068,6 +1596,16 @@ paths:
               example:
                 - GPT4
                 - LLAMA2
+        401:
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Invalid token"
         500:
           description: Internal Server Error
           content:
@@ -1084,10 +1622,60 @@ paths:
                   details:
                     type: string
                     example: Error
+  /api/v1/dictionary/domains:
+    get:
+      summary: Retrive all domains for agents
+      tags: [Dictionary]
+      security:
+        - bearerAuth: []
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+                  enum:
+                    - FLIGHT
+                    - INSURANCE
+              example:
+                - FLIGHT
+                - INSURANCE
+        401:
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Invalid token"
+        500:
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: string
+                    example: INTERNAL_SERVER_ERROR
+                  message:
+                    type: string
+                    example: Internal server error occurred
+                  details:
+                    type: string
+                    example: Error
+  
   /api/v1/optimizations:
     post:
       summary: Start a new optimization
       tags: [ Optimization ]
+      security:
+        - bearerAuth: []
       requestBody:
         required: true
         content:
@@ -1123,6 +1711,16 @@ paths:
                           type: string
                         example:
                           - "Invalid simulation name."
+        401:
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Invalid token"
         500:
           description: Internal Server Error
           content:
@@ -1144,6 +1742,8 @@ paths:
     get:
       summary: Get child simulations that belong to an optimized simulation
       tags: [ Optimization ]
+      security:
+        - bearerAuth: []
       parameters:
         - in: path
           name: optimizationId
@@ -1183,6 +1783,16 @@ paths:
                           type: string
                         example:
                           - "Invalid simulation id."
+        401:
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Invalid token"
         500:
           description: Internal Server Error
           content:
@@ -1199,56 +1809,129 @@ paths:
                   details:
                     type: string
                     example: Error
+  /api/v1/dictionary/prompts:
+    get:
+      summary: Load prompts for specific agent
+      tags: [Dictionary]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: domain
+          in: query
+          schema:
+            type: string
+            example: FLIGHT
+        - name: agentType
+          in: query
+          schema:
+            type: string
+            example: SERVICE
+      responses:
+        200:
+          description: OK  
+        400:
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Agent type USER1 not found!"
+        401:
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Invalid token"
+  /api/v1/dictionary/prompt-names:
+    get:
+      summary: Load prompt names for specific agent
+      tags: [Dictionary]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: agentType
+          in: query
+          schema:
+            type: string
+            example: SERVICE
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+              example:
+                - welcomeMessage
+                - role
+                - persona
+                - conversationStrategy
+                - tasks
+                - tools
+        400:
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Agent type USER1 not found!"
+        401:
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Invalid token"
 components:
   schemas:
     RunSimulationRequest:
       type: object
-      properties:
+      properties:    
         type:
           type: string
           example: "AUTOMATED"
         name:
           type: string
-          example: "GENERATED2"
+          example: "Test Simulation"
         description:
           type: string
-          example: "Second Simulation run by me"
+          example: "Nth Simulation run by me"
         numConversations:
           type: number
           example: 1
-        serviceAgentConfig:
-          type: object
-          properties:
-            domain:
-              type: string
-              example: "FLIGHT"
-            name:
-              type: string
-              example: "TEST SERVICE AGENT"
-            llm:
-              type: string
-              example: "FAKE"
-            temperature:
-              type: number
-              example: 0
-            maxTokens:
-              type: number
-              example: 256
-            prompt:
-              type: string
-              example: "concise"
         userAgentConfig:
           type: object
           properties:
+            name:
+              type: string
+              example: "Temp user agent"
             domain:
               type: string
               example: "FLIGHT"
-            name:
-              type: string
-              example: "TEST USER AGENT"
             llm:
               type: string
               example: "FAKE"
+            type:
+              type: string
+              example: "USER"
+            goal:
+              type: string
+              example: "658ae7f7226062a81c0d6d06"
             temperature:
               type: number
               example: 0
@@ -1256,8 +1939,43 @@ components:
               type: number
               example: 256
             prompt:
+              type: array
+              items:
+                oneOf:
+                  - $ref: "#/components/schemas/RoleUserAgent"
+                  - $ref: "#/components/schemas/PersonaUserAgent"
+                  - $ref: "#/components/schemas/ConversationStrategyUserAgent"
+        serviceAgentConfig:
+          type: object
+          properties:
+            name:
               type: string
-              example: "sarcastic"
+              example: "Temp service agent"
+            domain:
+              type: string
+              example: "FLIGHT"
+            llm:
+              type: string
+              example: "FAKE"
+            type:
+              type: string
+              example: "SERVICE"
+            temperature:
+              type: number
+              example: 0
+            maxTokens:
+              type: number
+              example: 256
+            prompt:
+              type: array
+              items:
+                oneOf:
+                  - $ref: "#/components/schemas/WelcomeMessage"
+                  - $ref: "#/components/schemas/RoleServiceAgent"
+                  - $ref: "#/components/schemas/PersonaUserAgent"
+                  - $ref: "#/components/schemas/ConversationStrategyUserAgent"
+                  - $ref: "#/components/schemas/TasksServiceAgent"
+                  - $ref: "#/components/schemas/ToolsServiceAgent"
     ServiceAgent:
       type: object
       properties:
@@ -1267,6 +1985,9 @@ components:
         name:
           type: string
           example: "TEST SERVICE AGENT"
+        type:
+            type: string
+            example: "SERVICE"
         llm:
           type: string
           example: "FAKE"
@@ -1277,8 +1998,15 @@ components:
           type: number
           example: 256
         prompt:
-          type: string
-          example: "nonative"
+          type: array
+          items:
+            oneOf:
+              - $ref: "#/components/schemas/WelcomeMessage"
+              - $ref: "#/components/schemas/RoleServiceAgent"
+              - $ref: "#/components/schemas/PersonaUserAgent"
+              - $ref: "#/components/schemas/ConversationStrategyUserAgent"
+              - $ref: "#/components/schemas/TasksServiceAgent"
+              - $ref: "#/components/schemas/ToolsServiceAgent"
     UserAgent:
       type: object
       properties:
@@ -1288,6 +2016,9 @@ components:
         name:
           type: string
           example: "TEST USER AGENT"
+        type:
+            type: string
+            example: "USER"
         llm:
           type: string
           example: "FAKE"
@@ -1298,8 +2029,15 @@ components:
           type: number
           example: 256
         prompt:
+          type: array
+          items:
+            oneOf:
+              - $ref: "#/components/schemas/RoleUserAgent"
+              - $ref: "#/components/schemas/PersonaUserAgent"
+              - $ref: "#/components/schemas/ConversationStrategyUserAgent"
+        goal:
           type: string
-          example: "sarcastic"
+          example: "657f2a8b8f82c4cd43c674f7"
     SimulationDocument:
       type: object
       properties:
@@ -1407,6 +2145,9 @@ components:
         name:
           type: string
           example: "TEST SERVICE AGENT"
+        type:
+          type: string
+          example: "SERVICE"
         llm:
           type: string
           example: "FAKE"
@@ -1420,8 +2161,15 @@ components:
           type: string
           example: "FLIGHT"
         prompt:
-          type: string
-          example: "nonative"
+          type: array
+          items:
+            oneOf:
+              - $ref: "#/components/schemas/WelcomeMessage"
+              - $ref: "#/components/schemas/RoleServiceAgent"
+              - $ref: "#/components/schemas/PersonaUserAgent"
+              - $ref: "#/components/schemas/ConversationStrategyUserAgent"
+              - $ref: "#/components/schemas/TasksServiceAgent"
+              - $ref: "#/components/schemas/ToolsServiceAgent"
         temporary:
           type: boolean
           example: false
@@ -1469,6 +2217,9 @@ components:
             name:
               type: string
               example: "TEST USER AGENT"
+            type:
+              type: string
+              example: "USER"
             llm:
               type: string
               example: "FAKE"
@@ -1482,8 +2233,15 @@ components:
               type: string
               example: "FLIGHT"
             prompt:
+              type: array
+              items:
+                oneOf:
+                  - $ref: "#/components/schemas/RoleUserAgent"
+                  - $ref: "#/components/schemas/PersonaUserAgent"
+                  - $ref: "#/components/schemas/ConversationStrategyUserAgent"
+            goal:
               type: string
-              example: "sarcastic"
+              example: "657f2a8b8f82c4cd43c674f7"
             temporary:
               type: boolean
               example: true
@@ -1505,6 +2263,9 @@ components:
             name:
               type: string
               example: "TEST SERVICE AGENT"
+            type:
+              type: string
+              example: "SERVICE"
             llm:
               type: string
               example: "FAKE"
@@ -1518,8 +2279,15 @@ components:
               type: string
               example: "FLIGHT"
             prompt:
-              type: string
-              example: "concise"
+              type: array
+              items:
+                oneOf:
+                  - $ref: "#/components/schemas/WelcomeMessage"
+                  - $ref: "#/components/schemas/RoleServiceAgent"
+                  - $ref: "#/components/schemas/PersonaUserAgent"
+                  - $ref: "#/components/schemas/ConversationStrategyUserAgent"
+                  - $ref: "#/components/schemas/TasksServiceAgent"
+                  - $ref: "#/components/schemas/ToolsServiceAgent"
             temporary:
               type: boolean
               example: true
@@ -1629,6 +2397,9 @@ components:
             domain:
               type: string
               example: "FLIGHT"
+            type:
+              type: string
+              example: "SERVICE"
             llm:
               type: string
               example: "FAKE"
@@ -1639,8 +2410,15 @@ components:
               type: number
               example: 256
             prompt:
-              type: string
-              example: "concise"
+              type: array
+              items:
+                oneOf:
+                  - $ref: "#/components/schemas/WelcomeMessage"
+                  - $ref: "#/components/schemas/RoleServiceAgent"
+                  - $ref: "#/components/schemas/PersonaUserAgent"
+                  - $ref: "#/components/schemas/ConversationStrategyUserAgent"
+                  - $ref: "#/components/schemas/TasksServiceAgent"
+                  - $ref: "#/components/schemas/ToolsServiceAgent"
         userAgentConfig:
           type: object
           properties:
@@ -1650,6 +2428,9 @@ components:
             name:
               type: string
               example: "TEST USER AGENT"
+            type:
+              type: string
+              example: "USER"
             llm:
               type: string
               example: "FAKE"
@@ -1660,8 +2441,15 @@ components:
               type: number
               example: 256
             prompt:
+              type: array
+              items:
+                oneOf:
+                  - $ref: "#/components/schemas/RoleUserAgent"
+                  - $ref: "#/components/schemas/PersonaUserAgent"
+                  - $ref: "#/components/schemas/ConversationStrategyUserAgent"
+            goal:
               type: string
-              example: "sarcastic"
+              example: "657f2a8b8f82c4cd43c674f7"
     ABSimulationRequest:
       type: object
       properties:
@@ -1683,6 +2471,9 @@ components:
             domain:
               type: string
               example: "FLIGHT"
+            type:
+              type: string
+              example: "SERVICE"
             llm:
               type: string
               example: "FAKE"
@@ -1693,8 +2484,15 @@ components:
               type: number
               example: 256
             prompt:
-              type: string
-              example: "default"
+              type: array
+              items:
+                oneOf:
+                  - $ref: "#/components/schemas/WelcomeMessage"
+                  - $ref: "#/components/schemas/RoleServiceAgent"
+                  - $ref: "#/components/schemas/PersonaUserAgent"
+                  - $ref: "#/components/schemas/ConversationStrategyUserAgent"
+                  - $ref: "#/components/schemas/TasksServiceAgent"
+                  - $ref: "#/components/schemas/ToolsServiceAgent"
         serviceAgentBConfig:
           type: object
           properties:
@@ -1704,6 +2502,9 @@ components:
             domain:
               type: string
               example: "FLIGHT"
+            type:
+              type: string
+              example: "SERVICE"
             llm:
               type: string
               example: "FAKE"
@@ -1714,8 +2515,15 @@ components:
               type: number
               example: 256
             prompt:
-              type: string
-              example: "default"
+              type: array
+              items:
+                oneOf:
+                  - $ref: "#/components/schemas/WelcomeMessage"
+                  - $ref: "#/components/schemas/RoleServiceAgent"
+                  - $ref: "#/components/schemas/PersonaUserAgent"
+                  - $ref: "#/components/schemas/ConversationStrategyUserAgent"
+                  - $ref: "#/components/schemas/TasksServiceAgent"
+                  - $ref: "#/components/schemas/ToolsServiceAgent"
         userAgentConfig:
           type: object
           properties:
@@ -1725,6 +2533,9 @@ components:
             domain:
               type: string
               example: "FLIGHT"
+            type:
+              type: string
+              example: "USER"
             llm:
               type: string
               example: "FAKE"
@@ -1735,8 +2546,15 @@ components:
               type: number
               example: 256
             prompt:
+              type: array
+              items:
+                oneOf:
+                  - $ref: "#/components/schemas/RoleUserAgent"
+                  - $ref: "#/components/schemas/PersonaUserAgent"
+                  - $ref: "#/components/schemas/ConversationStrategyUserAgent"
+            goal:
               type: string
-              example: "sarcastic"
+              example: "657f2a8b8f82c4cd43c674f7"
     DashboardSimulation:
       type: object
       properties:
@@ -1756,3 +2574,129 @@ components:
         domain:
           type: string
           example: "FLIGHT"
+    GoalRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          example: "Goal 1"
+        description:
+          type: string
+          example: "Goal 1 description"
+        scenarios:
+          type: array
+          items:
+            type: string
+          example: [SLOT_FILLING, SEQUENCE]
+    GoalDocument:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: "657f2a8b8f82c4cd43c674f7"
+        name:
+          type: string
+          example: "Goal 1"
+        description:
+          type: string
+          example: "Goal 1 description"
+        scenarios:
+          type: array
+          items:
+            type: string
+          example: [SLOT_FILLING, SEQUENCE]
+        createdAt:
+          type: string
+          example: "2023-12-17T17:06:19.025Z"
+        updatedAt:
+          type: string
+          example: "2023-12-17T17:06:19.051Z"
+        __v:
+          type: number
+          example: 0
+    WelcomeMessage:
+      type: object
+      properties:
+        name:
+          type: string
+          example: "welcomeMessage"
+        content:
+          type: string
+          example: "Hello, I'm an agent from KronosJet. How can I help you?"
+    RoleServiceAgent:
+      type: object
+      properties:
+        name:
+          type: string
+          example: "role"
+        content:
+          type: string
+          example: "You are a customer support agent representing KronosJet, an airline company.\nYour primary objective is to assist users in different tasks.\nYou must only help in tasks listed below.\nOnly provide information based on these instructions or from the data received from tools.\n"
+    RoleUserAgent:
+      type: object
+      properties:
+        name:
+          type: string
+          example: "role"
+        content:
+          type: string
+          example: "You are a human calling a call center trying to change your flight booking.\n"
+    PersonaServiceAgent:
+      type: object
+      properties:
+        name:
+          type: string
+          example: "persona"
+        content:
+          type: string
+          example: "- You should be empathetic, helpful, comprehensive and polite.\n- Never user gender specific prefixes like Mr. or Mrs. when addressing the user unless they used it themselves.\n"
+    PersonaUserAgent:
+      type: object
+      properties:
+        name:
+          type: string
+          example: "persona"
+        content:
+          type: string
+          example: "- You provide all the necessary information at once, very concisely, in the shortest form possible.\n- Never repeat the same information twice unless explicitly asked."
+    ConversationStrategyServiceAgent:
+      type: object
+      properties:
+        name:
+          type: string
+          example: "conversationStrategy"
+        content:
+          type: string
+          example: "- User confirmation doesn't need to be explicitly say confirmed. It is a sufficient confirmation if the users answer is clearly implies approval of change.\n"
+    ConversationStrategyUserAgent:
+      type: object
+      properties:
+        name:
+          type: string
+          example: "conversationStrategy"
+        content:
+          type: string
+          example: "- Your primary objective is to change your existing booking.\n- Your booking number is PARL0A.\n- Your name is Claudio Diniz.\n- Your flight date for your booking is November, 12th, 2023. at 11 am.\n- Your flight is from New York to Boston.\n- Your booking is for 3 people.\n- You want to change it to November 17, 18, or 19, ideally 2 pm but any time is fine.\n- Generate your responses in a realistic way to a phone conversation.\n- Include common voice-to-text transcription errors in the text.\n- When you successfully changed your booking return { \"action\": \"message_to_user\", \"action_input\": \"/hangup\"}\n"
+    TasksServiceAgent:
+      type: object
+      properties:
+        name:
+          type: string
+          example: "tasks"
+        content:
+          type: string
+          example: "{\"answerFromFaq\":\"- If the user has a generic question answer it using FAQ.\\n- If the user has multiple questions you must query the FAQ for each question separately. Never include multiple questions in a single query.\\n- When querying the FAQ rephrase the user's question based on context from the conversation history and make it generic so it can be found in an FAQ. \\n- All other cases refer the user to kronosjet.com\",\"changeFlightDate\":\"In order to change flight date of an existing booking you need to ensure the following steps are followed:\\n- Retrieve the user's last name and the booking number from the user.\\n- You need to authenticate the user\\n- Retrieve the booking details\\n- Confirm with the user if the retrieved booking details are correct\\n- Get the new date from the user\\n- Check if the booking can be changed to a new date\\n- If there are multiple available flights ask the user which flight they prefer \\n- When listing flight options only list the with the departure time and DO NOT include more details like flight number, arrival time, etc.\\n- If there are more than 3 flights available to choose from then don't list all options but ask the user to narrow down the options\\n- If the booking can be changed, always ask the user for a final confirmation before changing the booking\\n- For confirmation of new flight always include flight number,  departure city, arrival city, departure time, arrival time, number of passengers.\",\"searchFlights\":\"If a user just wants to know if there are any flights on a date from his departure, to his arrival city.\\n    You can use getAllFlights, to get a list of all flights, and then notify the user of possible flights that are in this list and have the right data.\"}"
+    ToolsServiceAgent:
+      type: object
+      properties:
+        name:
+          type: string
+          example: "tools"
+        content:
+          type: string
+          example: "{ \"auth\": \"Authenticates a user\", \"bookingInfo\": \"Retrieves booking details\", \"checkAvailability\": \"Returns a list of available flight for a given new date for which an existing booking can be changed.\", \"getAllFlights\": \"Get a list of all Flights.\", \"changeFlightDate\": \"Used to modify an existing booking with a new flight date. The new date parameter must be in yyyy-mm-dd format but should not be disclosed to the user.\", \"getAnswerFromFaq\": \"Get an answer from the FAQ for a question of the user.\", \"escalateToAgent\": \"Escalate to human agent if the user request is failing or the user is specifically asking for a human agent.\\nEscalate immediately, you don't need to authenticate the user before transferring to an agent.\\nDont't forget to provide user_intent and data_collected.\\n\", \"routeToNewFlightBooking\": \"Route to new flight booking system if the user wants to book a new flight.\", \"routeToBookingChange\": \"Route to flight booking change system if the user wants to amend a booking beyond the task you supports (eg. upgrade to business class, change seats, add luggage etc.).\\nYou must  follow these steps first before the routing::\\n- Retrieve the user's last name and the booking number from the user.\\n- You need to authenticate the user\\n- Retrieve the booking details\\n- Confirm with the user if the retrieved booking details are correct\\n- Include the booking details retrieved in the entities_collected.\\n- If the user can't provide booking details or you fail to retrieve booking details after multiple clarification attempts then offer to transfer to an agent.\\n\" }"
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

@@ -1,4 +1,5 @@
 import { body, param, ValidationChain } from 'express-validator';
+import AgentValidator from '@simulation/validator/agent.validator';
 
 class ChatValidator {
   /**
@@ -6,11 +7,18 @@ class ChatValidator {
    * @returns Validation chain array that checks simulation run request
    */
   static runValidation(): ValidationChain[] {
-    return [
+    const validations: ValidationChain[] = [
       body('name').isString().withMessage('Name must be a valid string.'),
       body('agentId').optional().isMongoId().withMessage('Agent id must be a valid Mongo id.'),
       body('agentConfig').optional().isObject().withMessage('Agent config must be a valid object.'),
+    ];
 
+    if (body('agentConfig').exists()) {
+      const validationRules = AgentValidator.agentConfigFieldsValidation('agentConfig');
+      validations.push(...validationRules);
+    }
+
+    validations.push(
       body().custom((value) => {
         if (value.agentId && value.agentConfig) {
           throw new Error('Cannot have agentConfig and agentId at the same time.');
@@ -22,7 +30,9 @@ class ChatValidator {
 
         return true;
       }),
+    );
 
+    validations.push(
       body().custom((value, { req }) => {
         const allowedFields = ['name', 'agentId', 'agentConfig'];
 
@@ -34,7 +44,9 @@ class ChatValidator {
 
         return true;
       }),
-    ];
+    );
+
+    return validations;
   }
 
   /**

@@ -14,7 +14,7 @@ services:
   mongo-express:
     depends_on:
       - mongodb  
-    image: mongo-express:latest
+    image: mongo-express:1.0.2-20-alpine3.19
     restart: always
     env_file: .env
     ports:

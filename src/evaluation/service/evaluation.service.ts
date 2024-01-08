@@ -67,8 +67,8 @@ async function runEvaluation(request: RunEvaluationRequest): Promise<RunEvaluati
  */
 async function runMultipleEvaluations(
   request: RunMultipleEvaluationsRequest,
-): Promise<EvaluationExecutedWithConversation[]> {
-  const promises: Promise<Promise<EvaluationExecutedWithConversation>[]>[] = request.simulations.map(
+): Promise<(EvaluationExecutedWithConversation | null)[]> {
+  const promises: Promise<Promise<EvaluationExecutedWithConversation>[] | null>[] = request.simulations.map(
     async (simulationID) => {
       const simulation: SimulationDocument | null = await simulationService.poll(simulationID);
 
@@ -77,6 +77,11 @@ async function runMultipleEvaluations(
       }
 
       const conversations = (await simulation.populate('conversations')).conversations as ConversationDocument[];
+
+      // simulation failed
+      if (conversations.length !== 1) {
+        return null;
+      }
 
       return conversations.map(async (conversation, indx) => {
         const runRequest: RunEvaluationRequest = {

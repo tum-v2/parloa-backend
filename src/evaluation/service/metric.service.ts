@@ -160,6 +160,11 @@ function calculateAverageResponseTime(
     countAgentMessages++;
   }
 
+  if (countAgentMessages == 0) {
+    // agent didn't respond at all
+    return Number.MAX_VALUE;
+  }
+
   return totalResponseTimeOfAgent / countAgentMessages;
 }
 

@@ -1,14 +1,11 @@
 import { CustomAgent } from '@simulation/agents/custom.agent';
-import { getSimConfig } from '@simulation/agents/user.agent';
-
+import { getUserConfig } from '@simulation/agents/user.agent';
 import {
-  flightBookingAgentConfig,
-  flightFakeUserAgentResponses,
-  flightFakeServiceAgentResponses,
+  fakeFlightServiceAgentResponses,
+  fakeFlightUserAgentResponses,
 } from '@simulation/agents/service/service.agent.flight.booker';
 
 import {
-  insuranceAgentConfig,
   insuranceFakeUserAgentResponses,
   insuranceFakeServiceAgentResponses,
 } from '@simulation/agents/service/service.agent.insurance';
@@ -29,10 +26,12 @@ import { FakeListChatModel } from 'langchain/chat_models/fake';
 import { AgentDocument } from '@db/models/agent.model';
 import { MessageDocument } from '@db/models/message.model';
 import repositoryFactory from '@db/repositories/factory';
+import { Types } from 'mongoose';
 
 import * as fs from 'fs';
 import * as path from 'path';
 import { ConversationDocument } from '@db/models/conversation.model';
+import { createFlightBookingAgent, createInsuranceAgent } from '@simulation/agents/service/service.agent';
 import { CustomAgentConfig } from '@simulation/agents/custom.agent.config';
 
 const isDev = process.env.IS_DEVELOPER;
@@ -211,16 +210,38 @@ export async function configureServiceAgent(
   let modelName: string;
   let temperature: number;
   let maxTokens: number;
-  const config: CustomAgentConfig =
-    agentData.domain === ConversationDomain.FLIGHT ? flightBookingAgentConfig : insuranceAgentConfig;
+  const welcomeMessage: string = agentData.prompt.find((prompt) => prompt.name === 'welcomeMessage')?.content || '';
+  const role: string = agentData.prompt.find((prompt) => prompt.name === 'role')?.content || '';
+  const persona: string = agentData.prompt.find((prompt) => prompt.name === 'persona')?.content || '';
+  const conversationStrategy: string =
+    agentData.prompt.find((prompt) => prompt.name === 'conversationStrategy')?.content || '';
+  const tasks: string = agentData.prompt.find((prompt) => prompt.name === 'tasks')?.content || '';
+  let agentConfig: CustomAgentConfig;
 
+  // Initialize agent config depending on domain
+  if (agentData.domain === ConversationDomain.FLIGHT) {
+    agentConfig = createFlightBookingAgent(welcomeMessage, role, persona, conversationStrategy, tasks);
+  } else {
+    // create insurance agent
+    agentConfig = createInsuranceAgent(welcomeMessage, role, persona, conversationStrategy, tasks);
+  }
+
+  // Change tool descriptions of agent config
+  const tools: Record<string, string> = JSON.parse(
+    agentData.prompt.find((prompt) => prompt.name === 'tools')?.content || '',
+  );
+  for (const tool in tools) {
+    agentConfig.changeToolDescription(tool, tools[tool]);
+  }
+
+  // Update agent configuration with agent data
   if (agentData.llm === undefined) {
-    modelName = config.modelName;
+    modelName = agentConfig.modelName;
   } else {
     modelName = agentData.llm;
   }
   if (agentData.temperature === undefined) {
-    temperature = config.temperature;
+    temperature = agentConfig.temperature;
   } else {
     temperature = agentData.temperature;
   }
@@ -235,7 +256,7 @@ export async function configureServiceAgent(
     agentLLM = new FakeListChatModel({
       responses:
         agentData.domain === ConversationDomain.FLIGHT
-          ? flightFakeServiceAgentResponses
+          ? fakeFlightServiceAgentResponses
           : insuranceFakeServiceAgentResponses,
       sleep: 100,
     });
@@ -244,17 +265,9 @@ export async function configureServiceAgent(
     agentLLM = new ChatOpenAI(azureOpenAIInput);
   }
 
-  if (agentData.prompt !== 'default') {
-    config.persona = agentData.prompt;
-  } else {
-    config.persona = `- You should be empathetic, helpful, comprehensive and polite.
-    - Never use gender specific prefixes like Mr. or Mrs. when addressing the user unless they used it themselves.
-    `;
-  }
-
   const serviceAgent: CustomAgent = new CustomAgent(
     agentLLM,
-    config,
+    agentConfig,
     SERVICE_PROMPT_LOG_FILE_PATH,
     SERVICE_CHAT_LOG_FILE_PATH,
     true,
@@ -278,7 +291,11 @@ async function configureUserAgent(agentData: AgentDocument): Promise<CustomAgent
   let temperature: number;
   let maxTokens: number;
 
-  const userSimConfig = getSimConfig(agentData.prompt, agentData.domain);
+  const userSimConfig = getUserConfig(
+    agentData.prompt.find((prompt) => prompt.name === 'role')?.content || '',
+    agentData.prompt.find((prompt) => prompt.name === 'persona')?.content || '',
+    agentData.prompt.find((prompt) => prompt.name === 'conversationStrategy')?.content || '',
+  );
   if (agentData.llm === undefined) {
     modelName = userSimConfig.modelName;
   } else {
@@ -299,7 +316,7 @@ async function configureUserAgent(agentData: AgentDocument): Promise<CustomAgent
   if (agentData.llm === LLMModel.FAKE && isDev === 'true') {
     userLLM = new FakeListChatModel({
       responses:
-        agentData.domain === ConversationDomain.FLIGHT ? flightFakeUserAgentResponses : insuranceFakeUserAgentResponses,
+        agentData.domain === ConversationDomain.FLIGHT ? fakeFlightUserAgentResponses : insuranceFakeUserAgentResponses,
       sleep: 100,
     });
   } else {
@@ -382,6 +399,11 @@ export async function createMessageDocument(
   return message;
 }
 
+export interface RunConversationData {
+  document: ConversationDocument;
+  error: Error | undefined;
+}
+
 /**
  * Runs a conversation between a service agent and a user agent.
  *
@@ -392,7 +414,7 @@ export async function createMessageDocument(
 export async function runConversation(
   serviceAgentData: AgentDocument,
   userAgentData: AgentDocument,
-): Promise<ConversationDocument> {
+): Promise<RunConversationData> {
   const startTime: Date = new Date();
   const conversation = await conversationRepository.create({
     messages: undefined,
@@ -412,34 +434,65 @@ export async function runConversation(
 
   const maxTurnCount = 15;
   let turnCount = 0;
+  const usedEndpoints: string[] = [];
 
   let conversationSuccess: boolean = false;
-  let hangupMsgTimestamp: Date;
-  while (turnCount < maxTurnCount) {
-    const userInput: string = await userAgent.processHumanInput(agentResponse);
+  let hangupMsgTimestamp: Date = new Date();
+  let thrownError: Error | undefined = undefined;
 
-    if (userInput.indexOf('/hangup') >= 0) {
-      console.log(userInput);
-      console.log(`\n👋👋👋 HANGUP by human_sim agent. Turn count: ${turnCount} 👋👋👋\n`);
-      conversationSuccess = true;
-      hangupMsgTimestamp = new Date();
-      break;
+  try {
+    while (turnCount < maxTurnCount) {
+      const userInput: string = await userAgent.processHumanInput(agentResponse);
+
+      if (userInput.indexOf('/hangup') >= 0) {
+        console.log(userInput);
+        console.log(`\n👋👋👋 HANGUP by human_sim agent. Turn count: ${turnCount} 👋👋👋\n`);
+        conversationSuccess = true;
+        hangupMsgTimestamp = new Date();
+        break;
+      }
+
+      agentResponse = await serviceAgent.processHumanInput(userInput);
+
+      turnCount++;
     }
-
-    agentResponse = await serviceAgent.processHumanInput(userInput);
-
-    turnCount++;
+  } catch (error) {
+    conversationSuccess = false;
+    if (error instanceof Error) {
+      thrownError = error as Error;
+    }
   }
-
-  const endTime: Date = new Date();
-
-  const usedEndpoints: string[] = [];
-  const messages: MessageDocument[] = [];
-  for (let i = 0; i < serviceAgent.messageHistory.length; i++) {
-    messages.push(
-      await createMessageDocument(serviceAgent.messageHistory[i], usedEndpoints, serviceAgent.config.welcomeMessage),
-    );
-  }
+  updateConversation(
+    conversation,
+    await saveMessagesToDB(serviceAgent, usedEndpoints),
+    usedEndpoints,
+    conversationSuccess,
+    hangupMsgTimestamp,
+    new Date(),
+  );
+  const runConversationData: RunConversationData = {
+    document: conversation,
+    error: thrownError,
+  };
+  return runConversationData;
+}
+/**
+ * Update the conversation with the messages, used endpoints, endTime and it's status
+ *
+ * @param conversation - The conversation document.
+ * @param messages - An array of messages.
+ * @param usedEndpoints - An array of used endpoints.
+ * @returns - A promise that resolves to a ConversationDocument object.
+ */
+async function updateConversation(
+  conversation: ConversationDocument,
+  messages: Types.ObjectId[],
+  usedEndpoints: string[],
+  conversationSuccess: boolean,
+  hangupMsgTimestamp: Date,
+  endTime: Date,
+) {
+  // add the hangup message if the conversation was successful
   if (conversationSuccess) {
     const hangupMessage: MessageDocument = await messageRepository.create({
       sender: MsgSender.USER,
@@ -450,15 +503,35 @@ export async function runConversation(
       action: undefined,
       toolInput: undefined,
     });
-    messages.push(hangupMessage);
+    messages.push(hangupMessage._id);
+  }
+  conversation.messages = messages;
+  conversation.endTime = endTime;
+  conversation.status = conversationSuccess ? ConversationStatus.FINISHED : ConversationStatus.FAILED;
+  conversation.usedEndpoints = usedEndpoints;
+
+  // update the conversation
+  await conversationRepository.updateById(conversation._id, conversation);
+}
+/**
+ * Save all messages to the database and return their ids.
+ *
+ * @param serviceAgent - The service agent.
+ * @param usedEndpoints - An array of used endpoints.
+ * @returns - A promise that resolves to an array of message ids.
+ */
+async function saveMessagesToDB(serviceAgent: CustomAgent, usedEndpoints: string[]): Promise<Types.ObjectId[]> {
+  const messages: MessageDocument[] = [];
+
+  // create a message document for each message history item
+  for (let i = 0; i < serviceAgent.messageHistory.length; i++) {
+    messages.push(
+      await createMessageDocument(serviceAgent.messageHistory[i], usedEndpoints, serviceAgent.config.welcomeMessage),
+    );
   }
 
-  conversation.messages = messages.map((msg: MessageDocument) => msg._id);
-  conversation.endTime = endTime;
-  conversation.status = ConversationStatus.FINISHED;
-  conversation.usedEndpoints = usedEndpoints;
-  await conversationRepository.updateById(conversation._id, conversation);
-  return conversation;
+  // return the ids of the messages
+  return messages.map((msg: MessageDocument) => msg._id);
 }
 
 export default {

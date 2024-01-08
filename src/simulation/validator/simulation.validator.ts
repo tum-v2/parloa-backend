@@ -1,6 +1,7 @@
 import { body, param, ValidationChain } from 'express-validator';
 
 import { SimulationType } from '@enums/simulation-type.enum';
+import AgentValidator from '@simulation/validator/agent.validator';
 
 class SimulationValidator {
   /**
@@ -8,7 +9,7 @@ class SimulationValidator {
    * @returns Validation chain array that checks simulation run request
    */
   static runValidation(): ValidationChain[] {
-    return [
+    const validations: ValidationChain[] = [
       body('name').isString().withMessage('Simulation name must be a valid string.'),
       body('type')
         .isIn(Object.values(SimulationType))
@@ -72,6 +73,14 @@ class SimulationValidator {
         return true;
       }),
     ];
+
+    let validationRules = AgentValidator.agentConfigFieldsValidation('serviceAgentConfig');
+    validations.push(...validationRules);
+
+    validationRules = AgentValidator.agentConfigFieldsValidation('userAgentConfig');
+    validations.push(...validationRules);
+
+    return validations;
   }
 
   /**
@@ -79,9 +88,11 @@ class SimulationValidator {
    * @returns Validation chain array that checks simulation run request
    */
   static abValidation(): ValidationChain[] {
-    return [
+    const validations: ValidationChain[] = [
       body('name').isString().withMessage('Simulation name must be a valid string.'),
-      body('numConversations').isInt().withMessage('Number of conversations must be a valid integer.'),
+      body('numConversations')
+        .isInt({ min: 1, max: 1 })
+        .withMessage('Number of conversations must be a valid integer between 1 and 100.'),
 
       // these are not required, but if they are present, they must be valid mongo IDs
       body('serviceAgentAId').optional().isMongoId().withMessage('Service agent A ID must be a valid ID.'),
@@ -153,6 +164,17 @@ class SimulationValidator {
         return true;
       }),
     ];
+
+    let validationRules = AgentValidator.agentConfigFieldsValidation('serviceAgentAConfig');
+    validations.push(...validationRules);
+
+    validationRules = AgentValidator.agentConfigFieldsValidation('serviceAgentBConfig');
+    validations.push(...validationRules);
+
+    validationRules = AgentValidator.agentConfigFieldsValidation('userAgentConfig');
+    validations.push(...validationRules);
+
+    return validations;
   }
 
   /**

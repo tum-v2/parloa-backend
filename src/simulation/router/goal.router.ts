@@ -1,48 +1,47 @@
-import express, { Router } from 'express';
-
-import agentController from '@simulation/api/agent.controller';
+import { Router } from 'express';
 import { CustomValidationError } from '@utils/handle-validation-errors';
-import AgentValidator from '@simulation/validator/agent.validator';
+import GoalValidator from '@simulation/validator/goal.validator';
+import goalController from '@simulation/api/goal.controller';
 import { verifyToken } from '@utils/auth-token';
 
-const router: Router = express.Router();
+const router = Router();
 
 // POST //
 router.post(
   '/',
   verifyToken,
-  AgentValidator.createValidation(),
+  GoalValidator.createValidation(),
   CustomValidationError.handleValidationErrors,
-  agentController.create,
+  goalController.createGoal,
 );
 
 // GET //
-router.get('/', verifyToken, agentController.getAll);
+router.get('/', verifyToken, goalController.getAllGoals);
 router.get(
   '/:id',
   verifyToken,
-  AgentValidator.idValidation(),
+  GoalValidator.idValidation(),
   CustomValidationError.handleValidationErrors,
-  agentController.get,
+  goalController.getGoalById,
 );
 
 // PUT //
 router.put(
   '/:id',
   verifyToken,
-  AgentValidator.idValidation(),
-  AgentValidator.updateValidation(),
+  GoalValidator.idValidation(),
+  GoalValidator.updateValidation(),
   CustomValidationError.handleValidationErrors,
-  agentController.update,
+  goalController.updateGoal,
 );
 
 // DELETE //
 router.delete(
   '/:id',
   verifyToken,
-  AgentValidator.idValidation(),
+  GoalValidator.idValidation(),
   CustomValidationError.handleValidationErrors,
-  agentController.del,
+  goalController.deleteGoal,
 );
 
 export default router;

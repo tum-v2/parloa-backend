@@ -60,7 +60,7 @@ async function runMultiple(req: Request, res: Response): Promise<void> {
     }
 
     const evaluationConfig: RunMultipleEvaluationsRequest = req.body as RunMultipleEvaluationsRequest;
-    const evaluationResults: EvaluationExecutedWithConversation[] =
+    const evaluationResults: (EvaluationExecutedWithConversation | null)[] =
       await evaluationService.runMultipleEvaluations(evaluationConfig);
     const csvFile = evaluationResultsToCsv(evaluationResults);
     res.download(...csvFile);

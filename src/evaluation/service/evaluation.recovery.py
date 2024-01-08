@@ -23,7 +23,8 @@ def recovery_counter(texts, delta):
     recovering = False
     recoveries = 0
     for m in texts:
-        if m['sender'].lower() == 'USER'.lower() and not find_response(texts, delta, m['timestamp']):
+        # only consider user messages except the HANGUP message
+        if m['sender'].lower() == 'USER'.lower() and m['type'].lower() != 'HANGUP'.lower() and not find_response(texts, delta, m['timestamp']):
             timeouts += 1
             recovering = True
         else:
