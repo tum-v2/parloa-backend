@@ -194,6 +194,9 @@ class AgentValidator {
    * @returns Validation chain array that checks valid agent ID
    */
   static agentConfigFieldsValidation(agentConfig: string): ValidationChain[] {
+    if (body(agentConfig).isEmpty()) {
+      return [];
+    }
     return [
       body(`${agentConfig}.name`).isString().withMessage(`Name must be a valid string for ${agentConfig}.`),
       body(`${agentConfig}.type`)
